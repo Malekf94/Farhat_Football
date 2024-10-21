@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Farhat Football</title>
+		<link rel="stylesheet" href="style.css" />
+		<link
+			rel="stylesheet"
+			href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.6.0/css/fontawesome.min.css"
+		/>
+	</head>
+	<body>
+		<section class="header">
+			<nav>
+				<a href="index.html"><img src="/Farhatfootballlogo1.jpeg" /> </a>
+				<div class="nav-links" id="navLinks">
+					<i class="fa fa-times" onclick="hideMenu()"></i>
+					<ul>
+						<li><a href="">Rules</a></li>
+						<li><a href="">Matches</a></li>
+						<li><a href="">Players</a></li>
+					</ul>
+				</div>
+				<i class="fa fa-bars" onclick="showMenu()"></i>
+			</nav>
+			<div class="text-box">
+				<h1>World's greatest football organisation</h1>
+				<p>
+					Welcome to our beautiful game, click the link below for more details
+					on our upcoming game
+				</p>
+				<a href="" class="contact-us">Next Game</a>
+			</div>
+			<div class="contact_us_div">
+				<a href="" class="contact-us"
+					>Click here to Contact Us for more information</a
+				>
+			</div>
+		</section>
+		<script>
+			// Javascript for toggling menu
+			var navLinks = document.getElementById("navLinks");
+
+			function showMenu() {
+				navLinks.style.right = "0";
+			}
+
+			function hideMenu() {
+				navLinks.style.right = "-200";
+			}
+		</script>
+	</body>
+</html>

@@ -1,7 +1,6 @@
 # Farhat_Football
 
 Moving away from using a spreadshoot for our football sessions and towards a relational database online
-
 So a database for the players, a database for the matches
 
 Page for rules
@@ -20,30 +19,15 @@ Have to compile it in such a way that I can feed player data to an ai to balanc
 
 Attributes are as follows
 
-Dribbling
-Finishing
-First Touch
-Long shots
-Movement
+Dribbling Finishing First Touch Long shots Movement
 
-Short Passing
-Long passing
-Vision
+Short Passing Long passing Vision
 
-Tackling
-Positioning
-Marking
+Tackling Positioning Marking
 
-Concentration
-Decision
-Leadership
-Consistency
-Aggression
+Concentration Decision Making Leadership Consistency Aggression
 
-Stamina
-Workrate
-Pace
-Strength
+Stamina Workrate Pace Strength
 
 Player database will also include stats for goals, assists and MoTM that can be filtered by date, also contains how much they owe
 
@@ -54,3 +38,5 @@ Match database will have the date, day. list of players, whether they came late,
 The two database will be joined by player ID
 
 There should also be a database to combine all matches.
+
+Future thoughts:- how to make it so if someone is organising their own games, they can create an account and it will set up this for them
