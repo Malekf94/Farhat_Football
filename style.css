@@ -60,7 +60,7 @@ nav img {
 	color: white;
 	position: absolute;
 	top: 50%;
-	left: 50%;
+	left: 51%;
 	transform: translate(-50%, -50%);
 	text-align: center;
 }
@@ -71,11 +71,11 @@ nav img {
 
 .text-box p {
 	margin: 10px 0 40px;
-	font-size: 14px;
+	font-size: 24px;
 	color: white;
 }
 
-.contact-us {
+.next-game {
 	display: inline-block;
 	text-decoration: none;
 	color: #f44336;
@@ -87,7 +87,7 @@ nav img {
 	cursor: pointer;
 }
 
-.contact-us:hover {
+.next-game:hover {
 	border: 1px solid red;
 	background: red;
 	transition: 1s;
@@ -95,6 +95,16 @@ nav img {
 
 nav .fa {
 	display: none;
+}
+
+.contact_us_div {
+	width: 90%;
+	color: white;
+	position: absolute;
+	top: 65%;
+	left: 52%;
+	transform: translate(-50%, -50%);
+	text-align: center;
 }
 
 @media (max-width: 700px) {
