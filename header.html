@@ -13,11 +13,17 @@
 			<i class="fa fa-bars" onclick="showMenu()"></i>
 		</nav>
 	</header>
-	<!-- <div class="text-box">
-		<h1>Welcome to Farhat Football</h1>
-		<p>
-			The links below navigate you to be able to contact us, check the upcoming
-			game and the previous game.
-		</p>
-	</div> -->
+	<script>
+		// Javascript for toggling menu
+		var navLinks = document.getElementById("navLinks");
+
+		function showMenu() {
+			navLinks.style.right = "0";
+		}
+
+		function hideMenu() {
+			var navLinks = document.getElementById("navLinks");
+			navLinks.style.right = "-200";
+		}
+	</script>
 </section>
