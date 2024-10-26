@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<link rel="stylesheet" href="style.css" />
+		<link
+			rel="stylesheet"
+			href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.6.0/css/fontawesome.min.css"
+		/>
+		<title>Rules</title>
+	</head>
+	<body>
+		<div id="header"></div>
+		<script>
+			fetch("header.html")
+				.then((response) => response.text())
+				.then((data) => {
+					document.getElementById("header").innerHTML = data;
+				});
+		</script>
+		<section class="the-rules">
+			<h1>Our Rules</h1>
+			<ul>
+				<li>Rule Number 1: Respect others</li>
+				<li>Rule Number 2: Remember Rule 1</li>
+				<li>Rule Number 3: Zak makes shit teams</li>
+			</ul>
+		</section>
+	</body>
+</html>

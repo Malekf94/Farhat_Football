@@ -11,28 +11,22 @@
 		/>
 	</head>
 	<body>
-		<section class="header">
-			<nav>
-				<a href="index.html"><img src="/Farhatfootballlogo1.jpeg" /> </a>
-				<div class="nav-links" id="navLinks">
-					<i class="fa fa-times" onclick="hideMenu()"></i>
-					<ul>
-						<li><a href="">Rules</a></li>
-						<li><a href="">Matches</a></li>
-						<li><a href="">Players</a></li>
-					</ul>
-				</div>
-				<i class="fa fa-bars" onclick="showMenu()"></i>
-			</nav>
-			<div class="text-box">
-				<h1>Welcome to Farhat Football</h1>
-				<p>
-					The links below navigate you to be able to contact us, check the
-					upcoming game and the previous game.
-				</p>
-			</div>
-		</section>
+		<div id="header"></div>
+		<script>
+			fetch("header.html")
+				.then((response) => response.text())
+				.then((data) => {
+					document.getElementById("header").innerHTML = data;
+				});
+		</script>
 
+		<div class="text-box">
+			<h1>Welcome to Farhat Football</h1>
+			<p>
+				The links below navigate you to be able to contact us, check the
+				upcoming game and the previous game.
+			</p>
+		</div>
 		<!-----course-->
 		<section class="links">
 			<div class="contact_us_div">
