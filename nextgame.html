@@ -22,11 +22,21 @@
 		</script>
 		<section class="the-rules">
 			<h1>The Next game</h1>
-			<ul>
-				<li>Rule Number 1: Respect others</li>
-				<li>Rule Number 2: Remember Rule 1</li>
-				<li>Rule Number 3: Zak makes shit teams</li>
+			<ul id="list of players">
+				<li>Malek</li>
+				<li>Anas</li>
+				<li>Jemei</li>
 			</ul>
+			<button onclick="addPlayer()">In</button>
 		</section>
+		<script>
+			function addPlayer() {
+				const newPlayer = "Mussa";
+				var ul = document.getElementById("list of players");
+				var li = document.createElement("li");
+				li.appendChild(document.createTextNode(newPlayer));
+				ul.appendChild(li);
+			}
+		</script>
 	</body>
 </html>
