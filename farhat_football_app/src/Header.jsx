@@ -1,10 +1,12 @@
+import MainImage from "../images/Farhatfootballlogo1.jpeg";
+
 function Header() {
 	return (
 		<header>
-			<h1>My website</h1>
+			<h1>Farhat Football</h1>
 			<nav>
 				<a href="index.html">
-					<img src="images/Farhatfootballlogo1.jpeg" />
+					<img className="our-logo" src={MainImage} />
 				</a>
 				<div>
 					<ul>
