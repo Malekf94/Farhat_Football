@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 function Player(props) {
 	return (
 		<div>
-			<p>Name: {props.name}</p>
+			<p>Name: {props}</p>
 		</div>
 	);
 }

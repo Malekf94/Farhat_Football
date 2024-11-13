@@ -1,0 +1,13 @@
+.the-rules {
+	width: 90%;
+	color: white;
+	position: absolute;
+	top: 50%;
+	left: 51%;
+	transform: translate(-50%, -50%);
+	text-align: center;
+}
+
+ul {
+	list-style: circle;
+}
