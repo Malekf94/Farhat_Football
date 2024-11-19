@@ -1,5 +1,5 @@
 import Header from "./Header/Header.jsx";
-// import Button from "./Button.jsx";
+import PersonalDetails from "./PersonalDetails.jsx";
 import Matches from "./Matches.jsx";
 import "./App.css";
 import { Route, Routes } from "react-router-dom";
@@ -16,6 +16,7 @@ function App() {
 				<Route path="/Rules.jsx" element={<Rules />} />
 				<Route path="/Matches.jsx" element={<Matches />} />
 				<Route path="/Player.jsx" element={<Player />} />
+				<Route path="/PersonalDetails.jsx" element={<PersonalDetails />} />
 			</Routes>
 		</div>
 	);
