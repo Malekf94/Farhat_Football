@@ -1,11 +1,11 @@
-import Header from "./Header/Header.jsx";
-import PersonalDetails from "./PersonalDetails.jsx";
-import Matches from "./Matches.jsx";
+import Header from "./Pages/Header/Header.jsx";
+import PersonalDetails from "./Pages/PersonalDetails.jsx";
+import Matches from "./Pages/Matches.jsx";
 import "./App.css";
 import { Route, Routes } from "react-router-dom";
-import Rules from "./Rules/Rules.jsx";
-import Player from "./Player.jsx";
-import Home from "./Home/Home.jsx";
+import Rules from "./Pages/Rules/Rules.jsx";
+import Player from "./Pages/Player.jsx";
+import Home from "./Pages/Home/Home.jsx";
 
 function App() {
 	return (

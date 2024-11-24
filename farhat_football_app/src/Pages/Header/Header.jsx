@@ -1,11 +1,10 @@
-import MainImage from "../../images/Farhatfootballlogo1.jpeg";
+import MainImage from "../../../images/Farhatfootballlogo1.jpeg";
 import "./Header.css";
 import { Link } from "react-router-dom";
 
 function Header() {
 	return (
 		<header>
-			{/* <h1>Farhat Football</h1> */}
 			<nav className="navbar">
 				<Link to="/Home.jsx">
 					<img className="our-logo" src={MainImage} />
