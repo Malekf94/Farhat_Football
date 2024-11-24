@@ -6,22 +6,22 @@ function Header() {
 	return (
 		<header>
 			<nav className="navbar">
-				<Link to="/Home.jsx">
+				<Link to="/Home">
 					<img className="our-logo" src={MainImage} />
 				</Link>
 				<div>
 					<ul className="nav-links">
 						<li className="header-li">
-							<Link to="../Rules.jsx">Rules</Link>
+							<Link to="../Rules">Rules</Link>
 						</li>
 						<li className="header-li">
-							<Link to="../Matches.jsx">Matches</Link>
+							<Link to="../Matches">Matches</Link>
 						</li>
 						<li className="header-li">
-							<Link to="../Players.jsx">Players</Link>
+							<Link to="../Players">Players</Link>
 						</li>
 						<li className="header-li">
-							<Link to="../YourAccount.jsx">Your Account</Link>
+							<Link to="../YourAccount">Your Account</Link>
 						</li>
 					</ul>
 				</div>

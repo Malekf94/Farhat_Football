@@ -1,10 +1,10 @@
 import Header from "./Pages/Header/Header.jsx";
-import PersonalDetails from "./Pages/PersonalDetails.jsx";
-import Matches from "./Pages/Matches.jsx";
+import PersonalDetails from "./Pages/PersonalDetails/PersonalDetails.jsx";
+import Matches from "./Pages/Matches/Matches.jsx";
 import "./App.css";
 import { Route, Routes } from "react-router-dom";
 import Rules from "./Pages/Rules/Rules.jsx";
-import Player from "./Pages/Player.jsx";
+import Players from "./Pages/Players/Players.jsx";
 import Home from "./Pages/Home/Home.jsx";
 
 function App() {
@@ -12,11 +12,11 @@ function App() {
 		<div className="App">
 			<Header />
 			<Routes>
-				<Route path="/Home.jsx" element={<Home />} />
-				<Route path="/Rules.jsx" element={<Rules />} />
-				<Route path="/Matches.jsx" element={<Matches />} />
-				<Route path="/Player.jsx" element={<Player />} />
-				<Route path="/PersonalDetails.jsx" element={<PersonalDetails />} />
+				<Route path="/Home" element={<Home />} />
+				<Route path="/Rules" element={<Rules />} />
+				<Route path="/Matches" element={<Matches />} />
+				<Route path="/Players" element={<Players />} />
+				<Route path="/PersonalDetails" element={<PersonalDetails />} />
 			</Routes>
 		</div>
 	);
