@@ -6,17 +6,19 @@ import { Route, Routes } from "react-router-dom";
 import Rules from "./Pages/Rules/Rules.jsx";
 import Players from "./Pages/Players/Players.jsx";
 import Home from "./Pages/Home/Home.jsx";
+import PlayerDetails from "./Pages/PlayerDetails/PlayerDetails.jsx";
 
 function App() {
 	return (
 		<div className="App">
 			<Header />
 			<Routes>
-				<Route path="/Home" element={<Home />} />
+				<Route path="/" element={<Home />} />
 				<Route path="/Rules" element={<Rules />} />
 				<Route path="/Matches" element={<Matches />} />
 				<Route path="/Players" element={<Players />} />
 				<Route path="/PersonalDetails" element={<PersonalDetails />} />
+				<Route path="/Players/:playerid" element={<PlayerDetails />} />
 			</Routes>
 		</div>
 	);

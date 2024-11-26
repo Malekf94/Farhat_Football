@@ -28,7 +28,16 @@ const getPlayers = (req, res) => {
 	console.log("getting players");
 };
 
+const getPlayer = (req, res) => {
+	const playerid = parseInt(req.params.playerid);
+	pool.query(queries.getPlayer, [playerid], (error, results) => {
+		if (error) throw error;
+		res.status(200).json(results.rows);
+	});
+	console.log("getting player");
+};
 module.exports = {
 	getPlayers,
 	addPlayer,
+	getPlayer,
 };

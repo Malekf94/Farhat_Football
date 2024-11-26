@@ -1,0 +1,15 @@
+.playerList {
+	list-style: none;
+	padding: 0;
+}
+
+.playerList li {
+	margin: 10px 0;
+	font-size: 16px;
+}
+
+.playerPage {
+	/* display: flex; */
+	padding-left: 20px;
+	align-items: center;
+}
