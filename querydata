@@ -31,3 +31,4 @@ INSERT INTO players (first_name, last_name, preferred_name, year_of_birth, heigh
 ('Olivia', 'Anderson', 'Liv', 2001, 1.70, 60, 'Swedish', 'olivia.anderson@example.com'),
 ('William', 'Thomas', 'Will', 1993, 1.88, 85, 'Welsh', 'william.thomas@example.com'),
 ('Isabella', 'Moore', 'Bella', 1999, 1.67, 63, 'French', 'isabella.moore@example.com');
+

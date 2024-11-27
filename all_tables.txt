@@ -1,0 +1,66 @@
+CREATE TABLE matches (
+match_id SERIAL PRIMARY KEY, 
+match_date DATE,
+match_time TIME,
+price FLOAT,
+number_of_players INT,
+pitch_id INT NOT NULL REFERENCES pitches(pitch_id)
+match_status VARCHAR(15),
+signin_begin_time DATE
+);
+
+CREATE TABLE players (
+player_id SERIAL PRIMARY KEY,
+first_name VARCHAR (30),
+last_name VARCHAR (30),
+preferred_name VARCHAR(20),
+year_of_birth INT,
+height FLOAT,
+weight INT,
+nationality VARCHAR(30),
+email VARCHAR(30),
+account_balance INT DEFAULT 0
+);
+
+CREATE TABLE matchday(
+ match_id INT NOT NULL REFERENCES matches(matchId) ON DELETE CASCADE,
+ player_id INT NOT NULL REFERENCES players(playerId) ON DELETE CASCADE,
+ goals INT DEFAULT 0,
+ assists INT DEFAULT 0,
+ late boolean, 
+ price float, 
+ team_id INT
+)
+
+CREATE TABLE pitches (
+pitch_id SERIAL PRIMARY KEY,
+pitch_name VARCHAR(20),
+address VARCHAR(30),
+postcode VARCHAR(8),
+price float,
+)
+
+
+Create Table attributes(
+dribbling INT DEFAULT 0,
+finishing INT DEFAULT 0,
+first_touch INT DEFAULT 0,
+long_shots INT DEFAULT 0,
+movement INT DEFAULT 0,
+short_passing INT DEFAULT 0,
+long_passing INT DEFAULT 0,
+vision INT DEFAULT 0,
+tackling INT DEFAULT 0,
+positioning INT DEFAULT 0,
+marking INT DEFAULT 0,
+aggression INT DEFAULT 0,
+concentration INT DEFAULT 0,
+decision_making INT DEFAULT 0,
+leadership INT DEFAULT 0,
+consistency INT DEFAULT 0,
+stamina INT DEFAULT 0,
+pace INT DEFAULT 0,
+strength INT DEFAULT 0,
+workrate INT DEFAULT 0,
+teamwork INT DEFAULT 0
+)

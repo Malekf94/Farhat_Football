@@ -1,0 +1,11 @@
+first_name,last_name,preferred_name,year_of_birth,height,weight,nationality,email
+John,Doe,Johnny,1995,1.85,80,American,john.doe@example.com
+Jane,Smith,Janie,1998,1.68,62,Canadian,jane.smith@example.com
+Michael,Brown,Mike,1992,1.90,88,English,mike.brown@example.com
+Emily,Davis,Em,1997,1.72,65,Australian,emily.davis@example.com
+David,Wilson,Dave,1990,1.78,75,Scottish,david.wilson@example.com
+Sophia,Miller,Sophie,2000,1.65,58,German,sophia.miller@example.com
+James,Taylor,Jim,1994,1.83,82,Irish,james.taylor@example.com
+Olivia,Anderson,Liv,2001,1.70,60,Swedish,olivia.anderson@example.com
+William,Thomas,Will,1993,1.88,85,Welsh,william.thomas@example.com
+Isabella,Moore,Bella,1999,1.67,63,French,isabella.moore@example.com
