@@ -1,0 +1,201 @@
+To implement this feature, you can use a PostgreSQL **trigger** and **stored procedure**. Here’s how:
+
+---
+
+### 1. **Define the Trigger and Procedure**
+
+#### Trigger Explanation
+- The trigger fires **after an update** on the `matches` table.
+- It checks if the `match_status` has changed from `pending` to `completed`.
+- If true, it calculates the amount to add to each player's account balance and updates the `players` table.
+
+#### SQL Implementation
+
+```sql
+-- 1. Create the Procedure
+CREATE OR REPLACE FUNCTION update_player_balances()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Check if the match status has changed from 'pending' to 'completed'
+    IF (NEW.match_status = 'completed' AND OLD.match_status = 'pending') THEN
+        -- Update player balances for the match
+        UPDATE players
+        SET account_balance = account_balance + (
+            SELECT CASE 
+                WHEN mp.late THEN (m.price + 1) 
+                ELSE m.price 
+            END
+            FROM match_players mp
+            JOIN matches m ON mp.match_id = m.match_id
+            WHERE mp.player_id = players.player_id AND m.match_id = NEW.match_id
+        )
+        WHERE players.player_id IN (
+            SELECT player_id FROM match_players WHERE match_id = NEW.match_id
+        );
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- 2. Create the Trigger
+CREATE TRIGGER trigger_update_player_balances
+AFTER UPDATE OF match_status ON matches
+FOR EACH ROW
+EXECUTE FUNCTION update_player_balances();
+```
+
+---
+
+### 2. **How It Works**
+- When the `match_status` is updated to `"completed"`, the trigger calculates the price for each player in the match:
+  - **Late players**: `price + 1`.
+  - **On-time players**: `price`.
+- The `players.account_balance` field is updated based on the calculated price.
+
+---
+
+### 3. **Testing the Trigger**
+
+#### Step 1: Insert Example Data
+
+Ensure you have test data in your `players`, `matches`, and `match_players` tables.
+
+#### Step 2: Update Match Status
+
+Run this query to update a match's status and observe the effect:
+
+```sql
+UPDATE matches
+SET match_status = 'completed'
+WHERE match_id = 5; -- Replace with an actual match_id from your table
+```
+
+#### Step 3: Verify Player Balances
+
+Query the `players` table to confirm the `account_balance` updates:
+
+```sql
+SELECT player_id, preferred_name, account_balance FROM players;
+```
+
+---
+
+### 4. **Additional Considerations**
+- **Edge Cases**: Ensure matches with no associated players won't cause errors.
+- **Reverting Status**: If you want to handle reverting a match status, additional logic can be added to deduct balances.
+- **Audit Trail**: Consider adding an audit table to log balance changes for debugging and transparency.
+
+Let me know if you want to enhance or modify this further!
+
+
+
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+
+
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+
+
+
+You're correct—PostgreSQL does not allow subqueries within a generated column expression. To work around this, you can achieve the desired functionality by using a **trigger function**. Triggers allow you to update the `match_name` field whenever a row is inserted or updated.
+
+Here's how you can implement this:
+
+---
+
+### Steps to Add `match_name` Using Triggers
+
+#### 1. Add the `match_name` Column
+First, add the `match_name` column to your `matches` table without any generated logic:
+
+```sql
+ALTER TABLE matches 
+ADD COLUMN match_name VARCHAR(50);
+```
+
+---
+
+#### 2. Create the Trigger Function
+Write a function to automatically populate the `match_name` field:
+
+```sql
+CREATE OR REPLACE FUNCTION generate_match_name()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.match_name := (
+        SELECT CONCAT(
+            (SELECT pitch_name FROM pitches WHERE pitches.pitch_id = NEW.pitch_id),
+            '-', 
+            NEW.number_of_players, 's-', 
+            TO_CHAR(NEW.match_date, 'DDMMYY')
+        )
+    );
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+```
+
+---
+
+#### 3. Create the Trigger
+Attach the function to the `matches` table to execute it before insert or update:
+
+```sql
+CREATE TRIGGER match_name_trigger
+BEFORE INSERT OR UPDATE ON matches
+FOR EACH ROW
+EXECUTE FUNCTION generate_match_name();
+```
+
+---
+
+### How It Works
+- **Trigger Function**: The function `generate_match_name()` runs automatically before each `INSERT` or `UPDATE` on the `matches` table.
+- **Logic**: It fetches the `pitch_name` from the `pitches` table, combines it with other fields from the `matches` table, and sets the `match_name`.
+
+---
+
+### Example Usage
+
+#### Insert a Match
+```sql
+INSERT INTO matches (match_date, match_time, price, number_of_players, pitch_id, match_status, signin_begin_time)
+VALUES ('2024-11-25', '18:00:00', 5.0, 8, 1, 'pending', '2024-11-25 17:30:00');
+```
+
+#### Query the Match
+```sql
+SELECT match_name FROM matches WHERE match_id = 1;
+```
+
+**Output:**
+```
+deens trust ardwick-8s-251124
+```
+
+---
+
+### Notes
+- Ensure that the `pitch_id` exists in the `pitches` table for the trigger to work.
+- You can modify the length of `VARCHAR(50)` in the `match_name` column to accommodate longer names.
+
+Let me know if you encounter issues or need further customization!

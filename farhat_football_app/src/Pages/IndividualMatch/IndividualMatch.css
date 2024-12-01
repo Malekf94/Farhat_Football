@@ -1,0 +1,39 @@
+.match {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	margin: 20px;
+}
+
+.match h1 {
+	font-size: 2rem;
+	margin-bottom: 20px; /* Space between the header and the table */
+	text-align: center;
+}
+
+.playerTable {
+	border-collapse: collapse; /* Combines borders for a cleaner look */
+	width: 80%; /* Adjust the width as needed */
+	max-width: 1200px;
+	margin: 0 auto; /* Centers the table horizontally */
+}
+
+.playerTable th,
+.playerTable td {
+	border: 1px solid #ccc; /* Border for cells */
+	padding: 10px; /* Padding inside cells */
+	text-align: center; /* Center-align text */
+}
+
+.playerTable th {
+	background-color: #f4f4f4; /* Light background for headers */
+	font-weight: bold;
+}
+
+.playerTable tr:nth-child(even) {
+	background-color: #f9f9f9; /* Alternating row color for better readability */
+}
+
+.playerTable tr:hover {
+	background-color: #eaeaea; /* Highlight row on hover */
+}

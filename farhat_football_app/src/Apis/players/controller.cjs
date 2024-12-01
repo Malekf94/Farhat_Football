@@ -29,8 +29,9 @@ const getPlayers = (req, res) => {
 };
 
 const getPlayer = (req, res) => {
-	const playerid = parseInt(req.params.playerid);
-	pool.query(queries.getPlayer, [playerid], (error, results) => {
+	const player_id = parseInt(req.params.player_id);
+	console.log(req.params);
+	pool.query(queries.getPlayer, [player_id], (error, results) => {
 		if (error) throw error;
 		res.status(200).json(results.rows);
 	});

@@ -10,8 +10,8 @@ const getMatches = (req, res) => {
 };
 
 const getMatchById = (req, res) => {
-	const matchid = parseInt(req.params.matchid);
-	pool.query(queries.getMatchById, [matchid], (error, results) => {
+	const match_id = parseInt(req.params.match_id);
+	pool.query(queries.getMatchById, [match_id], (error, results) => {
 		if (error) throw error;
 		res.status(200).json(results.rows);
 	});

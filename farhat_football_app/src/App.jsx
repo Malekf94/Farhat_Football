@@ -7,6 +7,7 @@ import Rules from "./Pages/Rules/Rules.jsx";
 import Players from "./Pages/Players/Players.jsx";
 import Home from "./Pages/Home/Home.jsx";
 import PlayerDetails from "./Pages/PlayerDetails/PlayerDetails.jsx";
+import IndividualMatch from "./Pages/IndividualMatch/IndividualMatch.jsx";
 
 function App() {
 	return (
@@ -16,9 +17,10 @@ function App() {
 				<Route path="/" element={<Home />} />
 				<Route path="/Rules" element={<Rules />} />
 				<Route path="/Matches" element={<Matches />} />
+				<Route path="/Matches/:match_id" element={<IndividualMatch />} />
 				<Route path="/Players" element={<Players />} />
 				<Route path="/PersonalDetails" element={<PersonalDetails />} />
-				<Route path="/Players/:playerid" element={<PlayerDetails />} />
+				<Route path="/Players/:player_id" element={<PlayerDetails />} />
 			</Routes>
 		</div>
 	);

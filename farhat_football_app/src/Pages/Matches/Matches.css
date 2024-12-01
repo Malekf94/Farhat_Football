@@ -1,4 +1,4 @@
-.playerPage {
+.Matches {
 	padding: 20px; /* Space around the content */
 	min-height: 100vh; /* Full viewport height */
 	display: flex;
@@ -6,7 +6,7 @@
 	align-items: center;
 }
 
-.playerPage h1 {
+.Matches h1 {
 	font-size: 2.5rem;
 	color: #ffffff; /* White text to stand out on the green background */
 	margin-bottom: 20px;

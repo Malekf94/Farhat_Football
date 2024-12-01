@@ -1,14 +1,3 @@
-CREATE TABLE matches (
-    match_id SERIAL PRIMARY KEY, 
-    match_date DATE NOT NULL,
-    match_time TIME NOT NULL,
-    price FLOAT NOT NULL,
-    number_of_players INT NOT NULL CHECK (number_of_players > 0),
-    pitch_id INT NOT NULL REFERENCES pitches(pitch_id) ON DELETE SET NULL,
-    match_status VARCHAR(15) NOT NULL, 
-    signin_begin_time TIME NOT NULL
-);
-
 CREATE TABLE players (
     player_id SERIAL PRIMARY KEY,
     first_name VARCHAR(30) NOT NULL,
@@ -22,6 +11,26 @@ CREATE TABLE players (
     account_balance DECIMAL(10, 2) DEFAULT 0
 );
 
+CREATE TABLE pitches (
+    pitch_id SERIAL PRIMARY KEY,
+    pitch_name VARCHAR(30) NOT NULL,
+    pitch_number INT,
+    address VARCHAR(50),
+    postcode VARCHAR(8) CHECK (postcode ~ '^[A-Z0-9 ]{5,8}$'), 
+    price_per_person FLOAT,
+);
+
+CREATE TABLE matches (
+    match_id SERIAL PRIMARY KEY, 
+    match_date DATE NOT NULL,
+    match_time TIME NOT NULL,
+    price FLOAT NOT NULL,
+    number_of_players INT NOT NULL CHECK (number_of_players > 0),
+    pitch_id INT NOT NULL REFERENCES pitches(pitch_id) ON DELETE SET NULL,
+    match_status VARCHAR(15) NOT NULL, 
+    signin_begin_time TIME NOT NULL
+);
+
 CREATE TABLE match_players (
     match_id INT NOT NULL REFERENCES matches(match_id) ON DELETE CASCADE,
     player_id INT NOT NULL REFERENCES players(player_id) ON DELETE CASCADE,
@@ -32,16 +41,6 @@ CREATE TABLE match_players (
     team_id INT CHECK (team_id = 1 OR team_id = 2),
     PRIMARY KEY (match_id, player_id)
 );
-
-CREATE TABLE pitches (
-    pitch_id SERIAL PRIMARY KEY,
-    pitch_name VARCHAR(30) NOT NULL,
-    pitch_number INT,
-    address VARCHAR(50),
-    postcode VARCHAR(8) CHECK (postcode ~ '^[A-Z0-9 ]{5,8}$'), 
-    price FLOAT NOT NULL CHECK (price > 0)
-);
-
 CREATE TABLE attributes (
     player_id INT PRIMARY KEY REFERENCES players(player_id) ON DELETE CASCADE,
     dribbling INT DEFAULT 0 CHECK (dribbling BETWEEN 0 AND 100),

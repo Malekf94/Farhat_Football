@@ -24,8 +24,10 @@ function Players() {
 			<h1>Players</h1>
 			<ul className="playerList">
 				{players.map((player) => (
-					<li key={player.playerid}>
-						<Link to={`/players/${player.playerid}`}>{player.player_name}</Link>
+					<li key={player.player_id}>
+						<Link to={`/players/${player.player_id}`}>
+							{player.preferred_name}
+						</Link>
 					</li>
 				))}
 			</ul>

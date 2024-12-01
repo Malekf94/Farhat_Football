@@ -3,8 +3,7 @@ const controller = require("./controller.cjs");
 
 const router = Router();
 
-router.post("/", controller.addPlayer);
-router.get("/", controller.getPlayers);
-router.get("/:player_id", controller.getPlayer);
+router.get("/", controller.getPitches);
+router.get("/:pitch_id", controller.getPitchByID);
 
 module.exports = router;

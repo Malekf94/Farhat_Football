@@ -4,23 +4,23 @@ import { useParams } from "react-router-dom";
 
 function PlayerDetails() {
 	const [player, setPlayer] = useState([]);
-	const { playerid } = useParams();
+	const { player_id } = useParams();
 
 	useEffect(() => {
 		axios
-			.get(`/api/v1/players/${playerid}`)
+			.get(`/api/v1/players/${player_id}`)
 			.then((response) => {
 				setPlayer(response.data[0]);
 				console.log(response.data[0]);
-				console.log(player.player_name);
 			})
 			.catch((error) => {
 				console.error("Error fetching players:", error);
 			});
-	}, []);
+	}, [player_id]);
 	return (
 		<div className="playerPage">
-			<h1>Welcome to the page of {player.player_name} </h1>
+			<h1>Welcome to the page of {player.preferred_name} </h1>
+			<h2>PS When are we going to play pro clubs</h2>
 		</div>
 	);
 }
