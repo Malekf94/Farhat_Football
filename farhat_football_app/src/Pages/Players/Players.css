@@ -1,61 +1,139 @@
-.playerPage {
-	padding: 20px; /* Space around the content */
-	min-height: 100vh; /* Full viewport height */
+/* Reset Default Margins and Padding */
+body,
+html {
+	margin: 0;
+	padding: 0;
+	width: 100%;
+	height: 100%;
+	box-sizing: border-box;
+}
+
+/* Consistent Background Across All Pages */
+body {
+	background-image: url("../../../images/free-photo-of-top-view-of-soccer-field.jpeg");
+	background-size: cover; /* Ensures the background covers the entire viewport */
+	background-position: center; /* Keeps the background centered */
+	background-repeat: no-repeat; /* Prevents tiling */
+	height: 100vh; /* Ensures full viewport height */
+	width: 100vw; /* Ensures full viewport width */
+	overflow-x: hidden; /* Prevents horizontal scrolling if content overflows */
+	font-family: Arial, sans-serif;
+	color: #ffffff;
+	display: flex;
+	flex-direction: column;
+}
+
+/* Content Wrapper for All Pages */
+.page-content {
+	min-height: 100%;
+	width: 100%;
 	display: flex;
 	flex-direction: column;
 	align-items: center;
+	justify-content: flex-start;
+	padding: 20px;
 }
 
-.playerPage h1 {
+/* Header Styling */
+h1 {
 	font-size: 2.5rem;
-	color: #ffffff; /* White text to stand out on the green background */
+	color: #f9f871;
 	margin-bottom: 20px;
-	text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8); /* Subtle text shadow for readability */
+	text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
 }
 
+/* Form Styling */
+form {
+	background-color: rgba(0, 0, 0, 0.8);
+	padding: 30px;
+	border-radius: 15px;
+	box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+	max-width: 400px;
+	width: 90%;
+}
+
+form label {
+	font-size: 1.2rem;
+	color: #f9f871;
+	display: block;
+	margin-bottom: 10px;
+	text-align: left;
+}
+
+form input,
+form textarea,
+form select {
+	width: 100%;
+	padding: 10px;
+	margin-bottom: 20px;
+	border: none;
+	border-radius: 5px;
+	font-size: 1rem;
+}
+
+form input:focus,
+form textarea:focus,
+form select:focus {
+	outline: 2px solid #f9f871;
+	background-color: #e6ffe6;
+}
+
+/* Buttons Styling */
+button {
+	background-color: #f9f871;
+	color: #000000;
+	border: none;
+	padding: 10px 20px;
+	font-size: 1rem;
+	border-radius: 5px;
+	cursor: pointer;
+	font-weight: bold;
+	transition: transform 0.2s, box-shadow 0.2s;
+}
+
+button:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+}
+
+button:active {
+	transform: translateY(1px);
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* Player List Styling */
 .playerList {
-	list-style: none; /* Remove default bullet points */
+	list-style-type: none;
 	padding: 0;
-	width: 90%; /* Responsive width */
-	max-width: 800px; /* Restrict max width for larger screens */
-	background-color: rgba(
-		255,
-		255,
-		255,
-		0.9
-	); /* Semi-transparent white background */
-	border-radius: 10px; /* Rounded corners for modern look */
-	box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Slight shadow for depth */
-	overflow: hidden;
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+	gap: 20px;
+	width: 100%;
+	max-width: 1200px;
+	margin: 20px auto;
 }
 
 .playerList li {
-	margin: 0;
-	padding: 15px 20px;
+	background-color: rgba(0, 0, 0, 0.8);
+	padding: 15px;
+	border-radius: 10px;
 	font-size: 1.2rem;
-	color: #333; /* Neutral color for text */
-	display: flex;
-	justify-content: center; /* Center the text inside the list item */
-	align-items: center;
-	border-bottom: 1px solid rgba(0, 0, 0, 0.1); /* Subtle divider between items */
-	transition: background-color 0.3s ease;
-}
-
-.playerList li:last-child {
-	border-bottom: none; /* Remove border from the last item */
+	text-align: center;
+	box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+	transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .playerList li:hover {
-	background-color: #f5f5f5; /* Highlight on hover */
+	transform: translateY(-5px);
+	box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.5);
 }
 
 .playerList a {
-	text-decoration: none; /* Remove underline from links */
-	color: #2a4d14; /* Dark green to complement the background */
+	color: #f9f871;
+	text-decoration: none;
 	font-weight: bold;
-	transition: color 0.3s ease;
 }
 
 .playerList a:hover {
-	color: #1d3610; /* Slightly darker green on hover */
+	text-decoration: underline;
 }

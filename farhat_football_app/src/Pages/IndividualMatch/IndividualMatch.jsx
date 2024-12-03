@@ -32,7 +32,7 @@ function IndividualMatch() {
 	}, [match_id]);
 
 	return (
-		<div className="match">
+		<div className="page-content">
 			<h1>{match.match_name}</h1>
 			<table className="playerTable">
 				<thead>

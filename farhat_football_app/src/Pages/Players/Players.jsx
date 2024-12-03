@@ -20,7 +20,7 @@ function Players() {
 			});
 	}, []);
 	return (
-		<div className="playerPage">
+		<div className="page-content">
 			<h1>Players</h1>
 			<ul className="playerList">
 				{players.map((player) => (

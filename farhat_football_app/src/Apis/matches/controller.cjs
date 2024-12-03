@@ -8,6 +8,19 @@ const getMatches = (req, res) => {
 	});
 	console.log("getting matches");
 };
+const getPendingMatches = (req, res) => {
+	pool.query(queries.getPendingMatches, (error, results) => {
+		if (error) throw error;
+		res.status(200).json(results.rows);
+	});
+};
+
+const getCompletedMatches = (req, res) => {
+	pool.query(queries.getCompletedMatches, (error, results) => {
+		if (error) throw error;
+		res.status(200).json(results.rows);
+	});
+};
 
 const getMatchById = (req, res) => {
 	const match_id = parseInt(req.params.match_id);
@@ -26,4 +39,6 @@ module.exports = {
 	getMatches,
 	getMatchById,
 	createMatch,
+	getPendingMatches,
+	getCompletedMatches,
 };

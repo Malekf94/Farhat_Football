@@ -12,16 +12,16 @@ function Header() {
 				<div>
 					<ul className="nav-links">
 						<li className="header-li">
-							<Link to="../Rules">Rules</Link>
+							<Link to="../rules">Rules</Link>
 						</li>
 						<li className="header-li">
-							<Link to="../Matches">Matches</Link>
+							<Link to="../matches/completed">Matches</Link>
 						</li>
 						<li className="header-li">
-							<Link to="../Players">Players</Link>
+							<Link to="../players">Players</Link>
 						</li>
 						<li className="header-li">
-							<Link to="../YourAccount">Your Account</Link>
+							<Link to="../your-account">Your Account</Link>
 						</li>
 					</ul>
 				</div>

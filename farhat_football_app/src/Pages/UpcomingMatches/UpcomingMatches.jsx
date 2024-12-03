@@ -1,27 +1,25 @@
-import { useEffect, useState } from "react";
-import "./Matches.css";
 import axios from "axios";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
-function Matches() {
-	const [matches, setMatches] = useState([]);
+function UpcomingMatches() {
+	const [pendingMatches, setPendingMatches] = useState([]);
 
 	useEffect(() => {
 		axios
-			.get("/api/v1/matches/completed")
+			.get("/api/v1/matches/pending")
 			.then((response) => {
-				setMatches(response.data);
-				console.log(response.data);
+				setPendingMatches(response.data);
 			})
 			.catch((error) => {
-				console.error("Error fetching matches", error);
+				console.error("Error fetching pending matches:", error);
 			});
 	}, []);
 	return (
 		<div className="page-content">
-			<h1>Completed Matches</h1>
+			<h1>Upcoming Matches</h1>
 			<ul className="playerList">
-				{matches.map((match) => (
+				{pendingMatches.map((match) => (
 					<li key={match.match_id}>
 						<Link to={`/matches/${match.match_id}`}>{match.match_name}</Link>
 					</li>
@@ -31,4 +29,4 @@ function Matches() {
 	);
 }
 
-export default Matches;
+export default UpcomingMatches;

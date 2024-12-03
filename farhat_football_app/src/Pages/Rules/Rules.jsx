@@ -2,7 +2,7 @@ import "./Rules.css";
 
 function Rules() {
 	return (
-		<section className="the-rules">
+		<section className="page-content">
 			<h1>Our Rules</h1>
 			<ul>
 				<li>Respect others and respect the game</li>

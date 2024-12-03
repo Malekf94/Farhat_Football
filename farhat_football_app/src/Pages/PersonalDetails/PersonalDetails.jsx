@@ -1,3 +1,5 @@
+import "./PersonalDetails.css";
+
 function PersonalDetails() {
 	return <button className="button">Click me</button>;
 }
