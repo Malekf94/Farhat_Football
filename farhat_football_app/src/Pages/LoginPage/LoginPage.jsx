@@ -1,9 +1,11 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "./LoginPage.css";
 
 function LoginPage({ onLoginSuccess }) {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
+	const navigate = useNavigate();
 
 	const handleLogin = () => {
 		// Simulate an API call for login
@@ -16,25 +18,41 @@ function LoginPage({ onLoginSuccess }) {
 	};
 
 	return (
-		<div className="page-content">
+		<div className="pageContainer">
 			<h1>Login</h1>
-			<label>
-				Email:
+			<form className="formContainer" onSubmit={(e) => e.preventDefault()}>
+				<label htmlFor="email">Email:</label>
 				<input
 					type="email"
+					id="email"
 					value={email}
 					onChange={(e) => setEmail(e.target.value)}
+					required
 				/>
-			</label>
-			<label>
-				Password:
+
+				<label htmlFor="password">Password:</label>
 				<input
 					type="password"
+					id="password"
 					value={password}
 					onChange={(e) => setPassword(e.target.value)}
+					required
 				/>
-			</label>
-			<button onClick={handleLogin}>Login</button>
+
+				<button type="button" onClick={handleLogin}>
+					Login
+				</button>
+			</form>
+
+			<div className="optionsContainer">
+				<p>Do not have an account?</p>
+				<button
+					className="navigateButton"
+					onClick={() => navigate("/create-account")}
+				>
+					Create Account
+				</button>
+			</div>
 		</div>
 	);
 }

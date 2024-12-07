@@ -10,6 +10,7 @@ import PlayerDetails from "./Pages/PlayerDetails/PlayerDetails.jsx";
 import IndividualMatch from "./Pages/IndividualMatch/IndividualMatch.jsx";
 import UpcomingMatches from "./Pages/UpcomingMatches/UpcomingMatches.jsx";
 import YourPage from "./Pages/YourPage/YourPage.jsx";
+import CreateAccount from "./Pages/CreateAccount/CreateAccount.jsx";
 
 function App() {
 	return (
@@ -25,6 +26,7 @@ function App() {
 				<Route path="/players" element={<Players />} />
 				<Route path="/personalDetails" element={<PersonalDetails />} />
 				<Route path="/players/:player_id" element={<PlayerDetails />} />
+				<Route path="/create-account" element={<CreateAccount />} />
 			</Routes>
 		</div>
 	);

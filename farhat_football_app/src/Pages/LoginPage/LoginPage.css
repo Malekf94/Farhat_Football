@@ -24,7 +24,7 @@ body {
 }
 
 /* Content Wrapper for All Pages */
-.page-content {
+.pageContainer {
 	min-height: 100%;
 	width: 100%;
 	display: flex;
@@ -34,11 +34,7 @@ body {
 	padding: 20px;
 }
 
-.page-content {
-	margin-top: 50px;
-}
-
-.page-content ul {
+/* .page-content ul {
 	max-width: 800px;
 	margin: 0 auto;
 }
@@ -49,10 +45,106 @@ body {
 }
 
 .page-content button {
-	background-color: #ffc107; /* Yellow login button */
-	color: black;
+	background-color: #ffc107; 
 }
 
 .page-content button:hover {
 	background-color: #e0a800;
+} */
+
+/* General Page Layout */
+
+.pageContainer h1 {
+	font-size: 2.5rem;
+	margin-bottom: 20px;
+	color: #ffffff;
+	text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.8);
+}
+
+/* Form Styles */
+.formContainer {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	background-color: #ffffff;
+	padding: 20px;
+	border-radius: 10px;
+	max-width: 400px;
+	width: 100%;
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.formContainer label {
+	font-size: 1rem;
+	color: #333333;
+	margin-bottom: 5px;
+	width: 100%;
+	text-align: left;
+}
+
+.formContainer input {
+	width: 100%;
+	padding: 10px;
+	margin-bottom: 15px;
+	border: 1px solid #ddd;
+	border-radius: 5px;
+	font-size: 1rem;
+}
+
+.formContainer button {
+	width: 100%;
+	padding: 10px 15px;
+	background-color: #28a745;
+	color: #ffffff;
+	font-size: 1rem;
+	border: none;
+	border-radius: 5px;
+	cursor: pointer;
+	transition: background-color 0.3s ease;
+}
+
+.formContainer button:hover {
+	background-color: #218838;
+}
+
+/* Link and Navigation Options */
+.optionsContainer {
+	margin-top: 20px;
+	text-align: center;
+}
+
+.optionsContainer p {
+	margin-bottom: 10px;
+	font-size: 1rem;
+	color: #ffffff;
+}
+
+.optionsContainer .navigateButton {
+	padding: 10px 15px;
+	background-color: #007bff;
+	color: #ffffff;
+	font-size: 1rem;
+	border: none;
+	border-radius: 5px;
+	cursor: pointer;
+	transition: background-color 0.3s ease;
+}
+
+.optionsContainer .navigateButton:hover {
+	background-color: #0056b3;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+	.formContainer {
+		padding: 15px;
+	}
+
+	.formContainer input {
+		font-size: 0.9rem;
+	}
+
+	.formContainer button {
+		font-size: 0.9rem;
+	}
 }

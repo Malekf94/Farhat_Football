@@ -33,3 +33,47 @@ body {
 	justify-content: flex-start;
 	padding: 20px;
 }
+
+.player-info {
+	background-color: rgba(0, 0, 0, 0.6);
+	padding: 20px;
+	border-radius: 10px;
+	margin-bottom: 20px;
+	width: 100%;
+	max-width: 600px;
+}
+
+.player-info p {
+	margin: 10px 0;
+	font-size: 1.1em;
+}
+
+.player-stats {
+	background-color: rgba(0, 0, 0, 0.6);
+	padding: 20px;
+	border-radius: 10px;
+	width: 100%;
+	max-width: 800px;
+}
+
+.stats-table {
+	width: 100%;
+	border-collapse: collapse;
+	margin-top: 10px;
+}
+
+.stats-table th,
+.stats-table td {
+	border: 1px solid #ddd;
+	padding: 10px;
+	text-align: center;
+}
+
+.stats-table th {
+	background-color: #444;
+	color: #fff;
+}
+
+.stats-table tr:nth-child(even) {
+	background-color: #333;
+}
