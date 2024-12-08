@@ -19,6 +19,9 @@ function Home() {
 				<button className="btn" onClick={() => navigate("/contact")}>
 					Contact Us
 				</button>
+				<button className="btn" onClick={() => navigate("/create-match")}>
+					Create Match
+				</button>
 			</div>
 		</div>
 	);

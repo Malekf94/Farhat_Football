@@ -59,7 +59,6 @@ const getPlayers = (req, res) => {
 
 const getPlayer = (req, res) => {
 	const player_id = parseInt(req.params.player_id);
-	console.log(req.params);
 	pool.query(queries.getPlayer, [player_id], (error, results) => {
 		if (error) throw error;
 		res.status(200).json(results.rows);
@@ -69,7 +68,6 @@ const getPlayer = (req, res) => {
 
 const getPlayerStats = (req, res) => {
 	const playerId = parseInt(req.params.player_id);
-
 	pool.query(queries.getPlayerStats, [playerId], (error, results) => {
 		if (error) {
 			console.error("Error fetching player stats:", error);
@@ -78,7 +76,6 @@ const getPlayerStats = (req, res) => {
 				.json({ error: "An error occurred while fetching stats." });
 		} else {
 			res.status(200).json(results.rows);
-			console.log(results.rows);
 		}
 	});
 };

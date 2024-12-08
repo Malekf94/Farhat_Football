@@ -11,12 +11,12 @@ html {
 /* Consistent Background Across All Pages */
 body {
 	background-image: url("../../../images/free-photo-of-top-view-of-soccer-field.jpeg");
-	background-size: cover; /* Ensures the background covers the entire viewport */
-	background-position: center; /* Keeps the background centered */
-	background-repeat: no-repeat; /* Prevents tiling */
-	height: 100vh; /* Ensures full viewport height */
-	width: 100vw; /* Ensures full viewport width */
-	overflow-x: hidden; /* Prevents horizontal scrolling if content overflows */
+	background-size: cover;
+	background-position: center;
+	background-repeat: no-repeat;
+	height: 100vh;
+	width: 100vw;
+	overflow-x: hidden;
 	font-family: Arial, sans-serif;
 	color: #ffffff;
 	display: flex;
