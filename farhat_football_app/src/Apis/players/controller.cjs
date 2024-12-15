@@ -80,11 +80,75 @@ const getPlayerStats = (req, res) => {
 	});
 };
 
-module.exports = { getPlayerStats };
+// Update Player
+const updatePlayer = async (req, res) => {
+	const { player_id } = req.params;
+	const {
+		first_name,
+		last_name,
+		preferred_name,
+		year_of_birth,
+		height,
+		weight,
+		nationality,
+		email,
+	} = req.body;
+
+	try {
+		const result = await pool.query(queries.updatePlayer, [
+			first_name || null,
+			last_name || null,
+			preferred_name || null,
+			year_of_birth || null,
+			height || null,
+			weight || null,
+			nationality || null,
+			email || null,
+			player_id,
+		]);
+
+		if (result.rows.length === 0) {
+			return res.status(404).json({ error: "Player not found." });
+		}
+
+		return res.status(200).json(result.rows);
+	} catch (error) {
+		console.error("Error updating player:", error);
+		return res.status(500).json({ error: "An error occurred." });
+	}
+};
+
+const updatePlayerBalance = async (req, res) => {
+	// const { player_id } = req.params;
+	const { amount, player_id } = req.body;
+
+	try {
+		const result = await pool.query(queries.updatePlayerBalance, [
+			amount,
+			player_id,
+		]);
+
+		if (result.rowCount === 0) {
+			return res.status(404).json({ error: "Player not found." });
+		}
+
+		res.status(200).json({
+			message: "Amount subtracted successfully.",
+			new_balance: result.rows[0].account_balance,
+		});
+	} catch (error) {
+		console.error("Error subtracting from account balance:", error);
+		res.status(500).json({
+			error: "An error occurred while subtracting from the account balance.",
+		});
+	}
+};
 
 module.exports = {
 	getPlayers,
 	addPlayer,
 	getPlayer,
 	getPlayerStats,
+	updatePlayer,
+	updatePlayerBalance,
 };

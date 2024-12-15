@@ -15,27 +15,41 @@ const getPlayersInMatch = (req, res) => {
 const addPlayerToMatch = async (req, res) => {
 	const { match_id, player_id, price } = req.body;
 
-	if (!match_id || !player_id || price == null) {
-		return res
-			.status(400)
-			.json({ error: "match_id, player_id, and price are required." });
-	}
-
 	try {
-		const insertResult = await pool.query(queries.addPlayerToMatch, [
-			match_id,
-			player_id,
-			price,
-		]);
+		// Fetch the player's account balance
+		const playerResult = await pool.query(
+			"SELECT account_balance FROM players WHERE player_id = $1",
+			[player_id]
+		);
 
-		if (insertResult.rows.length === 0) {
-			return res.status(400).json({ error: "Failed to add player to match." });
+		if (playerResult.rows.length === 0) {
+			return res.status(404).json({ error: "Player not found." });
 		}
 
-		return res.status(201).json(insertResult.rows[0]);
+		const accountBalance = parseFloat(playerResult.rows[0].account_balance);
+		console.log(accountBalance);
+
+		// Check if balance is too low
+		if (accountBalance <= -11) {
+			return res.status(400).json({
+				error: "Your account balance is too low to join this game.",
+			});
+		}
+
+		// Add the player to the match if balance is sufficient
+		const result = await pool.query(
+			`INSERT INTO match_players (match_id, player_id, price, goals, assists, late, team_id)
+		 VALUES ($1, $2, $3, 0, 0, false, NULL)
+		 RETURNING *`,
+			[match_id, player_id, price]
+		);
+
+		res.status(201).json(result.rows[0]);
 	} catch (error) {
 		console.error("Error adding player to match:", error);
-		return res.status(500).json({ error: "An error occurred." });
+		res
+			.status(500)
+			.json({ error: "An error occurred while joining the match." });
 	}
 };
 
@@ -66,8 +80,47 @@ const removePlayerFromMatch = async (req, res) => {
 	}
 };
 
+// Update Match Player (e.g. goals, assists, late)
+const updateMatchPlayer = async (req, res) => {
+	const { match_id, player_id } = req.params;
+	const { goals, assists, late } = req.body;
+
+	try {
+		const result = await pool.query(queries.updateMatchPlayer, [
+			goals !== undefined ? goals : null,
+			assists !== undefined ? assists : null,
+			late !== undefined ? late : null,
+			match_id,
+			player_id,
+		]);
+
+		if (result.rows.length === 0) {
+			return res.status(404).json({ error: "Match player record not found." });
+		}
+
+		return res.status(200).json(result.rows);
+	} catch (error) {
+		console.error("Error updating match player:", error);
+		return res.status(500).json({ error: "An error occurred." });
+	}
+};
+
+const getLates = async (req, res) => {
+	try {
+		const result = await pool.query(queries.getLates);
+		res.status(200).json(result.rows);
+	} catch (error) {
+		console.error("Error fetching late players:", error);
+		res
+			.status(500)
+			.json({ error: "An error occurred while fetching late players." });
+	}
+};
+
 module.exports = {
 	addPlayerToMatch,
 	removePlayerFromMatch,
 	getPlayersInMatch,
+	updateMatchPlayer,
+	getLates,
 };

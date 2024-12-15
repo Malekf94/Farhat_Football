@@ -1,68 +1,146 @@
-/* Reset Default Margins and Padding */
-body,
-html {
-	margin: 0;
-	padding: 0;
-	width: 100%;
-	height: 100%;
-	box-sizing: border-box;
-}
-
-/* Consistent Background Across All Pages */
-body {
-	background-image: url("../../../images/free-photo-of-top-view-of-soccer-field.jpeg");
-	background-size: cover; /* Ensures the background covers the entire viewport */
-	background-position: center; /* Keeps the background centered */
-	background-repeat: no-repeat; /* Prevents tiling */
-	height: 100vh; /* Ensures full viewport height */
-	width: 100vw; /* Ensures full viewport width */
-	overflow-x: hidden; /* Prevents horizontal scrolling if content overflows */
-	font-family: Arial, sans-serif;
-	color: #ffffff;
-	display: flex;
-	flex-direction: column;
-}
-
-/* Content Wrapper for All Pages */
-.page-content {
-	min-height: 100%;
-	width: 100%;
+/* Page Container */
+.page-content.individual-match {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	justify-content: flex-start;
 	padding: 20px;
+	min-height: 100vh;
+	color: #ffffff;
+	font-family: Arial, sans-serif;
 }
 
-.page-content h1 {
-	font-size: 2rem;
-	margin-bottom: 20px; /* Space between the header and the table */
-	text-align: center;
+/* Headings */
+.individual-match h1 {
+	font-size: 2.5rem;
+	margin-bottom: 20px;
+	text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
 }
 
+.individual-match h2 {
+	font-size: 1.8rem;
+	margin: 20px 0 10px;
+	color: #f9f871; /* Light yellow for contrast */
+	text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+/* Match Details Section */
+.match-details {
+	background-color: rgba(0, 0, 0, 0.7);
+	padding: 20px;
+	border-radius: 10px;
+	max-width: 600px;
+	width: 100%;
+	margin-bottom: 20px;
+	box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+}
+
+.match-details p {
+	font-size: 1.2rem;
+	margin: 10px 0;
+}
+
+/* Actions (Join, Leave, Edit) */
+.match-actions,
+.admin-actions {
+	display: flex;
+	gap: 10px;
+	margin-bottom: 20px;
+}
+
+.match-actions button,
+.admin-actions button {
+	background-color: #28a745; /* Green tone matches the pitch theme */
+	color: #fff;
+	padding: 10px 15px;
+	font-size: 1rem;
+	border: none;
+	border-radius: 5px;
+	cursor: pointer;
+	transition: background-color 0.3s;
+}
+
+.match-actions button:hover,
+.admin-actions button:hover {
+	background-color: #218838;
+}
+
+/* Edit Forms */
+.edit-form {
+	display: grid;
+	grid-template-columns: auto auto auto auto auto; /* Distribute elements evenly */
+	align-items: center; /* Vertically align items */
+	gap: 10px; /* Add consistent spacing between all elements */
+}
+
+.edit-form label {
+	display: flex;
+	flex-direction: column; /* Stack label text above inputs if needed */
+	align-items: flex-start; /* Align label text with inputs */
+	font-weight: bold; /* Ensure labels stand out */
+}
+
+.edit-form input,
+.edit-form select,
+.edit-form button {
+	width: 100%; /* Ensure inputs are consistently sized */
+	padding: 5px 10px; /* Add padding for better usability */
+	margin: 0; /* Remove extra margin */
+	box-sizing: border-box; /* Include padding in width */
+}
+
+.edit-form button {
+	grid-column: span 1; /* Make the button take up less space */
+	justify-self: end; /* Align the button to the right */
+}
+
+/* Table Styles */
 .playerTable {
-	border-collapse: collapse; /* Combines borders for a cleaner look */
-	width: 80%; /* Adjust the width as needed */
-	max-width: 1200px;
-	margin: 0 auto; /* Centers the table horizontally */
+	width: 100%;
+	max-width: 800px;
+	border-collapse: collapse;
+	background-color: rgba(0, 0, 0, 0.7);
+	border-radius: 10px;
+	overflow: hidden;
+	box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+	margin-bottom: 20px;
 }
 
 .playerTable th,
 .playerTable td {
-	border: 1px solid #ccc; /* Border for cells */
-	padding: 10px; /* Padding inside cells */
-	text-align: center; /* Center-align text */
+	padding: 10px;
+	text-align: center;
+	color: #ffffff;
 }
 
 .playerTable th {
-	background-color: #f4f4f4; /* Light background for headers */
+	background-color: rgba(0, 0, 0, 0.9);
+	font-size: 1.1rem;
 	font-weight: bold;
+	text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
 }
 
 .playerTable tr:nth-child(even) {
-	background-color: #f9f9f9; /* Alternating row color for better readability */
+	background-color: rgba(0, 0, 0, 0.8);
 }
 
-.playerTable tr:hover {
-	background-color: #eaeaea; /* Highlight row on hover */
+.playerTable tr:nth-child(odd) {
+	background-color: rgba(0, 0, 0, 0.6);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+	.match-details,
+	.playerTable {
+		max-width: 90%;
+	}
+
+	.match-details p,
+	.playerTable th,
+	.playerTable td {
+		font-size: 1rem;
+	}
+
+	.individual-match h1 {
+		font-size: 2rem;
+	}
 }

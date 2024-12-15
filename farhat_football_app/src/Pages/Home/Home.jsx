@@ -13,8 +13,8 @@ function Home() {
 				clicking the button below.
 			</p>
 			<div className="buttons">
-				<button className="btn" onClick={() => navigate("/matches/pending")}>
-					View Upcoming Games
+				<button className="btn" onClick={() => navigate("/lates")}>
+					Name and Shame the Lame
 				</button>
 				<button className="btn" onClick={() => navigate("/contact")}>
 					Contact Us

@@ -15,7 +15,7 @@ function Header() {
 							<Link to="../rules">Rules</Link>
 						</li>
 						<li className="header-li">
-							<Link to="../matches/completed">Matches</Link>
+							<Link to="../matches">Matches</Link>
 						</li>
 						<li className="header-li">
 							<Link to="../players">Players</Link>

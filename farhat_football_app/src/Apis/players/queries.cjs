@@ -23,6 +23,28 @@ const getPlayerStats = `
   ORDER BY 
       year, month;
 `;
+const updatePlayer = `
+  UPDATE players
+  SET first_name = COALESCE($1, first_name),
+      last_name = COALESCE($2, last_name),
+      preferred_name = COALESCE($3, preferred_name),
+      year_of_birth = COALESCE($4, year_of_birth),
+      height = COALESCE($5, height),
+      weight = COALESCE($6, weight),
+      nationality = COALESCE($7, nationality),
+      email = COALESCE($8, email)
+  WHERE player_id = $9
+  RETURNING *;
+`;
+
+const updatePlayerBalance = `
+  UPDATE players
+  SET account_balance = account_balance + $1
+  WHERE player_id = $2
+  RETURNING account_balance;
+`;
+
+const playerBalance = `SELECT account_balance FROM players WHERE player_id=$1`;
 
 module.exports = {
 	getPlayers,
@@ -30,4 +52,7 @@ module.exports = {
 	addPlayer,
 	getPlayer,
 	getPlayerStats,
+	updatePlayer,
+	updatePlayerBalance,
+	playerBalance,
 };
