@@ -22,6 +22,12 @@ function Home() {
 				<button className="btn" onClick={() => navigate("/create-match")}>
 					Create Match
 				</button>
+				<button
+					className="btn feedback-btn"
+					onClick={() => navigate("/feedback")}
+				>
+					Feedback
+				</button>
 			</div>
 		</div>
 	);

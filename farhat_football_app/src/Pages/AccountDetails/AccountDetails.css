@@ -1,134 +1,177 @@
-.page-content.profile {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
+/* General Page Styling */
+.page-content {
+	max-width: 900px;
+	margin: 0 auto;
 	padding: 20px;
+	background-color: rgba(255, 255, 255, 0.9);
+	border-radius: 10px;
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 	font-family: Arial, sans-serif;
-	color: #ffffff;
+	color: #333;
+	text-align: center;
 }
 
 h1 {
-	font-size: 2.5rem;
+	color: #2c3e50;
+	font-size: 2.2rem;
 	margin-bottom: 20px;
-	text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
 }
 
+h2 {
+	font-size: 1.5rem;
+	margin: 15px 0;
+	color: #34495e;
+}
+
+/* Balance Section */
 .balance-section {
-	background-color: rgba(0, 0, 0, 0.7);
-	padding: 15px;
-	border-radius: 10px;
-	text-align: center;
 	margin-bottom: 20px;
-	box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
 }
 
 .balance-section h2 {
-	font-size: 1.5rem;
-	margin: 0 0 10px;
+	font-size: 1.8rem;
+	color: #27ae60;
 }
 
 .balance-section button {
-	background-color: #28a745;
-	color: #fff;
+	margin: 10px 10px 0;
 	padding: 10px 15px;
-	font-size: 1rem;
+	background-color: #27ae60;
+	color: #fff;
 	border: none;
 	border-radius: 5px;
 	cursor: pointer;
-	transition: background-color 0.3s;
+	font-size: 1rem;
+	transition: background-color 0.3s ease;
 }
 
 .balance-section button:hover {
-	background-color: #218838;
+	background-color: #2ecc71;
 }
 
+/* Toggle Button for Edit Form */
 .toggle-edit-btn {
-	background-color: #007bff;
+	background-color: #3498db;
 	color: #fff;
 	padding: 10px 15px;
-	font-size: 1rem;
 	border: none;
 	border-radius: 5px;
+	font-size: 1rem;
 	cursor: pointer;
-	transition: background-color 0.3s;
-	margin-bottom: 20px;
+	margin: 20px 0;
+	transition: background-color 0.3s ease;
 }
 
 .toggle-edit-btn:hover {
-	background-color: #0056b3;
+	background-color: #2980b9;
 }
 
+/* Edit Form Section */
 .edit-form {
-	background-color: rgba(0, 0, 0, 0.7);
-	padding: 20px;
-	border-radius: 10px;
-	margin-bottom: 20px;
-	width: 100%;
-	max-width: 600px;
-	box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-}
-
-.edit-form h2 {
-	margin-bottom: 15px;
-	font-size: 1.8rem;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 15px;
+	margin: 20px auto;
+	max-width: 400px;
 }
 
 .edit-form label {
 	display: flex;
 	flex-direction: column;
-	margin-bottom: 15px;
-	color: #ffffff;
+	text-align: left;
+	width: 100%;
+	font-weight: bold;
 }
 
 .edit-form input {
-	padding: 10px;
-	border-radius: 5px;
+	padding: 8px;
 	border: 1px solid #ccc;
+	border-radius: 5px;
 	font-size: 1rem;
+	margin-top: 5px;
 }
 
 .edit-form button {
-	background-color: #28a745;
+	background-color: #e67e22;
 	color: #fff;
 	padding: 10px 15px;
-	font-size: 1rem;
 	border: none;
 	border-radius: 5px;
+	font-size: 1rem;
 	cursor: pointer;
-	transition: background-color 0.3s;
+	transition: background-color 0.3s ease;
 }
 
 .edit-form button:hover {
-	background-color: #218838;
+	background-color: #d35400;
 }
 
-.stats-section {
-	background-color: rgba(0, 0, 0, 0.7);
-	padding: 20px;
-	border-radius: 10px;
-	width: 100%;
-	max-width: 800px;
-	box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+/* Stats Section and Payments Table */
+.stats-section,
+.payments-section {
+	margin: 20px 0;
 }
 
-.stats-table {
+.stats-table,
+.payments-table {
 	width: 100%;
+	margin-top: 15px;
 	border-collapse: collapse;
-	margin-top: 10px;
+	text-align: center;
+	background-color: #ecf0f1;
 }
 
 .stats-table th,
-.stats-table td {
+.payments-table th {
+	background-color: #2980b9;
+	color: #fff;
 	padding: 10px;
-	text-align: center;
-	border: 1px solid #ccc;
+	font-size: 1rem;
 }
 
-.stats-table th {
-	background-color: rgba(0, 0, 0, 0.8);
-	color: #ffffff;
+.stats-table td,
+.payments-table td {
+	padding: 10px;
+	border: 1px solid #ddd;
+	font-size: 1rem;
+	color: #333;
 }
 
-.stats-table td {
-	background-color: rgba(0, 0, 0, 0.6);
+.stats-table tr:nth-child(even),
+.payments-table tr:nth-child(even) {
+	background-color: #f9f9f9;
+}
+
+.stats-table tr:hover,
+.payments-table tr:hover {
+	background-color: #d5f5e3;
+	cursor: pointer;
+}
+
+/* Responsive Adjustments */
+@media screen and (max-width: 768px) {
+	.edit-form,
+	.stats-table,
+	.payments-table {
+		font-size: 0.9rem;
+	}
+
+	.edit-form input {
+		font-size: 0.9rem;
+	}
+
+	.balance-section button,
+	.toggle-edit-btn {
+		font-size: 0.9rem;
+		padding: 8px 10px;
+	}
+
+	h1 {
+		font-size: 1.8rem;
+	}
+
+	h2 {
+		font-size: 1.3rem;
+	}
 }

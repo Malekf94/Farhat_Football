@@ -1,0 +1,78 @@
+.feedback {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 20px;
+	color: black;
+}
+
+.feedback-form,
+.feedback-list {
+	width: 100%;
+	max-width: 600px;
+	background: rgba(255, 255, 255, 0.8);
+	padding: 20px;
+	border-radius: 8px;
+	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.feedback-form label {
+	display: flex;
+	flex-direction: column;
+	margin-bottom: 10px;
+	color: black;
+}
+
+.feedback-form input,
+.feedback-form textarea {
+	padding: 10px;
+	font-size: 1rem;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+}
+
+.feedback-form textarea {
+	resize: vertical;
+	height: 100px;
+}
+
+.feedback-item {
+	background: #f7f7f7;
+	padding: 10px;
+	margin-bottom: 10px;
+	border-radius: 5px;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.feedback-item p {
+	margin: 5px 0;
+}
+.replies {
+	margin-top: 10px;
+	padding-left: 20px;
+	border-left: 2px solid #ddd;
+}
+
+.reply-form {
+	margin-top: 10px;
+	display: flex;
+	flex-direction: column;
+}
+
+.reply-form textarea {
+	padding: 10px;
+	font-size: 1rem;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	resize: none;
+}
+
+.reply-form button {
+	margin-top: 5px;
+	background-color: #007bff;
+	color: white;
+	border: none;
+	padding: 10px;
+	border-radius: 4px;
+	cursor: pointer;
+}

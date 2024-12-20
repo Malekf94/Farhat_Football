@@ -1,146 +1,196 @@
-/* Page Container */
-.page-content.individual-match {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
+/* IndividualMatch.css */
+
+/* General Page Styling */
+.page-content {
+	max-width: 1200px;
+	margin: 0 auto;
 	padding: 20px;
-	min-height: 100vh;
-	color: #ffffff;
 	font-family: Arial, sans-serif;
+	color: #f9f9f9; /* Light text for dark backgrounds */
 }
 
-/* Headings */
-.individual-match h1 {
-	font-size: 2.5rem;
+/* Header Styling */
+h1 {
+	font-size: 3rem;
 	margin-bottom: 20px;
-	text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
-}
-
-.individual-match h2 {
-	font-size: 1.8rem;
-	margin: 20px 0 10px;
-	color: #f9f871; /* Light yellow for contrast */
-	text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+	text-align: center;
+	color: #ffcc00; /* Football theme - yellow */
+	text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
 }
 
 /* Match Details Section */
 .match-details {
-	background-color: rgba(0, 0, 0, 0.7);
+	margin-bottom: 30px;
 	padding: 20px;
+	background-color: rgba(0, 0, 0, 0.8); /* Dark semi-transparent background */
+	border: 1px solid #ffcc00;
 	border-radius: 10px;
-	max-width: 600px;
-	width: 100%;
-	margin-bottom: 20px;
 	box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
 }
 
 .match-details p {
-	font-size: 1.2rem;
-	margin: 10px 0;
+	font-size: 1.4rem;
+	margin: 8px 0;
+	line-height: 1.6;
 }
 
-/* Actions (Join, Leave, Edit) */
-.match-actions,
-.admin-actions {
-	display: flex;
-	gap: 10px;
-	margin-bottom: 20px;
+.match-details strong {
+	font-weight: bold;
+	color: #ffffff;
 }
 
-.match-actions button,
-.admin-actions button {
-	background-color: #28a745; /* Green tone matches the pitch theme */
-	color: #fff;
-	padding: 10px 15px;
-	font-size: 1rem;
-	border: none;
-	border-radius: 5px;
-	cursor: pointer;
-	transition: background-color 0.3s;
+/* YouTube Links Styling */
+.youtube-links {
+	margin-top: 20px;
 }
 
-.match-actions button:hover,
-.admin-actions button:hover {
-	background-color: #218838;
+.youtube-links h2 {
+	font-size: 1.8rem;
+	color: #ffcc00;
+	margin-bottom: 10px;
+	text-align: left;
 }
 
-/* Edit Forms */
-.edit-form {
-	display: grid;
-	grid-template-columns: auto auto auto auto auto; /* Distribute elements evenly */
-	align-items: center; /* Vertically align items */
-	gap: 10px; /* Add consistent spacing between all elements */
+.youtube-links ul {
+	list-style-type: none;
+	padding: 0;
 }
 
-.edit-form label {
-	display: flex;
-	flex-direction: column; /* Stack label text above inputs if needed */
-	align-items: flex-start; /* Align label text with inputs */
-	font-weight: bold; /* Ensure labels stand out */
+.youtube-links li {
+	margin: 5px 0;
 }
 
-.edit-form input,
-.edit-form select,
-.edit-form button {
-	width: 100%; /* Ensure inputs are consistently sized */
-	padding: 5px 10px; /* Add padding for better usability */
-	margin: 0; /* Remove extra margin */
-	box-sizing: border-box; /* Include padding in width */
+.youtube-links a {
+	text-decoration: none;
+	color: #ffcc00;
+	font-weight: bold;
 }
 
-.edit-form button {
-	grid-column: span 1; /* Make the button take up less space */
-	justify-self: end; /* Align the button to the right */
+.youtube-links a:hover {
+	text-decoration: underline;
+	color: #fff; /* Hover effect for contrast */
 }
 
-/* Table Styles */
+/* Tables for Player Stats */
 .playerTable {
 	width: 100%;
-	max-width: 800px;
 	border-collapse: collapse;
-	background-color: rgba(0, 0, 0, 0.7);
-	border-radius: 10px;
-	overflow: hidden;
-	box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-	margin-bottom: 20px;
+	margin-top: 20px;
+	background-color: rgba(0, 0, 0, 0.8); /* Matches the theme */
 }
 
 .playerTable th,
 .playerTable td {
-	padding: 10px;
+	border: 1px solid #ffcc00;
 	text-align: center;
-	color: #ffffff;
+	padding: 12px;
 }
 
 .playerTable th {
-	background-color: rgba(0, 0, 0, 0.9);
-	font-size: 1.1rem;
+	background-color: #333333; /* Darker header */
 	font-weight: bold;
-	text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+	color: #ffcc00;
 }
 
 .playerTable tr:nth-child(even) {
-	background-color: rgba(0, 0, 0, 0.8);
+	background-color: rgba(50, 50, 50, 0.8); /* Slight variation */
 }
 
-.playerTable tr:nth-child(odd) {
-	background-color: rgba(0, 0, 0, 0.6);
+.playerTable tr:hover {
+	background-color: rgba(80, 80, 80, 0.9); /* Highlight row on hover */
 }
 
-/* Responsive Adjustments */
+.playerTable td {
+	color: #f9f9f9;
+	font-size: 1rem;
+}
+
+/* Buttons */
+button {
+	padding: 10px 20px;
+	font-size: 1rem;
+	border: 1px solid #ffcc00;
+	border-radius: 5px;
+	cursor: pointer;
+	margin: 10px 5px;
+	background-color: #333333; /* Dark button background */
+	color: #ffcc00;
+	transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+button:hover {
+	background-color: #ffcc00; /* Bright hover effect */
+	color: #000; /* Contrast text */
+}
+
+button:disabled {
+	cursor: not-allowed;
+	background-color: #555;
+	color: #ccc;
+}
+
+/* Edit Form Styling */
+.edit-form {
+	margin-top: 20px;
+	padding: 20px;
+	border: 1px solid #ffcc00;
+	border-radius: 10px;
+	background-color: rgba(0, 0, 0, 0.9); /* Subtle opacity for dark theme */
+}
+
+.edit-form label {
+	display: block;
+	font-size: 1.2rem;
+	margin-bottom: 10px;
+	color: #ffcc00;
+}
+
+.edit-form input,
+.edit-form select {
+	width: 100%;
+	padding: 10px;
+	margin-bottom: 15px;
+	border: 1px solid #ffcc00;
+	border-radius: 4px;
+	font-size: 1rem;
+	background-color: #333333; /* Input field matches dark theme */
+	color: #f9f9f9;
+}
+
+.edit-form input::placeholder {
+	color: #ccc; /* Placeholder styling */
+}
+
+/* Section Headings */
+h2 {
+	font-size: 2rem;
+	margin: 20px 0;
+	color: #ffcc00;
+	text-align: center;
+	text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+}
+
+/* Responsive Design */
 @media (max-width: 768px) {
-	.match-details,
-	.playerTable {
-		max-width: 90%;
+	.match-details {
+		padding: 15px;
 	}
 
-	.match-details p,
+	h1 {
+		font-size: 2.5rem;
+	}
+
+	h2 {
+		font-size: 1.8rem;
+	}
+
 	.playerTable th,
 	.playerTable td {
-		font-size: 1rem;
+		font-size: 0.9rem;
 	}
 
-	.individual-match h1 {
-		font-size: 2rem;
+	button {
+		font-size: 0.9rem;
+		padding: 8px 15px;
 	}
 }

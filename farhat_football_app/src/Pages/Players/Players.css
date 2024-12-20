@@ -1,9 +1,9 @@
 /* Header Styling */
 h1 {
-	font-size: 2.5rem;
-	color: #f9f871;
+	font-size: 3rem;
+	font-weight: bold;
 	margin-bottom: 20px;
-	text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+	text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
 }
 
 /* Form Styling */
@@ -67,37 +67,78 @@ button:active {
 
 /* Player List Styling */
 .playerList {
-	list-style-type: none;
-	padding: 0;
 	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-	gap: 20px;
-	width: 100%;
-	max-width: 1200px;
-	margin: 20px auto;
+	grid-template-columns: repeat(
+		auto-fit,
+		minmax(120px, 1fr)
+	); /* Responsive grid */
+	gap: 15px; /* Space between boxes */
+	max-width: 800px; /* Limits the width for better alignment */
+	margin: 0 auto;
+	padding: 0;
+	list-style: none;
 }
 
 .playerList li {
-	background-color: rgba(0, 0, 0, 0.8);
-	padding: 15px;
-	border-radius: 10px;
-	font-size: 1.2rem;
+	background-color: rgba(
+		0,
+		0,
+		0,
+		0.7
+	); /* Slightly transparent for a soft look */
+	color: #f1c40f; /* Yellow text for contrast */
+	padding: 15px 20px;
+	border-radius: 15px;
+	font-size: 18px;
+	font-weight: bold;
 	text-align: center;
-	box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
-	transition: transform 0.3s ease, box-shadow 0.3s ease;
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+	transition: transform 0.2s, box-shadow 0.2s;
+	cursor: pointer;
 }
 
 .playerList li:hover {
-	transform: translateY(-5px);
-	box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.5);
+	transform: translateY(-5px); /* Lift on hover */
+	box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
+	background-color: #4caf50; /* Slight green to match pitch */
+	color: #ffffff;
 }
 
 .playerList a {
-	color: #f9f871;
 	text-decoration: none;
-	font-weight: bold;
+	color: inherit; /* Matches text color */
+	display: block;
 }
 
 .playerList a:hover {
 	text-decoration: underline;
+}
+
+/* Search Bar */
+.search-container {
+	margin: 10px 0 30px;
+	text-align: center;
+	width: 100%;
+}
+
+.search-input {
+	width: 80%;
+	max-width: 400px;
+	padding: 12px 15px;
+	border: 2px solid #ffffff;
+	border-radius: 25px;
+	background-color: rgba(0, 0, 0, 0.5);
+	color: #ffffff;
+	font-size: 16px;
+	outline: none;
+	transition: border-color 0.3s ease-in-out, background-color 0.3s ease-in-out;
+}
+
+.search-input::placeholder {
+	color: #d3d3d3;
+}
+
+.search-input:focus {
+	border-color: #4caf50; /* Highlight on focus */
+	background-color: rgba(0, 0, 0, 0.7);
 }

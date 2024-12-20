@@ -32,12 +32,13 @@ const updateMatch = `
       match_time = COALESCE($3, match_time),
       number_of_players = COALESCE($4, number_of_players),
       price = COALESCE($5, price),
-      signin_begin_time = COALESCE($6, signin_begin_time)
+       youtube_links = COALESCE($6, youtube_links)
   WHERE match_id = $7
   RETURNING *;
 `;
+
 const createMatch = `
-  INSERT INTO matches (match_date, match_time, price, number_of_players, pitch_id, match_status, signin_begin_time)
+  INSERT INTO matches (match_date, match_time, price, number_of_players, pitch_id, match_status, youtube_links)
   VALUES ($1, $2, $3, $4, $5, $6, $7)
   RETURNING *;
 `;

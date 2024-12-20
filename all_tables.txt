@@ -65,3 +65,30 @@ CREATE TABLE attributes (
     workrate INT DEFAULT 0 CHECK (workrate BETWEEN 0 AND 100),
     teamwork INT DEFAULT 0 CHECK (teamwork BETWEEN 0 AND 100)
 );
+
+CREATE TABLE payments (
+    payment_id SERIAL PRIMARY KEY,
+    user_id INT REFERENCES players(player_id),
+    amount DECIMAL(10, 2) NOT NULL,
+    payment_date TIMESTAMP NOT NULL,
+    transaction_id VARCHAR(50) UNIQUE NOT NULL,
+    description VARCHAR(100)
+);
+
+CREATE TABLE feedback (
+    feedback_id SERIAL PRIMARY KEY,
+    user_id INT REFERENCES players(player_id) ON DELETE SET NULL, -- Optional, NULL for anonymous
+    name VARCHAR(100), -- Stores the name of the user (optional)
+    comment TEXT NOT NULL, -- Stores the feedback content
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Timestamp of feedback
+    is_anonymous BOOLEAN DEFAULT FALSE -- Flag for anonymous feedback
+);
+
+CREATE TABLE replies (
+    reply_id SERIAL PRIMARY KEY,
+    feedback_id INT REFERENCES feedback(feedback_id) ON DELETE CASCADE,
+    user_id INT REFERENCES players(player_id) ON DELETE SET NULL, -- Nullable for anonymous replies
+    name VARCHAR(100), -- Optional, null for anonymous replies
+    reply_content TEXT NOT NULL, -- Reply content
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

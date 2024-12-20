@@ -144,6 +144,50 @@ const updatePlayerBalance = async (req, res) => {
 	}
 };
 
+const getPayments = async (req, res) => {
+	const { player_id } = req.params;
+
+	try {
+		const result = await pool.query(queries.getPayments, [player_id]);
+		res.status(200).json(result.rows);
+	} catch (error) {
+		console.error("Error fetching payments:", error.message);
+		res.status(500).json({ error: "Failed to fetch payments." });
+	}
+};
+
+const getAccountBalance = async (req, res) => {
+	const { player_id } = req.params;
+
+	try {
+		const result = await pool.query(queries.getAccountBalance, [player_id]);
+		res.status(200).json(result.rows[0]);
+	} catch (error) {
+		console.error("Error fetching balance:", error.message);
+		res.status(500).json({ error: "Failed to fetch balance." });
+	}
+};
+
+const processPlayerPayments = async (req, res) => {
+	const { player_id } = req.params;
+
+	try {
+		const result = await pool.query(queries.processPlayerPayments, [player_id]);
+
+		if (result.rowCount === 0) {
+			return res.status(404).json({ error: "Player not found." });
+		}
+
+		res.status(200).json({
+			message: "Player balance updated successfully.",
+			new_balance: result.rows[0].account_balance,
+		});
+	} catch (error) {
+		console.error("Error processing payments:", error.message);
+		res.status(500).json({ error: "Internal server error." });
+	}
+};
+
 module.exports = {
 	getPlayers,
 	addPlayer,
@@ -151,4 +195,7 @@ module.exports = {
 	getPlayerStats,
 	updatePlayer,
 	updatePlayerBalance,
+	getAccountBalance,
+	getPayments,
+	processPlayerPayments,
 };

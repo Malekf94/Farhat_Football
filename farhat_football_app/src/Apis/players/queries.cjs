@@ -46,6 +46,17 @@ const updatePlayerBalance = `
 
 const playerBalance = `SELECT account_balance FROM players WHERE player_id=$1`;
 
+const getPayments = `SELECT * FROM payments WHERE user_id = $1 ORDER BY payment_date DESC;`;
+
+const getAccountBalance = `SELECT account_balance FROM players WHERE player_id = $1;`;
+
+const processPlayerPayments = `UPDATE players
+             SET account_balance = account_balance + (
+                 SELECT COALESCE(SUM(amount), 0) FROM payments WHERE player_id = $1
+             )
+             WHERE player_id = $1
+             RETURNING account_balance;`;
+
 module.exports = {
 	getPlayers,
 	checkEmailExists,
@@ -55,4 +66,7 @@ module.exports = {
 	updatePlayer,
 	updatePlayerBalance,
 	playerBalance,
+	getPayments,
+	getAccountBalance,
+	processPlayerPayments,
 };

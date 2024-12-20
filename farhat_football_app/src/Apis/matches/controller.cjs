@@ -73,7 +73,7 @@ const createMatch = async (req, res) => {
 		number_of_players,
 		pitch_id,
 		match_status,
-		signin_begin_time,
+		youtube_links,
 	} = req.body;
 
 	if (
@@ -81,10 +81,11 @@ const createMatch = async (req, res) => {
 		!match_time ||
 		!number_of_players ||
 		!pitch_id ||
-		!match_status ||
-		!signin_begin_time
+		!match_status
 	) {
-		return res.status(400).json({ error: "All fields are required." });
+		return res
+			.status(400)
+			.json({ error: "All fields except YouTube links are required." });
 	}
 
 	try {
@@ -105,7 +106,7 @@ const createMatch = async (req, res) => {
 			number_of_players,
 			pitch_id,
 			match_status,
-			signin_begin_time,
+			youtube_links || null, // Optional field for YouTube links
 		]);
 
 		const newMatch = insertResult.rows[0];
@@ -127,28 +128,26 @@ const updateMatch = async (req, res) => {
 		match_time,
 		number_of_players,
 		price,
-		signin_begin_time,
+		youtube_links,
 	} = req.body;
 
 	try {
 		const result = await pool.query(matchQueries.updateMatch, [
-			match_status || null,
-			match_date || null,
-			match_time || null,
-			number_of_players || null,
-			price || null,
-			signin_begin_time || null,
+			match_status,
+			match_date,
+			match_time,
+			number_of_players,
+			price,
+			youtube_links,
 			match_id,
 		]);
 
-		if (result.rows.length === 0) {
-			return res.status(404).json({ error: "Match not found." });
-		}
-
-		return res.status(200).json(result.rows);
+		res.status(200).json(result.rows[0]);
 	} catch (error) {
 		console.error("Error updating match:", error);
-		return res.status(500).json({ error: "An error occurred." });
+		res
+			.status(500)
+			.json({ error: "An error occurred while updating the match." });
 	}
 };
 

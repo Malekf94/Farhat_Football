@@ -5,31 +5,34 @@ import "./AccountDetails.css";
 function AccountDetails() {
 	const [userDetails, setUserDetails] = useState(null);
 	const [playerStats, setPlayerStats] = useState([]);
+	const [paymentHistory, setPaymentHistory] = useState([]);
 	const [showEditForm, setShowEditForm] = useState(false);
 	const playerId = 12; // Replace with actual player ID from authentication or props
 
+	// Fetch all necessary data
 	useEffect(() => {
 		// Fetch player details
 		axios
 			.get(`/api/v1/players/${playerId}`)
-			.then((response) => {
-				setUserDetails(response.data[0]);
-			})
-			.catch((error) => {
-				console.error("Error fetching user details:", error);
-			});
+			.then((response) => setUserDetails(response.data[0]))
+			.catch((error) => console.error("Error fetching user details:", error));
 
 		// Fetch player stats
 		axios
 			.get(`/api/v1/players/${playerId}/stats`)
-			.then((response) => {
-				setPlayerStats(response.data);
-			})
-			.catch((error) => {
-				console.error("Error fetching player stats:", error);
-			});
+			.then((response) => setPlayerStats(response.data))
+			.catch((error) => console.error("Error fetching player stats:", error));
+
+		// Fetch payment history
+		axios
+			.get(`/api/v1/players/${playerId}/payments`)
+			.then((response) => setPaymentHistory(response.data))
+			.catch((error) =>
+				console.error("Error fetching payment history:", error)
+			);
 	}, [playerId]);
 
+	// Edit Handlers
 	const handleChange = (e) => {
 		const { name, value } = e.target;
 		setUserDetails((prevDetails) => ({
@@ -51,9 +54,7 @@ function AccountDetails() {
 			});
 	};
 
-	const handleAddMoneys = () => {
-		alert("Redirecting to payment integration..."); // Placeholder action
-	};
+	// Top-Up Handlers
 	const handleAddMoney = () => {
 		axios
 			.put(`/api/v1/players/balance/${playerId}`, {
@@ -61,14 +62,15 @@ function AccountDetails() {
 				player_id: playerId,
 			})
 			.then(() => {
-				alert("Done");
+				alert("Money added successfully!");
+				window.location.reload();
 			})
 			.catch((error) => {
-				console.error("Error", error);
-				alert("error");
+				console.error("Error adding money:", error);
+				alert("Failed to add money.");
 			});
-		alert("Redirecting to payment integration..."); // Placeholder action
 	};
+
 	const handleTakeMoney = () => {
 		axios
 			.put(`/api/v1/players/balance/${playerId}`, {
@@ -76,13 +78,13 @@ function AccountDetails() {
 				player_id: playerId,
 			})
 			.then(() => {
-				alert("Done");
+				alert("Money subtracted successfully!");
+				window.location.reload();
 			})
 			.catch((error) => {
-				console.error("Error", error);
-				alert("error");
+				console.error("Error subtracting money:", error);
+				alert("Failed to subtract money.");
 			});
-		alert("Redirecting to payment integration..."); // Placeholder action
 	};
 
 	if (!userDetails) {
@@ -91,14 +93,16 @@ function AccountDetails() {
 
 	return (
 		<div className="page-content AccountDetails">
-			<h1>Your Profile</h1>
+			<h1>Hello {userDetails.preferred_name}</h1>
 
+			{/* Balance Section */}
 			<div className="balance-section">
 				<h2>Balance: £{Number(userDetails.account_balance).toFixed(2)}</h2>
 				<button onClick={handleAddMoney}>Add Money</button>
 				<button onClick={handleTakeMoney}>Take Money</button>
 			</div>
 
+			{/* Update Details Form */}
 			<button
 				className="toggle-edit-btn"
 				onClick={() => setShowEditForm(!showEditForm)}
@@ -159,6 +163,7 @@ function AccountDetails() {
 				</div>
 			)}
 
+			{/* Stats Section */}
 			<div className="stats-section">
 				<h2>Your Performance</h2>
 				<table className="stats-table">
@@ -183,6 +188,35 @@ function AccountDetails() {
 						) : (
 							<tr>
 								<td colSpan="4">No stats available</td>
+							</tr>
+						)}
+					</tbody>
+				</table>
+			</div>
+
+			{/* Payment History Section */}
+			<div className="payments-section">
+				<h2>Your Payment History</h2>
+				<table className="payments-table">
+					<thead>
+						<tr>
+							<th>Date</th>
+							<th>Amount</th>
+							<th>Description</th>
+						</tr>
+					</thead>
+					<tbody>
+						{paymentHistory.length > 0 ? (
+							paymentHistory.map((payment) => (
+								<tr key={payment.transaction_id}>
+									<td>{new Date(payment.payment_date).toLocaleDateString()}</td>
+									<td>£{payment.amount}</td>
+									<td>{payment.description}</td>
+								</tr>
+							))
+						) : (
+							<tr>
+								<td colSpan="3">No payment history available</td>
 							</tr>
 						)}
 					</tbody>
