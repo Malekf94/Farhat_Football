@@ -1,0 +1,42 @@
+.page-content h1,
+.page-content h2 {
+	margin-bottom: 1rem;
+	color: #333;
+	text-align: center;
+}
+
+.latesTable,
+.negativeBalanceTable {
+	width: 100%;
+	border-collapse: collapse;
+	margin: 1rem 0;
+}
+
+.latesTable th,
+.negativeBalanceTable th {
+	background-color: #f4f4f4;
+	color: #333;
+	padding: 0.5rem;
+	text-align: left;
+}
+
+.latesTable td,
+.negativeBalanceTable td {
+	padding: 0.5rem;
+	border: 1px solid #ddd;
+}
+
+.latesTable tr:nth-child(even),
+.negativeBalanceTable tr:nth-child(even) {
+	background-color: #f9f9f9;
+}
+
+.latesTable tr:nth-child(odd),
+.negativeBalanceTable tr:nth-child(odd) {
+	background-color: #fff;
+}
+
+.latesTable td:first-child,
+.negativeBalanceTable td:first-child {
+	text-transform: capitalize;
+}

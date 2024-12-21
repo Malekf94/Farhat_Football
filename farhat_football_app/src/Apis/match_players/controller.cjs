@@ -7,7 +7,6 @@ const getPlayersInMatch = (req, res) => {
 		if (error) throw error;
 		res.status(200).json(results.rows);
 	});
-	console.log("getting matchplayer");
 };
 
 // Adds a player to a match without fetching match price from the DB.

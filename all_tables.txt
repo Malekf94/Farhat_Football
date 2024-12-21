@@ -4,9 +4,6 @@ CREATE TABLE players (
     last_name VARCHAR(30) NOT NULL,
     preferred_name VARCHAR(20),
     year_of_birth INT NOT NULL CHECK (year_of_birth > 1900),
-    height FLOAT CHECK (height > 0),
-    weight INT CHECK (weight > 0),
-    nationality VARCHAR(30),
     email VARCHAR(30) UNIQUE NOT NULL,
     account_balance DECIMAL(10, 2) DEFAULT 0
 );

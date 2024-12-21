@@ -5,6 +5,7 @@ const router = Router();
 
 router.post("/", controller.addPlayer);
 router.get("/", controller.getPlayers);
+router.get("/negativeBalances", controller.getNegativeBalance);
 router.get("/:player_id/stats", controller.getPlayerStats);
 router.get("/:player_id/payments", controller.getPayments);
 router.get("/:player_id/balance", controller.getAccountBalance);

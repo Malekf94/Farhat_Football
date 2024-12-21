@@ -131,34 +131,6 @@ function AccountDetails() {
 							onChange={handleChange}
 						/>
 					</label>
-					<label>
-						Height (m):
-						<input
-							type="number"
-							step="0.01"
-							name="height"
-							value={userDetails.height}
-							onChange={handleChange}
-						/>
-					</label>
-					<label>
-						Weight (kg):
-						<input
-							type="number"
-							name="weight"
-							value={userDetails.weight}
-							onChange={handleChange}
-						/>
-					</label>
-					<label>
-						Nationality:
-						<input
-							type="text"
-							name="nationality"
-							value={userDetails.nationality}
-							onChange={handleChange}
-						/>
-					</label>
 					<button onClick={handleSave}>Save</button>
 				</div>
 			)}

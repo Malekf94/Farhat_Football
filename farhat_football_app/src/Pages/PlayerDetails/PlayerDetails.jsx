@@ -44,15 +44,6 @@ function PlayerDetails() {
 				<p>
 					<strong>Year of Birth:</strong> {player.year_of_birth}
 				</p>
-				<p>
-					<strong>Height:</strong> {player.height} meters
-				</p>
-				<p>
-					<strong>Weight:</strong> {player.weight} kg
-				</p>
-				<p>
-					<strong>Nationality:</strong> {player.nationality}
-				</p>
 			</div>
 
 			<div className="player-stats">

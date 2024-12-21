@@ -4,8 +4,10 @@ import "./Lates.css";
 
 function Lates() {
 	const [lates, setLates] = useState([]);
+	const [negativeBalances, setNegativeBalances] = useState([]);
 
 	useEffect(() => {
+		// Fetch late players
 		axios
 			.get("/api/v1/matchPlayer/lates")
 			.then((response) => {
@@ -13,6 +15,16 @@ function Lates() {
 			})
 			.catch((error) => {
 				console.error("Error fetching lates:", error);
+			});
+
+		// Fetch players with negative balances
+		axios
+			.get("/api/v1/players/negativeBalances")
+			.then((response) => {
+				setNegativeBalances(response.data);
+			})
+			.catch((error) => {
+				console.error("Error fetching negative balances:", error);
 			});
 	}, []);
 
@@ -37,6 +49,30 @@ function Lates() {
 					) : (
 						<tr>
 							<td colSpan="2">No late players found</td>
+						</tr>
+					)}
+				</tbody>
+			</table>
+
+			<h2>Players with Negative Balances</h2>
+			<table className="negativeBalanceTable">
+				<thead>
+					<tr>
+						<th>Player Name</th>
+						<th>Balance</th>
+					</tr>
+				</thead>
+				<tbody>
+					{negativeBalances.length > 0 ? (
+						negativeBalances.map((player, index) => (
+							<tr key={index}>
+								<td>{player.full_name}</td>
+								<td>£{player.account_balance}</td>
+							</tr>
+						))
+					) : (
+						<tr>
+							<td colSpan="2">No players with negative balances</td>
 						</tr>
 					)}
 				</tbody>

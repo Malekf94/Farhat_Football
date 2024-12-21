@@ -1,8 +1,8 @@
 const getPlayers = "SELECT * FROM players";
 const checkEmailExists = "SELECT s FROM players s WHERE s.email = $1";
 const addPlayer = `
-  INSERT INTO players (first_name, last_name, preferred_name, year_of_birth, height, weight, nationality, email)
-  VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+  INSERT INTO players (first_name, last_name, preferred_name, year_of_birth, email)
+  VALUES ($1, $2, $3, $4, $5)
   RETURNING *;
 `;
 const getPlayer = "SELECT * FROM players WHERE player_id = $1";
@@ -29,11 +29,8 @@ const updatePlayer = `
       last_name = COALESCE($2, last_name),
       preferred_name = COALESCE($3, preferred_name),
       year_of_birth = COALESCE($4, year_of_birth),
-      height = COALESCE($5, height),
-      weight = COALESCE($6, weight),
-      nationality = COALESCE($7, nationality),
-      email = COALESCE($8, email)
-  WHERE player_id = $9
+      email = COALESCE($5, email)
+  WHERE player_id = $6
   RETURNING *;
 `;
 
@@ -57,6 +54,14 @@ const processPlayerPayments = `UPDATE players
              WHERE player_id = $1
              RETURNING account_balance;`;
 
+const getNegativeBalance = `SELECT 
+				player_id, 
+				preferred_name AS full_name, 
+				account_balance 
+			FROM players 
+			WHERE account_balance < 0;
+		`;
+
 module.exports = {
 	getPlayers,
 	checkEmailExists,
@@ -69,4 +74,5 @@ module.exports = {
 	getPayments,
 	getAccountBalance,
 	processPlayerPayments,
+	getNegativeBalance,
 };

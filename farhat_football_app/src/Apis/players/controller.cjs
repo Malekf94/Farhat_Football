@@ -2,16 +2,8 @@ const pool = require("../../../db.cjs");
 const queries = require("./queries.cjs");
 
 const addPlayer = (req, res) => {
-	const {
-		first_name,
-		last_name,
-		preferred_name,
-		year_of_birth,
-		height,
-		weight,
-		nationality,
-		email,
-	} = req.body;
+	const { first_name, last_name, preferred_name, year_of_birth, email } =
+		req.body;
 
 	// Input validation
 	if (
@@ -19,9 +11,6 @@ const addPlayer = (req, res) => {
 		!last_name ||
 		!preferred_name ||
 		!year_of_birth ||
-		!height ||
-		!weight ||
-		!nationality ||
 		!email
 	) {
 		return res.status(400).json({ error: "All fields are required." });
@@ -29,16 +18,7 @@ const addPlayer = (req, res) => {
 
 	pool.query(
 		queries.addPlayer,
-		[
-			first_name,
-			last_name,
-			preferred_name,
-			year_of_birth,
-			height,
-			weight,
-			nationality,
-			email,
-		],
+		[first_name, last_name, preferred_name, year_of_birth, email],
 		(error, results) => {
 			if (error) {
 				console.error(error);
@@ -59,6 +39,7 @@ const getPlayers = (req, res) => {
 
 const getPlayer = (req, res) => {
 	const player_id = parseInt(req.params.player_id);
+	console.log(player_id);
 	pool.query(queries.getPlayer, [player_id], (error, results) => {
 		if (error) throw error;
 		res.status(200).json(results.rows);
@@ -188,6 +169,17 @@ const processPlayerPayments = async (req, res) => {
 	}
 };
 
+const getNegativeBalance = async (req, res) => {
+	try {
+		const query = queries.getNegativeBalance;
+		const result = await pool.query(query);
+		res.status(200).json(result.rows);
+	} catch (error) {
+		console.error("Error fetching players with negative balances:", error);
+		res.status(500).json({ error: "Failed to fetch negative balances" });
+	}
+};
+
 module.exports = {
 	getPlayers,
 	addPlayer,
@@ -198,4 +190,5 @@ module.exports = {
 	getAccountBalance,
 	getPayments,
 	processPlayerPayments,
+	getNegativeBalance,
 };
