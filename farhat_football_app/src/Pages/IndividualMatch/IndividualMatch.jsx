@@ -2,15 +2,17 @@ import { useEffect, useState, useCallback } from "react";
 import PropTypes from "prop-types"; // Added prop-types
 import "./IndividualMatch.css";
 import axios from "axios";
+import { useAuth0 } from "@auth0/auth0-react";
 import { useParams } from "react-router-dom";
+import { parseISO, differenceInHours } from "date-fns";
 
 function IndividualMatch() {
+	const { user, isAuthenticated } = useAuth0(); // Use Auth0 to get user info
 	const [match, setMatch] = useState(null);
 	const [pitch, setPitch] = useState(null);
 	const [playersInMatch, setPlayersInMatch] = useState([]);
 	const { match_id } = useParams();
-
-	const currentUserId = 12; // Replace with logged-in user ID
+	const [playerId, setPlayerId] = useState(null); // Store player_id dynamically
 	const [isAdmin, setIsAdmin] = useState(false); // Track admin access
 
 	// Toggle edit modes
@@ -27,7 +29,31 @@ function IndividualMatch() {
 	});
 	const [editedPlayerStats, setEditedPlayerStats] = useState({});
 
+	// Fetch player_id from backend
+	useEffect(() => {
+		const fetchPlayerId = async () => {
+			if (isAuthenticated && user) {
+				try {
+					const response = await axios.get(
+						`/api/v1/players/check?email=${user.email}`
+					);
+
+					if (response.data.exists) {
+						setPlayerId(response.data.player_id); // Set player_id
+					} else {
+						console.error("Player not found in database");
+					}
+				} catch (error) {
+					console.error("Error fetching player ID:", error);
+				}
+			}
+		};
+
+		fetchPlayerId();
+	}, [isAuthenticated, user]);
+
 	const fetchMatchDetails = useCallback(async () => {
+		if (!playerId) return;
 		try {
 			const matchResponse = await axios.get(`/api/v1/matches/${match_id}`);
 			const matchData = matchResponse.data[0];
@@ -48,10 +74,11 @@ function IndividualMatch() {
 		} catch (error) {
 			console.error("Error fetching match or pitch details:", error);
 		}
-	}, [match_id]);
+	}, [match_id, playerId]);
 
 	useEffect(() => {
 		// Fetch match details
+		if (!playerId) return;
 		axios
 			.get(`/api/v1/matches/${match_id}`)
 			.then((response) => {
@@ -75,16 +102,17 @@ function IndividualMatch() {
 
 		// Check admin access for the current player
 		axios
-			.get(`/api/v1/players/${currentUserId}`)
+			.get(`/api/v1/players/${playerId}`)
 			.then((response) => {
 				setIsAdmin(response.data[0]?.is_admin || false);
 			})
 			.catch((error) => {
 				console.error("Error fetching user details:", error);
 			});
-	}, [match_id, currentUserId]);
+	}, [match_id, playerId]);
 
 	const fetchPlayersInMatch = useCallback(() => {
+		if (!playerId) return;
 		axios
 			.get(`/api/v1/matchPlayer/${match_id}`)
 			.then((response) => {
@@ -97,6 +125,7 @@ function IndividualMatch() {
 						acc[player.player_id] = {
 							goals: player.goals,
 							assists: player.assists,
+							own_goals: player.own_goals,
 							late: player.late,
 							team_id: player.team_id,
 						};
@@ -107,7 +136,7 @@ function IndividualMatch() {
 			.catch((error) => {
 				console.error("Error fetching match players:", error);
 			});
-	}, [match_id]);
+	}, [match_id, playerId]);
 
 	useEffect(() => {
 		fetchMatchDetails();
@@ -152,71 +181,124 @@ function IndividualMatch() {
 		}
 	};
 
-	const handleSavePlayerStats = () => {
+	const handleSavePlayerStats = async () => {
 		const updatePromises = Object.entries(editedPlayerStats).map(
-			([player_id, { goals, assists, late, team_id }]) =>
+			([player_id, { goals, assists, own_goals, late, team_id }]) =>
 				axios.put(`/api/v1/matchPlayer/${match_id}/${player_id}`, {
 					goals: parseInt(goals, 10),
 					assists: parseInt(assists, 10),
+					own_goals: parseInt(own_goals, 10),
 					late: late,
-					team_id: parseInt(team_id, 10) || null,
+					team_id: team_id ? parseInt(team_id, 10) : null,
 				})
 		);
 
-		Promise.all(updatePromises)
-			.then(() => {
-				setIsEditingStats(false);
-				fetchPlayersInMatch();
-				alert("Player stats updated successfully.");
-			})
-			.catch((error) => {
-				console.error("Error fetching user details:", error);
-				alert("Failed to update player stats.");
-			});
+		try {
+			await Promise.all(updatePromises);
+			setIsEditingStats(false);
+			fetchPlayersInMatch();
+			alert("Player stats updated successfully.");
+		} catch (error) {
+			console.error("Error updating player stats:", error);
+			alert("Failed to update player stats.");
+		}
 	};
 
 	const userInMatch = playersInMatch.some(
-		(player) => player.player_id === currentUserId
+		(player) => player.player_id === playerId
 	);
 
 	const handleJoinMatch = async () => {
 		try {
+			// Fetch player stats to get balance and match count
+			const playerStatsResponse = await axios.get(
+				`/api/v1/players/${playerId}/stats`
+			);
+			const { total_matches, account_balance } = playerStatsResponse.data;
+
+			// Check conditions
+			if (total_matches < 10 && account_balance < match.price) {
+				alert(
+					`You need a balance of at least £${match.price} to join this match.`
+				);
+				return;
+			} else if (total_matches >= 10 && account_balance < -12) {
+				alert("Your balance must be above -£12 to join this match.");
+				return;
+			}
+
+			// Post join request with timestamp
 			await axios.post("/api/v1/matchPlayer", {
 				match_id: parseInt(match_id, 10),
-				player_id: currentUserId,
+				player_id: playerId,
 				price: match.price,
+				joined_at: new Date().toISOString(), // Add the current timestamp
 			});
+
+			// Refresh the players in the match
 			fetchPlayersInMatch();
 			alert("Successfully joined the match!");
 		} catch (error) {
 			console.error("Error joining match:", error);
-			alert("Failed to join the match.");
+			alert(
+				"Failed to join the match. Please check your balance or try again."
+			);
 		}
 	};
 
 	const handleLeaveMatch = async () => {
 		try {
+			// Fetch match details to get match start time
+			const matchResponse = await axios.get(`/api/v1/matches/${match_id}`);
+			const matchData = matchResponse.data[0];
+			const matchStartTime = parseISO(
+				`${matchData.match_date.substring(0, 10)}T${matchData.match_time}`
+			);
+			const currentTime = new Date();
+
+			// Calculate time difference in hours
+			const timeDifference = differenceInHours(matchStartTime, currentTime);
+
+			if (timeDifference < 5) {
+				console.log("The match starts in less than 5 hours.");
+			}
+
+			if (timeDifference < 5) {
+				// Notify the user and deduct the match price
+				alert(
+					`You are leaving less than 5 hours before the match starts. The match price of £${matchData.price} will be deducted from your balance.`
+				);
+
+				// Deduct the match price from the player's balance
+				await axios.put(`/api/v1/players/balance/${playerId}`, {
+					amount: -matchData.price,
+					player_id: playerId,
+				});
+			}
+
+			// Proceed with leaving the match
 			await axios.delete("/api/v1/matchPlayer", {
 				data: {
 					match_id: parseInt(match_id, 10),
-					player_id: currentUserId,
+					player_id: playerId,
 				},
 			});
+
 			fetchPlayersInMatch();
 			alert("You have left the match!");
 		} catch (error) {
 			console.error("Error leaving match:", error);
-			alert("Failed to leave the match.");
+			alert("Failed to leave the match. Please try again.");
 		}
 	};
 
-	if (!match || !pitch) {
+	if (!match || !pitch || playerId === null) {
 		return <p>Loading match details...</p>;
 	}
 
 	const team1 = playersInMatch.filter((player) => player.team_id === 1);
 	const team2 = playersInMatch.filter((player) => player.team_id === 2);
-	const reserves = playersInMatch.filter((player) => !player.team_id);
+	const reserves = playersInMatch.filter((player) => player.team_id === 0);
 
 	return (
 		<div className="page-content individual-match">
@@ -292,22 +374,25 @@ function MatchDetails({
 }) {
 	return (
 		<>
-			<p>
+			<p className="indiMatchesP">
 				<strong>Date:</strong> {new Date(match.match_date).toLocaleDateString()}
 			</p>
-			<p>
+			<p className="indiMatchesP">
 				<strong>Time:</strong> {match.match_time}
 			</p>
-			<p>
+			<p className="indiMatchesP">
 				<strong>Price:</strong> £{match.price}
 			</p>
-			<p>
+			<p className="indiMatchesP">
 				<strong>Pitch Name:</strong> {pitch.pitch_name}
 			</p>
-			<p>
+			<p className="indiMatchesP">
 				<strong>Pitch Address:</strong> {pitch.address}
 			</p>
-			<p>
+			<p className="indiMatchesP">
+				<strong>Pitch Postcode:</strong> {pitch.postcode}
+			</p>
+			<p className="indiMatchesP">
 				<strong>Match Status:</strong> {match.match_status}
 			</p>
 			{match.youtube_links && (
@@ -451,6 +536,7 @@ function PlayerTable({
 						<th>Name</th>
 						<th>Goals</th>
 						<th>Assists</th>
+						<th>Own Goals</th>
 						<th>Late</th>
 						{isEditingStats && <th>Team</th>}
 					</tr>
@@ -496,6 +582,21 @@ function PlayerTable({
 											/>
 										</td>
 										<td>
+											<input
+												type="number"
+												value={editData.own_goals}
+												onChange={(e) =>
+													setEditedPlayerStats((prev) => ({
+														...prev,
+														[player.player_id]: {
+															...prev[player.player_id],
+															own_goals: e.target.value,
+														},
+													}))
+												}
+											/>
+										</td>
+										<td>
 											<select
 												value={editData.late}
 												onChange={(e) =>
@@ -525,9 +626,9 @@ function PlayerTable({
 													}))
 												}
 											>
-												<option value="">Reserves</option>
-												<option value="1">Team 1</option>
-												<option value="2">Team 2</option>
+												<option value="0">reserves</option>
+												<option value="1">1</option>
+												<option value="2">2</option>
 											</select>
 										</td>
 									</>
@@ -535,6 +636,7 @@ function PlayerTable({
 									<>
 										<td>{player.goals}</td>
 										<td>{player.assists}</td>
+										<td>{player.own_goals}</td>
 										<td>{player.late ? "Yes" : "No"}</td>
 									</>
 								)}
@@ -559,6 +661,7 @@ MatchDetails.propTypes = {
 	pitch: PropTypes.shape({
 		pitch_name: PropTypes.string.isRequired,
 		address: PropTypes.string.isRequired,
+		postcode: PropTypes.string.isRequired,
 	}).isRequired,
 	isAdmin: PropTypes.bool.isRequired,
 	isEditingMatch: PropTypes.bool.isRequired,
@@ -573,6 +676,9 @@ MatchDetails.propTypes = {
 	setEditMatchFields: PropTypes.func.isRequired,
 	handleSaveMatch: PropTypes.func.isRequired,
 	setIsEditingMatch: PropTypes.func.isRequired,
+	userInMatch: PropTypes.bool.isRequired,
+	handleJoinMatch: PropTypes.func.isRequired,
+	handleLeaveMatch: PropTypes.func.isRequired,
 };
 
 EditMatchForm.propTypes = {
@@ -597,6 +703,7 @@ PlayerTable.propTypes = {
 			preferred_name: PropTypes.string,
 			goals: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 			assists: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+			own_goals: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 			late: PropTypes.bool,
 			team_id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 		})
@@ -608,6 +715,7 @@ PlayerTable.propTypes = {
 		PropTypes.shape({
 			goals: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 			assists: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+			own_goals: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 			late: PropTypes.bool,
 			team_id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 		})

@@ -6,6 +6,7 @@ const matchPlayerRoutes = require("./src/Apis/match_players/routes.cjs");
 const feedbackRoutes = require("./src/Apis/feedback/router.cjs");
 const leaderboardRoutes = require("./src/Apis/leaderboard/leaderboard.cjs");
 const seasonalleaderRoutes = require("./src/Apis/leaderboard/seasonal-leaderboard.cjs");
+const attributesRoutes = require("./src/Apis/attributes/routes.cjs");
 const app = express();
 const port = 3000;
 
@@ -15,6 +16,7 @@ app.get("/", (req, res) => {
 	res.send("Hello World!");
 });
 
+app.use(`/api/v1/attributes`, attributesRoutes);
 app.use(`/api/v1/matches`, matchRoutes);
 app.use(`/api/v1/players`, playerRoutes);
 app.use(`/api/v1/pitches`, pitchRoutes);

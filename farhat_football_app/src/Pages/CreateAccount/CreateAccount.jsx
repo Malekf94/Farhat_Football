@@ -1,20 +1,28 @@
-import { useState } from "react";
+import { useAuth0 } from "@auth0/auth0-react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import "./CreateAccount.css";
 
 function CreateAccount() {
+	const { loginWithRedirect, user, isAuthenticated } = useAuth0(); // Auth0 hook
 	const [formData, setFormData] = useState({
+		email: "",
 		first_name: "",
 		last_name: "",
 		preferred_name: "",
 		year_of_birth: "",
-		height: "",
-		weight: "",
-		nationality: "",
-		email: "",
 	});
-
 	const [message, setMessage] = useState("");
+
+	// Pre-fill the email field with the logged-in user's email
+	useEffect(() => {
+		if (isAuthenticated && user) {
+			setFormData((prevData) => ({
+				...prevData,
+				email: user.email, // Auth0 user's email
+			}));
+		}
+	}, [user, isAuthenticated]);
 
 	const handleChange = (e) => {
 		const { name, value } = e.target;
@@ -26,20 +34,18 @@ function CreateAccount() {
 		setMessage("");
 
 		try {
-			const response = await axios.post("/api/v1/players", formData);
-			setMessage(
-				`Account created successfully for ${response.data.preferred_name}!`
-			);
-			setFormData({
-				first_name: "",
-				last_name: "",
-				preferred_name: "",
-				year_of_birth: "",
-				height: "",
-				weight: "",
-				nationality: "",
-				email: "",
+			// Save user to the players table via backend API
+			await axios.post("/api/v1/players/auth0-signup", formData);
+
+			// Trigger Auth0 signup flow
+			await loginWithRedirect({
+				appState: { returnTo: "/your-account" },
+				authorizationParams: {
+					screen_hint: "signup",
+				},
 			});
+
+			setMessage("Account created successfully!");
 		} catch (error) {
 			setMessage("Error creating account. Please try again.");
 			console.error(error);
@@ -47,9 +53,18 @@ function CreateAccount() {
 	};
 
 	return (
-		<div className="create-account-page">
+		<div className="page-content">
 			<h1>Create Account</h1>
 			<form className="create-account-form" onSubmit={handleSubmit}>
+				<label>
+					Email Address:
+					<input
+						type="email"
+						name="email"
+						value={formData.email}
+						readOnly // Email is hardcoded from Auth0
+					/>
+				</label>
 				<label>
 					First Name:
 					<input
@@ -86,47 +101,6 @@ function CreateAccount() {
 						type="number"
 						name="year_of_birth"
 						value={formData.year_of_birth}
-						onChange={handleChange}
-						required
-					/>
-				</label>
-				<label>
-					Height (meters):
-					<input
-						type="number"
-						step="0.01"
-						name="height"
-						value={formData.height}
-						onChange={handleChange}
-						required
-					/>
-				</label>
-				<label>
-					Weight (kg):
-					<input
-						type="number"
-						name="weight"
-						value={formData.weight}
-						onChange={handleChange}
-						required
-					/>
-				</label>
-				<label>
-					Nationality:
-					<input
-						type="text"
-						name="nationality"
-						value={formData.nationality}
-						onChange={handleChange}
-						required
-					/>
-				</label>
-				<label>
-					Email Address:
-					<input
-						type="email"
-						name="email"
-						value={formData.email}
 						onChange={handleChange}
 						required
 					/>

@@ -75,18 +75,15 @@ function CreateMatch() {
 
 				<label>
 					Number of Players:
-					<select
+					<input
+						type="number"
 						name="number_of_players"
 						value={formData.number_of_players}
 						onChange={handleChange}
 						required
-					>
-						<option value="">Select Number of Players</option>
-						<option value="10">10</option>
-						<option value="12">12</option>
-						<option value="14">14</option>
-						{/* Add more options as needed */}
-					</select>
+						min="1"
+						placeholder="Enter number of players"
+					/>
 				</label>
 
 				<label>
@@ -105,18 +102,6 @@ function CreateMatch() {
 						))}
 					</select>
 				</label>
-
-				<label>
-					Sign-in Begin Time:
-					<input
-						type="time"
-						name="signin_begin_time"
-						value={formData.signin_begin_time}
-						onChange={handleChange}
-						required
-					/>
-				</label>
-
 				<button type="submit">Create Match</button>
 			</form>
 		</div>

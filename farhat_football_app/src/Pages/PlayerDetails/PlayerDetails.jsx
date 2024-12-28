@@ -21,7 +21,7 @@ function PlayerDetails() {
 
 		// Fetch player stats
 		axios
-			.get(`/api/v1/players/${player_id}/stats`)
+			.get(`/api/v1/players/${player_id}/monthlystats`)
 			.then((response) => {
 				setStats(response.data);
 			})
@@ -56,6 +56,7 @@ function PlayerDetails() {
 								<th>Year</th>
 								<th>Goals</th>
 								<th>Assists</th>
+								<th>Own Goals</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -65,6 +66,7 @@ function PlayerDetails() {
 									<td>{stat.year}</td>
 									<td>{stat.total_goals}</td>
 									<td>{stat.total_assists}</td>
+									<td>{stat.total_own_goals}</td>
 								</tr>
 							))}
 						</tbody>

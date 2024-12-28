@@ -28,12 +28,11 @@ const getPitchPrice = `
 const updateMatch = `
   UPDATE matches
   SET match_status = COALESCE($1, match_status),
-      match_date = COALESCE($2, match_date),
-      match_time = COALESCE($3, match_time),
-      number_of_players = COALESCE($4, number_of_players),
-      price = COALESCE($5, price),
-       youtube_links = COALESCE($6, youtube_links)
-  WHERE match_id = $7
+      match_time = COALESCE($2, match_time),
+      number_of_players = COALESCE($3, number_of_players),
+      price = COALESCE($4, price),
+      youtube_links = COALESCE($5, youtube_links)
+  WHERE match_id = $6
   RETURNING *;
 `;
 
@@ -41,6 +40,29 @@ const createMatch = `
   INSERT INTO matches (match_date, match_time, price, number_of_players, pitch_id, match_status, youtube_links)
   VALUES ($1, $2, $3, $4, $5, $6, $7)
   RETURNING *;
+`;
+
+const logPayment = `
+        INSERT INTO payments (user_id, amount, payment_date, transaction_id, description)
+        VALUES ($1, $2, NOW(), gen_random_uuid(), $3)
+    `;
+
+const getCurrentStatus = `
+SELECT match_status FROM matches WHERE match_id = $1
+`;
+const removeReserves = `
+DELETE FROM match_players WHERE match_id = $1 AND team_id = 0
+`;
+
+const getPlayersInMatch = `
+SELECT mp.player_id, mp.late, m.price
+FROM match_players mp
+JOIN matches m ON mp.match_id = m.match_id
+WHERE mp.match_id = $1 AND mp.team_id IN (0, 1, 2)
+`;
+
+const deductPlayerBalance = `
+UPDATE players SET account_balance = account_balance - $1 WHERE player_id = $2
 `;
 
 module.exports = {
@@ -53,4 +75,9 @@ module.exports = {
 	getPitchPrice,
 	createMatch,
 	updateMatch,
+	logPayment,
+	getCurrentStatus,
+	removeReserves,
+	getPlayersInMatch,
+	deductPlayerBalance,
 };

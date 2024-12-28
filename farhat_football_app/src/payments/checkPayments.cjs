@@ -1,6 +1,6 @@
 const axios = require("axios");
 const pool = require("../../db.cjs");
-require("dotenv").config();
+require("dotenv").config({ path: "../../.env" });
 
 // Monzo API configuration
 const MONZO_ACCESS_TOKEN = process.env.MONZO_ACCESS_TOKEN; // Secure API token
@@ -17,6 +17,8 @@ const checkMonzoPayments = async () => {
 		console.log("Fetching Monzo transactions from the last 24 hours...");
 
 		const since = get24HoursAgoISO();
+
+		console.log(since);
 
 		// Fetch transactions from Monzo API
 		const response = await axios.get(
@@ -35,7 +37,9 @@ const checkMonzoPayments = async () => {
 
 				// Extract player ID from the notes field (e.g., "farhatfootball_12")
 				const lowerNotes = notes.toLowerCase();
-				const match = lowerNotes.match(/farhatfootball_(\d+)/); // Regex to get player ID
+				console.log(lowerNotes);
+				const match = lowerNotes.match(/farhatfootball(\d+)/); // Regex to get player ID
+				console.log(match);
 				const playerId = match ? parseInt(match[1], 10) : null;
 
 				// Insert payment into database with the correct player ID

@@ -1,28 +1,3 @@
-/* General Page Styling */
-.page-content {
-	max-width: 900px;
-	margin: 0 auto;
-	padding: 20px;
-	background-color: rgba(255, 255, 255, 0.9);
-	border-radius: 10px;
-	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-	font-family: Arial, sans-serif;
-	color: #333;
-	text-align: center;
-}
-
-h1 {
-	color: #2c3e50;
-	font-size: 2.2rem;
-	margin-bottom: 20px;
-}
-
-h2 {
-	font-size: 1.5rem;
-	margin: 15px 0;
-	color: #34495e;
-}
-
 /* Balance Section */
 .balance-section {
 	margin-bottom: 20px;
@@ -31,22 +6,6 @@ h2 {
 .balance-section h2 {
 	font-size: 1.8rem;
 	color: #27ae60;
-}
-
-.balance-section button {
-	margin: 10px 10px 0;
-	padding: 10px 15px;
-	background-color: #27ae60;
-	color: #fff;
-	border: none;
-	border-radius: 5px;
-	cursor: pointer;
-	font-size: 1rem;
-	transition: background-color 0.3s ease;
-}
-
-.balance-section button:hover {
-	background-color: #2ecc71;
 }
 
 /* Toggle Button for Edit Form */
@@ -119,34 +78,6 @@ h2 {
 	margin-top: 15px;
 	border-collapse: collapse;
 	text-align: center;
-	background-color: #ecf0f1;
-}
-
-.stats-table th,
-.payments-table th {
-	background-color: #2980b9;
-	color: #fff;
-	padding: 10px;
-	font-size: 1rem;
-}
-
-.stats-table td,
-.payments-table td {
-	padding: 10px;
-	border: 1px solid #ddd;
-	font-size: 1rem;
-	color: #333;
-}
-
-.stats-table tr:nth-child(even),
-.payments-table tr:nth-child(even) {
-	background-color: #f9f9f9;
-}
-
-.stats-table tr:hover,
-.payments-table tr:hover {
-	background-color: #d5f5e3;
-	cursor: pointer;
 }
 
 /* Responsive Adjustments */

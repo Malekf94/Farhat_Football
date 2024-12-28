@@ -34,22 +34,44 @@ const getPlayers = (req, res) => {
 		if (error) throw error;
 		res.status(200).json(results.rows);
 	});
-	console.log("getting players");
 };
 
 const getPlayer = (req, res) => {
 	const player_id = parseInt(req.params.player_id);
-	console.log(player_id);
 	pool.query(queries.getPlayer, [player_id], (error, results) => {
 		if (error) throw error;
 		res.status(200).json(results.rows);
 	});
-	console.log("getting player");
 };
 
-const getPlayerStats = (req, res) => {
+const getPlayerStats = async (req, res) => {
 	const playerId = parseInt(req.params.player_id);
-	pool.query(queries.getPlayerStats, [playerId], (error, results) => {
+	try {
+		const result = await pool.query(queries.getPlayerStats, [playerId]);
+
+		const balanceResult = await pool.query(queries.getAccountBalance, [
+			playerId,
+		]);
+
+		const stats = result.rows[0] || {
+			total_goals: 0,
+			total_assists: 0,
+			total_own_goals: 0,
+			total_matches: 0,
+		};
+
+		const account_balance = balanceResult.rows[0]?.account_balance || 0;
+
+		res.json({ ...stats, account_balance });
+	} catch (err) {
+		console.error("Error fetching player stats:", err);
+		res.status(500).json({ error: "Failed to fetch player stats" });
+	}
+};
+
+const getMonthlyPlayerStats = (req, res) => {
+	const playerId = parseInt(req.params.player_id);
+	pool.query(queries.getMonthlyPlayerStats, [playerId], (error, results) => {
 		if (error) {
 			console.error("Error fetching player stats:", error);
 			res
@@ -60,31 +82,14 @@ const getPlayerStats = (req, res) => {
 		}
 	});
 };
-
 // Update Player
 const updatePlayer = async (req, res) => {
 	const { player_id } = req.params;
-	const {
-		first_name,
-		last_name,
-		preferred_name,
-		year_of_birth,
-		height,
-		weight,
-		nationality,
-		email,
-	} = req.body;
+	const { preferred_name } = req.body;
 
 	try {
 		const result = await pool.query(queries.updatePlayer, [
-			first_name || null,
-			last_name || null,
 			preferred_name || null,
-			year_of_birth || null,
-			height || null,
-			weight || null,
-			nationality || null,
-			email || null,
 			player_id,
 		]);
 
@@ -180,6 +185,89 @@ const getNegativeBalance = async (req, res) => {
 	}
 };
 
+// API endpoint for handling user signups
+const auth0Signup = async (req, res) => {
+	const { email, first_name, last_name, preferred_name, year_of_birth } =
+		req.body;
+
+	try {
+		// Check if the user already exists
+		const result = await pool.query("SELECT * FROM players WHERE email = $1", [
+			email,
+		]);
+
+		if (result.rows.length > 0) {
+			// User already exists
+			return res
+				.status(200)
+				.json({ message: "User already exists in the database" });
+		}
+
+		// // Insert new user into the players table
+		// await pool.query(queries.addPlayer, [
+		// 	email,
+		// 	first_name,
+		// 	last_name,
+		// 	preferred_name,
+		// 	year_of_birth,
+		// ]);
+		// Input validation
+		if (
+			!first_name ||
+			!last_name ||
+			!preferred_name ||
+			!year_of_birth ||
+			!email
+		) {
+			return res.status(400).json({ error: "All fields are required." });
+		}
+
+		await pool.query(
+			queries.addAuthPlayer,
+			[email, first_name, last_name, preferred_name, year_of_birth],
+			(error, results) => {
+				if (error) {
+					console.error(error);
+					return res.status(500).json({ error: "Database error occurred." });
+				}
+				res.status(201).json(results.rows[0]); // Respond with the created player
+			}
+		);
+
+		// res.status(201).json({ message: "User added to the database" });
+	} catch (error) {
+		console.error("Error adding user to the database:", error);
+		res.status(500).json({ error: "Internal Server Error" });
+	}
+};
+
+const checkEmail = async (req, res) => {
+	const { email } = req.query;
+
+	if (!email) {
+		return res.status(400).json({ error: "Email is required" });
+	}
+
+	try {
+		const result = await pool.query(queries.checkEmailExists, [email]);
+
+		if (result.rows.length > 0) {
+			// User exists
+			return res.json({
+				exists: true,
+				player_id: result.rows[0].player_id,
+				is_admin: result.rows[0].is_admin,
+			});
+		} else {
+			// User does not exist
+			return res.json({ exists: false });
+		}
+	} catch (error) {
+		console.error("Error checking user in DB:", error);
+		res.status(500).json({ error: "Internal server error" });
+	}
+};
+
 module.exports = {
 	getPlayers,
 	addPlayer,
@@ -191,4 +279,7 @@ module.exports = {
 	getPayments,
 	processPlayerPayments,
 	getNegativeBalance,
+	auth0Signup,
+	checkEmail,
+	getMonthlyPlayerStats,
 };

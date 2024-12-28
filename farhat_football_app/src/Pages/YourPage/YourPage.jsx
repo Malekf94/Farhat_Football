@@ -1,35 +1,14 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import AccountDetails from "../AccountDetails/AccountDetails";
-import LoginPage from "../LoginPage/LoginPage";
-import "./YourPage.css";
+import { useAuth0 } from "@auth0/auth0-react";
 
 function YourPage() {
-	const [isLoggedIn, setIsLoggedIn] = useState(false);
-	const navigate = useNavigate();
-
-	useEffect(() => {
-		// Simulating checking login status from localStorage or API
-		const userToken = localStorage.getItem("userToken");
-		if (userToken) {
-			setIsLoggedIn(true);
-		} else {
-			setIsLoggedIn(false);
-		}
-	}, []);
-
-	const handleLoginSuccess = (token) => {
-		localStorage.setItem("userToken", token);
-		setIsLoggedIn(true);
-		navigate("/your-account"); // Redirect to the account page
-	};
+	const { user, isAuthenticated } = useAuth0();
 
 	return (
-		<div>
-			{isLoggedIn ? (
-				<AccountDetails />
+		<div className="page-content login-page">
+			{isAuthenticated ? (
+				<p>Welcome, {user?.name || user?.email}!</p>
 			) : (
-				<LoginPage onLoginSuccess={handleLoginSuccess} />
+				<p>Please log in to continue.</p>
 			)}
 		</div>
 	);

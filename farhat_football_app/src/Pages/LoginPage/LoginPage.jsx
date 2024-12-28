@@ -1,58 +1,61 @@
-import { useState } from "react";
+import { useAuth0 } from "@auth0/auth0-react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "./LoginPage.css";
+import axios from "axios";
 
-function LoginPage({ onLoginSuccess }) {
-	const [email, setEmail] = useState("");
-	const [password, setPassword] = useState("");
+function LoginPage() {
+	const { loginWithRedirect, isAuthenticated, user, getAccessTokenSilently } =
+		useAuth0();
+	const [isLoading, setIsLoading] = useState(false);
+	const [errorMessage, setErrorMessage] = useState("");
 	const navigate = useNavigate();
 
-	const handleLogin = () => {
-		// Simulate an API call for login
-		if (email === "john.doe@gmail.com" && password === "password123") {
-			const fakeToken = "abc123";
-			onLoginSuccess(fakeToken);
-		} else {
-			alert("Invalid credentials");
-		}
-	};
+	useEffect(() => {
+		const checkUserInDB = async () => {
+			if (isAuthenticated && user) {
+				try {
+					setIsLoading(true);
+					// Check if user exists in the database
+					const response = await axios.get(
+						`/api/v1/players/check?email=${user.email}`
+					);
+
+					if (response.data.exists) {
+						// User exists, navigate to their account
+						navigate("/your-account");
+					} else {
+						// User does not exist, navigate to CreateAccount page
+						navigate("/create-account", {
+							state: { email: user.email, name: user.name },
+						});
+					}
+				} catch (error) {
+					console.error("Error checking user in DB:", error);
+					setErrorMessage("An error occurred. Please try again.");
+				} finally {
+					setIsLoading(false);
+				}
+			}
+		};
+
+		checkUserInDB();
+	}, [isAuthenticated, user, navigate]);
 
 	return (
-		<div className="pageContainer">
+		<div className="page-content login-page">
 			<h1>Login</h1>
-			<form className="formContainer" onSubmit={(e) => e.preventDefault()}>
-				<label htmlFor="email">Email:</label>
-				<input
-					type="email"
-					id="email"
-					value={email}
-					onChange={(e) => setEmail(e.target.value)}
-					required
-				/>
-
-				<label htmlFor="password">Password:</label>
-				<input
-					type="password"
-					id="password"
-					value={password}
-					onChange={(e) => setPassword(e.target.value)}
-					required
-				/>
-
-				<button type="button" onClick={handleLogin}>
-					Login
-				</button>
-			</form>
-
-			<div className="optionsContainer">
-				<p>Do not have an account?</p>
-				<button
-					className="navigateButton"
-					onClick={() => navigate("/create-account")}
-				>
-					Create Account
-				</button>
-			</div>
+			{!isAuthenticated ? (
+				<button onClick={() => loginWithRedirect()}>Login with Auth0</button>
+			) : isLoading ? (
+				<p>Loading...</p>
+			) : errorMessage ? (
+				<p className="error">{errorMessage}</p>
+			) : (
+				<div>
+					<h2>Welcome, {user.name}!</h2>
+					<p>Email: {user.email}</p>
+				</div>
+			)}
 		</div>
 	);
 }

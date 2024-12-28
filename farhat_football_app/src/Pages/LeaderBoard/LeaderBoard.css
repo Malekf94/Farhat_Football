@@ -1,6 +1,5 @@
 .leaderboard {
 	padding: 20px;
-	background-color: #f4f4f4;
 	color: #333;
 }
 
@@ -27,25 +26,4 @@
 	max-width: 800px;
 	margin: 0 auto;
 	border-collapse: collapse;
-}
-
-.leaderboard-table th,
-.leaderboard-table td {
-	padding: 10px;
-	border: 1px solid #ddd;
-	text-align: center;
-}
-
-.leaderboard-table th {
-	background-color: #333;
-	color: #fff;
-	cursor: pointer;
-}
-
-.leaderboard-table tr:nth-child(even) {
-	background-color: #f9f9f9;
-}
-
-.leaderboard-table tr:hover {
-	background-color: #f1f1f1;
 }

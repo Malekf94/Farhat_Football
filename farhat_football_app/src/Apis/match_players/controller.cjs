@@ -29,19 +29,18 @@ const addPlayerToMatch = async (req, res) => {
 		console.log(accountBalance);
 
 		// Check if balance is too low
-		if (accountBalance <= -11) {
+		if (accountBalance <= -12) {
 			return res.status(400).json({
 				error: "Your account balance is too low to join this game.",
 			});
 		}
 
 		// Add the player to the match if balance is sufficient
-		const result = await pool.query(
-			`INSERT INTO match_players (match_id, player_id, price, goals, assists, late, team_id)
-		 VALUES ($1, $2, $3, 0, 0, false, NULL)
-		 RETURNING *`,
-			[match_id, player_id, price]
-		);
+		const result = await pool.query(queries.addPlayerToMatch, [
+			match_id,
+			player_id,
+			price,
+		]);
 
 		res.status(201).json(result.rows[0]);
 	} catch (error) {
@@ -82,13 +81,15 @@ const removePlayerFromMatch = async (req, res) => {
 // Update Match Player (e.g. goals, assists, late)
 const updateMatchPlayer = async (req, res) => {
 	const { match_id, player_id } = req.params;
-	const { goals, assists, late } = req.body;
+	const { goals, assists, own_goals, late, team_id } = req.body;
 
 	try {
 		const result = await pool.query(queries.updateMatchPlayer, [
 			goals !== undefined ? goals : null,
 			assists !== undefined ? assists : null,
+			own_goals !== undefined ? own_goals : null,
 			late !== undefined ? late : null,
+			team_id !== undefined ? team_id : null,
 			match_id,
 			player_id,
 		]);

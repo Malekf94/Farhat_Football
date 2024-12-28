@@ -1,17 +1,20 @@
 const getPlayers = "SELECT * FROM players";
-const checkEmailExists = "SELECT s FROM players s WHERE s.email = $1";
+const checkEmailExists = "SELECT * FROM players WHERE email = $1";
 const addPlayer = `
   INSERT INTO players (first_name, last_name, preferred_name, year_of_birth, email)
   VALUES ($1, $2, $3, $4, $5)
   RETURNING *;
 `;
+const addAuthPlayer = `INSERT INTO players (email, first_name, last_name, preferred_name, year_of_birth) VALUES ($1, $2, $3, $4, $5)`;
 const getPlayer = "SELECT * FROM players WHERE player_id = $1";
 const getPlayerStats = `
   SELECT 
       DATE_PART('month', m.match_date) AS month,
       DATE_PART('year', m.match_date) AS year,
-      SUM(mp.goals) AS total_goals,
-      SUM(mp.assists) AS total_assists
+      COALESCE(SUM(mp.goals), 0) AS total_goals,
+      COALESCE(SUM(mp.assists), 0) AS total_assists,
+      COALESCE(SUM(mp.own_goals), 0) AS total_own_goals,
+      COUNT(mp.match_id) AS total_matches
   FROM 
       match_players mp
   JOIN 
@@ -23,14 +26,29 @@ const getPlayerStats = `
   ORDER BY 
       year, month;
 `;
+const getMonthlyPlayerStats = `
+  SELECT 
+      DATE_PART('month', m.match_date) AS month,
+      DATE_PART('year', m.match_date) AS year,
+      SUM(mp.goals) AS total_goals,
+      SUM(mp.assists) AS total_assists,
+      SUM(mp.own_goals) AS total_own_goals
+  FROM 
+      match_players mp
+  JOIN 
+      matches m ON mp.match_id = m.match_id
+  WHERE 
+      mp.player_id = $1
+  GROUP BY 
+      DATE_PART('year', m.match_date), DATE_PART('month', m.match_date)
+  ORDER BY 
+      year, month;
+`;
+
 const updatePlayer = `
   UPDATE players
-  SET first_name = COALESCE($1, first_name),
-      last_name = COALESCE($2, last_name),
-      preferred_name = COALESCE($3, preferred_name),
-      year_of_birth = COALESCE($4, year_of_birth),
-      email = COALESCE($5, email)
-  WHERE player_id = $6
+  SET preferred_name = COALESCE($1, preferred_name)
+  WHERE player_id = $2
   RETURNING *;
 `;
 
@@ -75,4 +93,6 @@ module.exports = {
 	getAccountBalance,
 	processPlayerPayments,
 	getNegativeBalance,
+	addAuthPlayer,
+	getMonthlyPlayerStats,
 };

@@ -1,0 +1,21 @@
+.attributes-grid {
+	display: grid;
+	grid-template-columns: repeat(4, 1fr); /* Four columns */
+	gap: 20px; /* Space between items */
+	padding: 20px;
+}
+
+.attribute-item {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+}
+
+.attribute-item label {
+	font-weight: bold;
+	margin-bottom: 5px;
+}
+
+.attribute-item input {
+	width: 100px;
+}

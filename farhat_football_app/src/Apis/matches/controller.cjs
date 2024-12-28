@@ -122,19 +122,60 @@ const createMatch = async (req, res) => {
 // Update Match
 const updateMatch = async (req, res) => {
 	const { match_id } = req.params;
-	const {
-		match_status,
-		match_date,
-		match_time,
-		number_of_players,
-		price,
-		youtube_links,
-	} = req.body;
+	const { match_status, match_time, number_of_players, price, youtube_links } =
+		req.body;
 
 	try {
-		const result = await pool.query(matchQueries.updateMatch, [
+		// Fetch the current match status
+		const currentStatusResult = await pool.query(
+			matchQueries.getCurrentStatus,
+			[match_id]
+		);
+		const currentStatus = currentStatusResult.rows[0].match_status;
+
+		// Remove reserves and charge players if transitioning to in_progress
+		if (currentStatus === "pending" && match_status === "in_progress") {
+			// Remove players with team_id = 0
+			await pool.query(matchQueries.removeReserves, [match_id]);
+
+			// Get players in the match
+			const playersResult = await pool.query(matchQueries.getPlayersInMatch, [
+				match_id,
+			]);
+			const players = playersResult.rows;
+
+			// Charge each player
+			for (const player of players) {
+				const amount = player.late
+					? parseFloat(player.price) + 1
+					: parseFloat(player.price);
+				await pool.query(matchQueries.deductPlayerBalance, [
+					amount,
+					player.player_id,
+				]);
+
+				// Log the payment
+				const description = `Match fee deduction for match ${match_id}`;
+				await pool.query(matchQueries.logPayment, [
+					player.player_id,
+					-amount,
+					description,
+				]);
+			}
+		}
+
+		// Update the match details
+		console.log(
 			match_status,
-			match_date,
+			match_time,
+			number_of_players,
+			price,
+			youtube_links,
+			match_id
+		);
+
+		const updatedMatch = await pool.query(matchQueries.updateMatch, [
+			match_status,
 			match_time,
 			number_of_players,
 			price,
@@ -142,7 +183,7 @@ const updateMatch = async (req, res) => {
 			match_id,
 		]);
 
-		res.status(200).json(result.rows[0]);
+		res.status(200).json(updatedMatch.rows[0]);
 	} catch (error) {
 		console.error("Error updating match:", error);
 		res
