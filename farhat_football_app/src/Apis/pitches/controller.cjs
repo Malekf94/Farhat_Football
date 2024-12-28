@@ -15,7 +15,6 @@ const getPitchByID = (req, res) => {
 		if (error) throw error;
 		res.status(200).json(results.rows);
 	});
-	console.log("getting pitch");
 };
 
 const addPitch = async (req, res) => {

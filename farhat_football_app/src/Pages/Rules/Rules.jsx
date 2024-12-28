@@ -10,7 +10,7 @@ function Rules() {
 					<li>
 						To update your balance, send the money to my monzo with the
 						reference ffc and then your playerd ID, for example if your player
-						ID is 15 you would type ffc15
+						ID is 25 you would type ffc25
 					</li>
 					<li>
 						To join the next game, go to the home page and click on next game
@@ -18,13 +18,10 @@ function Rules() {
 						name.
 					</li>
 					<li>Be early, if youre on time, then youre late</li>
+					<li>If youre there after cameras are set up, late fee is £1</li>
 					<li>
-						If youre there after cameras are set up, late fee is £1, if youre
-						arrive after kickoff, then its double
-					</li>
-					<li>
-						Goalkeeper is rotated every 7/8 minutes when ball is out play or in
-						keepers hands
+						Goalkeeper is rotated every 7/8 minutes when the ball is out play or
+						in keepers hands
 					</li>
 					<li>
 						Avoid wearing blades if possible, if you do wear them, be concious

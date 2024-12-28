@@ -7,7 +7,6 @@ const getMatches = (req, res) => {
 		if (error) throw error;
 		res.status(200).json(results.rows);
 	});
-	console.log("getting matches");
 };
 const getPendingMatches = async (req, res) => {
 	try {
@@ -63,7 +62,6 @@ const getMatchById = (req, res) => {
 		if (error) throw error;
 		res.status(200).json(results.rows);
 	});
-	console.log("getting match");
 };
 
 const createMatch = async (req, res) => {
@@ -228,6 +226,37 @@ const chargePlayers = async (req, res) => {
 	}
 };
 
+// Get Man of the Match
+const getManOfTheMatch = async (req, res) => {
+	const { match_id } = req.params;
+
+	try {
+		const result = await pool.query(matchQueries.getManOfTheMatch, [match_id]);
+		if (result.rows.length > 0) {
+			res.json({ player_id: result.rows[0].man_of_the_match });
+		} else {
+			res.status(404).json({ error: "Match not found" });
+		}
+	} catch (error) {
+		console.error("Error fetching man of the match:", error);
+		res.status(500).json({ error: "Internal server error" });
+	}
+};
+
+// Update Man of the Match
+const updateManOfTheMatch = async (req, res) => {
+	const { match_id } = req.params;
+	const { player_id } = req.body;
+
+	try {
+		await pool.query(matchQueries.updateManOfTheMatch, [player_id, match_id]);
+		res.json({ message: "Man of the match updated successfully" });
+	} catch (error) {
+		console.error("Error updating man of the match:", error);
+		res.status(500).json({ error: "Internal server error" });
+	}
+};
+
 module.exports = {
 	createMatch,
 	getMatches,
@@ -239,4 +268,6 @@ module.exports = {
 	getInProgressMatches,
 	updateMatch,
 	chargePlayers,
+	getManOfTheMatch,
+	updateManOfTheMatch,
 };

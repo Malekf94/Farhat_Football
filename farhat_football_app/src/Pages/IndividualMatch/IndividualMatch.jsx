@@ -14,6 +14,10 @@ function IndividualMatch() {
 	const { match_id } = useParams();
 	const [playerId, setPlayerId] = useState(null); // Store player_id dynamically
 	const [isAdmin, setIsAdmin] = useState(false); // Track admin access
+	const [team1Goals, setTeam1Goals] = useState(0);
+	const [team2Goals, setTeam2Goals] = useState(0);
+	const [manOfTheMatch, setManOfTheMatch] = useState(null);
+	const [manOfTheMatchName, setManOfTheMatchName] = useState(null);
 
 	// Toggle edit modes
 	const [isEditingMatch, setIsEditingMatch] = useState(false);
@@ -28,6 +32,10 @@ function IndividualMatch() {
 		youtube_links: "",
 	});
 	const [editedPlayerStats, setEditedPlayerStats] = useState({});
+
+	const team1 = playersInMatch.filter((player) => player.team_id === 1);
+	const team2 = playersInMatch.filter((player) => player.team_id === 2);
+	const reserves = playersInMatch.filter((player) => player.team_id === 0);
 
 	// Fetch player_id from backend
 	useEffect(() => {
@@ -292,13 +300,66 @@ function IndividualMatch() {
 		}
 	};
 
+	useEffect(() => {
+		// Calculate Team Scores
+		const team1TotalGoals =
+			team1.reduce(
+				(sum, player) => sum + player.goals, // Team 1's goals
+				0
+			) +
+			team2.reduce(
+				(sum, player) => sum + player.own_goals, // Team 2's own goals
+				0
+			);
+
+		const team2TotalGoals =
+			team2.reduce(
+				(sum, player) => sum + player.goals, // Team 2's goals
+				0
+			) +
+			team1.reduce(
+				(sum, player) => sum + player.own_goals, // Team 1's own goals
+				0
+			);
+
+		setTeam1Goals(team1TotalGoals);
+		setTeam2Goals(team2TotalGoals);
+
+		// Fetch Man of the Match if already selected
+		axios
+			.get(`/api/v1/matches/${match_id}/manOfTheMatch`)
+			.then((response) => {
+				setManOfTheMatch(response.data.player_id || null);
+				const matchPlayer = playersInMatch.find(
+					(player) => player.player_id === response.data.player_id
+				);
+				setManOfTheMatchName(matchPlayer?.preferred_name || null);
+			})
+			.catch((error) =>
+				console.error("Error fetching man of the match:", error)
+			);
+	}, [team1, team2, match_id, playersInMatch]);
+
 	if (!match || !pitch || playerId === null) {
 		return <p>Loading match details...</p>;
 	}
 
-	const team1 = playersInMatch.filter((player) => player.team_id === 1);
-	const team2 = playersInMatch.filter((player) => player.team_id === 2);
-	const reserves = playersInMatch.filter((player) => player.team_id === 0);
+	const handleManOfTheMatchChange = async (playerId) => {
+		try {
+			await axios.put(`/api/v1/matches/${match_id}/manOfTheMatch`, {
+				player_id: playerId,
+			});
+			const matchPlayer = playersInMatch.find(
+				(player) => player.player_id === playerId
+			);
+			setManOfTheMatch(playerId);
+			setManOfTheMatchName(matchPlayer?.preferred_name || null);
+			alert("Man of the match updated successfully!");
+		} catch (error) {
+			console.error("Error updating man of the match:", error);
+			alert("Failed to update man of the match. Please try again.");
+		}
+	};
 
 	return (
 		<div className="page-content individual-match">
@@ -324,6 +385,31 @@ function IndividualMatch() {
 						handleJoinMatch={handleJoinMatch}
 						handleLeaveMatch={handleLeaveMatch}
 					/>
+				)}
+			</div>
+
+			{/* Team Scores and Man of the Match */}
+			<div className="team-scores">
+				<h2>
+					Team 1 ({team1Goals}) - ({team2Goals}) Team 2
+				</h2>
+			</div>
+			<div className="man-of-the-match">
+				<h3>Man of the Match</h3>
+				{isAdmin ? (
+					<select
+						value={manOfTheMatch}
+						onChange={(e) => handleManOfTheMatchChange(e.target.value)}
+					>
+						<option value="">Select Man of the Match</option>
+						{playersInMatch.map((player) => (
+							<option key={player.player_id} value={player.player_id}>
+								{player.preferred_name}
+							</option>
+						))}
+					</select>
+				) : (
+					<p>{manOfTheMatchName || "No man of the match selected yet."}</p>
 				)}
 			</div>
 
@@ -482,7 +568,7 @@ function EditMatchForm({
 				Price:
 				<input
 					type="number"
-					step="0.01"
+					step="0.10"
 					name="price"
 					value={editMatchFields.price}
 					onChange={(e) =>
