@@ -147,11 +147,6 @@ const updateMatch = async (req, res) => {
 				const amount = player.late
 					? parseFloat(player.price) + 1
 					: parseFloat(player.price);
-				await pool.query(matchQueries.deductPlayerBalance, [
-					amount,
-					player.player_id,
-				]);
-
 				// Log the payment
 				const description = `Match fee deduction for match ${match_id}`;
 				await pool.query(matchQueries.logPayment, [
@@ -163,15 +158,6 @@ const updateMatch = async (req, res) => {
 		}
 
 		// Update the match details
-		console.log(
-			match_status,
-			match_time,
-			number_of_players,
-			price,
-			youtube_links,
-			match_id
-		);
-
 		const updatedMatch = await pool.query(matchQueries.updateMatch, [
 			match_status,
 			match_time,

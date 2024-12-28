@@ -1,6 +1,5 @@
 
 .vscode/settings.json
 edb_psqlodbc.exe
-farhat_football_app/db.cjs
 My Football DB.session.sql
 farhat_football_app/src/payments/.env

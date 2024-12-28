@@ -1,9 +1,11 @@
 const axios = require("axios");
-const pool = require("../../db.cjs");
+const pool = require("../../../db.cjs");
+const fs = require("fs");
+const prompt = require("prompt-sync")(); // Import prompt-sync for user input
 require("dotenv").config({ path: "../../.env" });
 
 // Monzo API configuration
-const MONZO_ACCESS_TOKEN = process.env.MONZO_ACCESS_TOKEN; // Secure API token
+let MONZO_ACCESS_TOKEN = process.env.MONZO_ACCESS_TOKEN; // Secure API token
 const ACCOUNT_ID = process.env.MONZO_ACCOUNT_ID;
 
 const get24HoursAgoISO = () => {
@@ -12,13 +14,23 @@ const get24HoursAgoISO = () => {
 	return date.toISOString();
 };
 
+const updateEnvToken = (newToken) => {
+	// Update the .env file with the new token
+	const envPath = "../../.env";
+	const envFile = fs.readFileSync(envPath, "utf-8");
+	const updatedEnvFile = envFile.replace(
+		/MONZO_ACCESS_TOKEN=.*/,
+		`MONZO_ACCESS_TOKEN=${newToken}`
+	);
+	fs.writeFileSync(envPath, updatedEnvFile);
+	console.log("New access token saved to .env file.");
+};
+
 const checkMonzoPayments = async () => {
 	try {
 		console.log("Fetching Monzo transactions from the last 24 hours...");
 
 		const since = get24HoursAgoISO();
-
-		console.log(since);
 
 		// Fetch transactions from Monzo API
 		const response = await axios.get(
@@ -37,21 +49,19 @@ const checkMonzoPayments = async () => {
 
 				// Extract player ID from the notes field (e.g., "farhatfootball_12")
 				const lowerNotes = notes.toLowerCase();
-				console.log(lowerNotes);
 				const match = lowerNotes.match(/farhatfootball(\d+)/); // Regex to get player ID
-				console.log(match);
 				const playerId = match ? parseInt(match[1], 10) : null;
 
 				// Insert payment into database with the correct player ID
 				await pool.query(
-					`INSERT INTO payments (transaction_id, payment_date, amount, description, user_id)
-           VALUES ($1, $2, $3, $4, $5)
-           ON CONFLICT (transaction_id) DO NOTHING;`,
+					`INSERT INTO payments (transaction_id, payment_date, amount, description, user_id, processed)
+                     VALUES ($1, $2, $3, $4, $5, FALSE)
+                     ON CONFLICT (transaction_id) DO NOTHING;`,
 					[id, created, Math.abs(amount) / 100, lowerNotes, playerId]
 				);
 
 				console.log(
-					`Payment processed: Transaction ID: ${id}, Player ID: ${playerId}, Amount: ${
+					`Payment processed: Transaction ID: ${id}, Player ID: ${playerId}, Amount: $${
 						Math.abs(amount) / 100
 					}`
 				);
@@ -61,6 +71,20 @@ const checkMonzoPayments = async () => {
 		console.log("Payments updated successfully.");
 	} catch (error) {
 		console.error("Error fetching payments:", error.message);
+
+		if (error.response && error.response.status === 401) {
+			// Handle token expiry
+			console.log("Access token expired. Please enter a new token.");
+			const newToken = prompt("Enter the new Monzo access token: ");
+			if (newToken) {
+				MONZO_ACCESS_TOKEN = newToken;
+				updateEnvToken(newToken); // Save the token to .env
+				console.log("Retrying with the new access token...");
+				await checkMonzoPayments(); // Retry the function
+			} else {
+				console.error("No token entered. Exiting.");
+			}
+		}
 	} finally {
 		pool.end();
 	}

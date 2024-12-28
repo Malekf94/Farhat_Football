@@ -7,6 +7,7 @@ const feedbackRoutes = require("./src/Apis/feedback/router.cjs");
 const leaderboardRoutes = require("./src/Apis/leaderboard/leaderboard.cjs");
 const seasonalleaderRoutes = require("./src/Apis/leaderboard/seasonal-leaderboard.cjs");
 const attributesRoutes = require("./src/Apis/attributes/routes.cjs");
+const paymentRoutes = require("./src/Apis/payments/routes.cjs");
 const app = express();
 const port = 3000;
 
@@ -24,5 +25,6 @@ app.use(`/api/v1/matchPlayer`, matchPlayerRoutes);
 app.use("/api/v1/feedback", feedbackRoutes);
 app.use("/api/v1/leaderboard", leaderboardRoutes);
 app.use("/api/v1/seasonal-leaderboard", seasonalleaderRoutes);
+app.use("/api/v1/payments", paymentRoutes);
 
 app.listen(port, () => console.log(`app listening on ${port}`));

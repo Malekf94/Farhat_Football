@@ -2,6 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth0 } from "@auth0/auth0-react";
 import { useEffect, useState } from "react";
 import "./Home.css";
+import axios from "axios";
 
 function Home() {
 	const navigate = useNavigate();
@@ -78,6 +79,37 @@ function Home() {
 							onClick={() => navigate("/update-attributes")}
 						>
 							Update Player Attributes
+						</button>
+						{/* Check Payments Button */}
+						<button
+							className="btn"
+							onClick={async () => {
+								try {
+									const response = await axios.get("/api/v1/payments/check");
+									alert(response.data.message);
+								} catch (error) {
+									alert("Failed to check payments. Please try again.");
+									console.error("Error checking payments:", error);
+								}
+							}}
+						>
+							Check Payments
+						</button>
+
+						{/* Sync Balances Button */}
+						<button
+							className="btn"
+							onClick={async () => {
+								try {
+									const response = await axios.get("/api/v1/payments/sync");
+									alert(response.data.message);
+								} catch (error) {
+									alert("Failed to sync balances. Please try again.");
+									console.error("Error syncing balances:", error);
+								}
+							}}
+						>
+							Sync Balances
 						</button>
 					</div>
 				)}
