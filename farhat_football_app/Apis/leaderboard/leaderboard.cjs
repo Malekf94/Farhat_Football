@@ -1,5 +1,5 @@
 const { Router } = require("express");
-const pool = require("../../../db.cjs");
+const pool = require("../../db.cjs");
 const router = Router();
 
 // Fetch leaderboard data
@@ -14,13 +14,14 @@ router.get("/", async (req, res) => {
         SUM(mp.goals) AS total_goals,
         SUM(mp.assists) AS total_assists,
         COUNT(CASE WHEN m.man_of_the_match = mp.player_id THEN 1 END) AS man_of_the_match_count
-      FROM match_players mp
-      JOIN players p ON mp.player_id = p.player_id
-      JOIN matches m ON mp.match_id = m.match_id
-      WHERE EXTRACT(YEAR FROM m.match_date) = $1
+        FROM match_players mp
+        JOIN players p ON mp.player_id = p.player_id
+        JOIN matches m ON mp.match_id = m.match_id
+        WHERE EXTRACT(YEAR FROM m.match_date) = $1
         AND EXTRACT(MONTH FROM m.match_date) = $2
-      GROUP BY p.preferred_name
-      ORDER BY total_goals DESC, total_assists DESC;
+        AND m.match_status = 'completed'
+        GROUP BY p.preferred_name
+        ORDER BY total_goals DESC, total_assists DESC;
     `;
 
 		const result = await pool.query(query, [year, month]);

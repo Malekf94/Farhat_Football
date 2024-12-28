@@ -2,7 +2,7 @@ const { exec } = require("child_process");
 
 // Run Check Payments Script
 const runCheckPaymentsScript = (req, res) => {
-	exec("node src/Apis/payments/checkPayments.cjs", (error, stdout, stderr) => {
+	exec("node Apis/payments/checkPayments.cjs", (error, stdout, stderr) => {
 		if (error) {
 			console.error(`Error running checkPayments script: ${stderr}`);
 			return res.status(500).json({ error: "Failed to check payments" });
@@ -14,7 +14,7 @@ const runCheckPaymentsScript = (req, res) => {
 
 // Run Sync Payments Script
 const runSyncPaymentsScript = (req, res) => {
-	exec("node src/Apis/payments/syncPayments.cjs", (error, stdout, stderr) => {
+	exec("node Apis/payments/syncPayments.cjs", (error, stdout, stderr) => {
 		if (error) {
 			console.error(`Error running syncPayments script: ${stderr}`);
 			return res.status(500).json({ error: "Failed to sync balances" });

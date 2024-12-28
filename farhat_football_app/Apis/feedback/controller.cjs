@@ -1,4 +1,4 @@
-const pool = require("../../../db.cjs");
+const pool = require("../../db.cjs");
 const queries = require("./queries.cjs");
 
 // Get all feedback

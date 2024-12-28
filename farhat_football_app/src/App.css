@@ -10,7 +10,7 @@ html {
 
 /* Consistent Background Across All Pages */
 body {
-	background-image: url("../../../images/final_cropped_pitch.png");
+	background-image: url("./final_cropped_pitch.png");
 	background-size: cover;
 	background-position: center;
 	/* background-repeat: no-repeat; */

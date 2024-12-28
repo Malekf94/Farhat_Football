@@ -1,5 +1,5 @@
 const axios = require("axios");
-const pool = require("../../../db.cjs");
+const pool = require("../../db.cjs");
 const fs = require("fs");
 const prompt = require("prompt-sync")(); // Import prompt-sync for user input
 require("dotenv").config({ path: "../../.env" });

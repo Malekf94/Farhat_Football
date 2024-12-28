@@ -1,4 +1,4 @@
-const pool = require("../../../db.cjs");
+const pool = require("../../db.cjs");
 const matchQueries = require("./queries.cjs");
 const matchPlayerQueries = require("../match_players/queries.cjs");
 
