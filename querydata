@@ -1,35 +1,23 @@
-If you want to find all matches for a player in a given month:
-SELECT m.*
-FROM matches m
-JOIN match_players mp ON m.match_id = mp.match_id
-WHERE mp.player_id = 5 AND DATE_PART('month', m.match_date) = 11;
 
+DO
+$$
+DECLARE
+    table_name TEXT;
+BEGIN
+    -- Loop through all the tables in the public schema
+    FOR table_name IN
+        SELECT tablename
+        FROM pg_tables
+        WHERE schemaname = 'public'
+    LOOP
+        -- Disable foreign key constraints temporarily
+        EXECUTE 'ALTER TABLE ' || quote_ident(table_name) || ' DISABLE TRIGGER ALL';
 
-INSERT INTO players (first_name, last_name, preferred_name, year_of_birth, height, weight, nationality, email, account_balance)
-VALUES 
-('John', 'Doe', 'Johnny', 1990, 1.82, 75, 'USA', 'john.doe@gmail.com', 0),
-('Emma', 'Smith', 'Em', 1995, 1.68, 60, 'UK', 'emma.smith@gmail.com', 0),
-('Liam', 'Johnson', 'LJ', 1992, 1.85, 78, 'Canada', 'liam.johnson@gmail.com', 0),
-('Olivia', 'Brown', 'Liv', 1998, 1.70, 58, 'Australia', 'olivia.brown@gmail.com', 0),
-('Noah', 'Martinez', 'Noey', 1989, 1.80, 76, 'Spain', 'noah.martinez@gmail.com', 0),
-('Sophia', 'Davis', 'Soph', 1993, 1.65, 55, 'Germany', 'sophia.davis@gmail.com', 0),
-('William', 'Garcia', 'Will', 1994, 1.88, 82, 'Argentina', 'william.garcia@gmail.com', 0),
-('Isabella', 'Lopez', 'Bella', 1996, 1.72, 59, 'Italy', 'isabella.lopez@gmail.com', 0),
-('James', 'Miller', 'Jim', 1991, 1.75, 74, 'Brazil', 'james.miller@gmail.com', 0),
-('Ava', 'Wilson', 'Avi', 1997, 1.69, 61, 'France', 'ava.wilson@gmail.com', 0),
-('Ethan', 'Clark', 'E', 1999, 1.83, 77, 'Netherlands', 'ethan.clark@gmail.com', 0);
+        -- Truncate the table
+        EXECUTE 'TRUNCATE TABLE ' || quote_ident(table_name) || ' RESTART IDENTITY CASCADE';
 
-INSERT INTO pitches (pitch_name, address, postcode, price_per_person)
-VALUES
-('Greenwood Park', '123 Football Lane', 'FTB123', 5.0),
-('Stadium Arena', '456 Soccer Street', 'SCC456', 7.0),
-('Community Field', '789 Sport Ave', 'CFL789', 4.0);
-
-INSERT INTO matches (match_date, match_time, price, number_of_players, pitch_id, match_status, signin_begin_time)
-VALUES ('2024-10-15', '18:30:00', 5.0, 10, 1, 'completed', '2024-10-15 18:00:00');
-
-INSERT INTO matches (match_date, match_time, price, number_of_players, pitch_id, match_status, signin_begin_time)
-VALUES ('2024-11-12', '19:00:00', 7.0, 10, 2, 'completed', '2024-11-12 18:30:00');
-
-INSERT INTO matches (match_date, match_time, price, number_of_players, pitch_id, match_status, signin_begin_time)
-VALUES ('2024-12-05', '20:00:00', 4.0, 10, 3, 'pending', '2024-12-05 19:30:00');
+        -- Re-enable foreign key constraints
+        EXECUTE 'ALTER TABLE ' || quote_ident(table_name) || ' ENABLE TRIGGER ALL';
+    END LOOP;
+END;
+$$;
