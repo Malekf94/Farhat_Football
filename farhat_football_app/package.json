@@ -7,28 +7,24 @@
 		"dev": "concurrently \"npm run server\" \"npm run client\"",
 		"server": "nodemon server.cjs",
 		"client": "vite",
-		"build": "cd src && vite build",
+		"build": "vite build",
 		"lint": "eslint .",
 		"preview": "vite preview"
 	},
 	"dependencies": {
 		"@auth0/auth0-react": "^2.2.4",
 		"axios": "^1.7.7",
-		"cors": "^2.8.5",
 		"date-fns": "^4.1.0",
 		"dotenv": "^16.4.7",
 		"dotenv-vault": "^1.26.2",
 		"express": "^4.21.1",
-		"helmet": "^8.0.0",
 		"nodemon": "^3.1.7",
 		"pg": "^8.13.1",
-		"pg-hstore": "^2.3.4",
 		"prompt-sync": "^4.2.0",
 		"react": "^18.3.1",
 		"react-dom": "^18.3.1",
 		"react-router-dom": "^6.28.0",
-		"sequelize": "^6.37.5",
-		"sequelize-cli": "^6.6.2"
+		"vite": "^5.4.10"
 	},
 	"devDependencies": {
 		"@eslint/js": "^9.13.0",
@@ -40,7 +36,6 @@
 		"eslint-plugin-react": "^7.37.2",
 		"eslint-plugin-react-hooks": "^5.0.0",
 		"eslint-plugin-react-refresh": "^0.4.14",
-		"globals": "^15.11.0",
-		"vite": "^5.4.10"
+		"globals": "^15.11.0"
 	}
 }
