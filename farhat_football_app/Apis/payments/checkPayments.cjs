@@ -1,29 +1,15 @@
 const axios = require("axios");
 const pool = require("../../db.cjs");
-const fs = require("fs");
-const prompt = require("prompt-sync")(); // Import prompt-sync for user input
 require("dotenv").config({ path: "../../.env" });
 
 // Monzo API configuration
-let MONZO_ACCESS_TOKEN = process.env.MONZO_ACCESS_TOKEN; // Secure API token
+const MONZO_ACCESS_TOKEN = process.env.MONZO_ACCESS_TOKEN; // Secure API token
 const ACCOUNT_ID = process.env.MONZO_ACCOUNT_ID;
 
 const get24HoursAgoISO = () => {
 	const date = new Date();
 	date.setDate(date.getDate() - 1); // Subtract 1 day
 	return date.toISOString();
-};
-
-const updateEnvToken = (newToken) => {
-	// Update the .env file with the new token
-	const envPath = "../../.env";
-	const envFile = fs.readFileSync(envPath, "utf-8");
-	const updatedEnvFile = envFile.replace(
-		/MONZO_ACCESS_TOKEN=.*/,
-		`MONZO_ACCESS_TOKEN=${newToken}`
-	);
-	fs.writeFileSync(envPath, updatedEnvFile);
-	console.log("New access token saved to .env file.");
 };
 
 const checkMonzoPayments = async () => {
@@ -44,12 +30,12 @@ const checkMonzoPayments = async () => {
 
 		// Filter and process transactions
 		for (const tx of transactions) {
-			if (tx.notes && tx.notes.toLowerCase().includes("farhatfootball")) {
+			if (tx.notes && tx.notes.toLowerCase().includes("ffc")) {
 				const { id, created, amount, notes } = tx;
 
-				// Extract player ID from the notes field (e.g., "farhatfootball_12")
+				// Extract player ID from the notes field (e.g., "ffc12")
 				const lowerNotes = notes.toLowerCase();
-				const match = lowerNotes.match(/farhatfootball(\d+)/); // Regex to get player ID
+				const match = lowerNotes.match(/ffc(\d+)/); // Regex to get player ID
 				const playerId = match ? parseInt(match[1], 10) : null;
 
 				// Insert payment into database with the correct player ID
@@ -74,16 +60,9 @@ const checkMonzoPayments = async () => {
 
 		if (error.response && error.response.status === 401) {
 			// Handle token expiry
-			console.log("Access token expired. Please enter a new token.");
-			const newToken = prompt("Enter the new Monzo access token: ");
-			if (newToken) {
-				MONZO_ACCESS_TOKEN = newToken;
-				updateEnvToken(newToken); // Save the token to .env
-				console.log("Retrying with the new access token...");
-				await checkMonzoPayments(); // Retry the function
-			} else {
-				console.error("No token entered. Exiting.");
-			}
+			console.log(
+				"Access token expired. Please update the MONZO_ACCESS_TOKEN in the .env file."
+			);
 		}
 	} finally {
 		pool.end();

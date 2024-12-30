@@ -1,4 +1,4 @@
-const pool = require("../../../db.cjs");
+const pool = require("../../db.cjs");
 require("dotenv").config();
 
 const updateBalancesFromPayments = async () => {
