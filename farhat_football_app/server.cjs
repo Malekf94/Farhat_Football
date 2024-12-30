@@ -43,7 +43,7 @@ app.use(
 	cors({
 		origin:
 			process.env.NODE_ENV === "production"
-				? "https://farhat-football.com" // Your domain
+				? "https://farhatfootball.co.uk" // Your domain
 				: "http://localhost:3000",
 	})
 );
