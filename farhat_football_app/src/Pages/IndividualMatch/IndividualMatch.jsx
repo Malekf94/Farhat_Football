@@ -48,7 +48,7 @@ function IndividualMatch() {
 
 					if (response.data.exists) {
 						setPlayerId(response.data.player_id); // Set player_id
-						setIsAdmin(response.data.isAdmin); // Set player_id
+						setIsAdmin(response.data.is_admin); // Set player_id
 					} else {
 						console.error("Player not found in database");
 					}
