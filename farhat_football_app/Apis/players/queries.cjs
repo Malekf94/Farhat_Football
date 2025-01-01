@@ -11,7 +11,7 @@ const addPlayer = `
 const addAuthPlayer = `INSERT INTO players (email, first_name, last_name, preferred_name, year_of_birth) VALUES ($1, $2, $3, $4, $5)`;
 const getOwnPlayer = "SELECT * FROM players WHERE player_id = $1";
 const getPlayer =
-	"SELECT player_id, first_name, last_name, preferred_name FROM players WHERE player_id = $1";
+	"SELECT player_id, first_name, last_name, preferred_name, year_of_birth FROM players WHERE player_id = $1";
 const getPlayerStats = `
   SELECT 
       DATE_PART('month', m.match_date) AS month,
