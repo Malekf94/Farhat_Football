@@ -40,7 +40,7 @@ function AccountDetails() {
 
 		// Fetch player details
 		axios
-			.get(`/api/v1/players/${playerId}`)
+			.get(`/api/v1/players/owndetails/${playerId}`)
 			.then((response) => setUserDetails(response.data[0]))
 			.catch((error) => console.error("Error fetching user details:", error));
 

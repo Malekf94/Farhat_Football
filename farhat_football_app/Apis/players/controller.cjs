@@ -44,6 +44,13 @@ const getPlayer = (req, res) => {
 	});
 };
 
+const getOwnPlayer = (req, res) => {
+	const player_id = parseInt(req.params.player_id);
+	pool.query(queries.getOwnPlayer, [player_id], (error, results) => {
+		if (error) throw error;
+		res.status(200).json(results.rows);
+	});
+};
 const getPlayerStats = async (req, res) => {
 	const playerId = parseInt(req.params.player_id);
 	try {
@@ -273,6 +280,7 @@ module.exports = {
 	getPlayers,
 	addPlayer,
 	getPlayer,
+	getOwnPlayer,
 	getPlayerStats,
 	updatePlayer,
 	updatePlayerBalance,

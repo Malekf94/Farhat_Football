@@ -14,6 +14,7 @@ router.get("/:player_id/payments", controller.getPayments);
 router.get("/:player_id/balance", controller.getAccountBalance);
 router.put("/:player_id/process-payments", controller.processPlayerPayments);
 router.get("/:player_id", controller.getPlayer);
+router.get("/owndetails/:player_id", controller.getPlayer);
 router.put("/:player_id", controller.updatePlayer);
 router.put("/balance/:player_id", controller.updatePlayerBalance);
 
