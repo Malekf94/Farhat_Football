@@ -218,9 +218,22 @@ function IndividualMatch() {
 				`/api/v1/players/${playerId}/stats`
 			);
 			const { total_matches, account_balance } = playerStatsResponse.data;
+			const playerYOBResponse = await axios.get(
+				`/api/v1/players/${playerId}/stats`
+			);
+			const { year_of_birth } = playerYOBResponse.data;
 
 			// Check conditions
-			if (total_matches < 10 && account_balance < match.price) {
+			if (
+				year_of_birth > 2005 &&
+				year_of_birth < 2009 &&
+				account_balance < -12
+			) {
+				alert(
+					"Players born between 2005 and 2009 must have a balance above -£12 to join this match."
+				);
+				return;
+			} else if (total_matches < 10 && account_balance < match.price) {
 				alert(
 					`You need a balance of at least £${match.price} to join this match.`
 				);
