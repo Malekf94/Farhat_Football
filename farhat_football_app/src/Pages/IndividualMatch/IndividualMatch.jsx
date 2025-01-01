@@ -48,6 +48,7 @@ function IndividualMatch() {
 
 					if (response.data.exists) {
 						setPlayerId(response.data.player_id); // Set player_id
+						setIsAdmin(response.data.isAdmin); // Set player_id
 					} else {
 						console.error("Player not found in database");
 					}
@@ -107,16 +108,6 @@ function IndividualMatch() {
 			.catch((error) => {
 				console.error("Error fetching match or pitch:", error);
 			});
-
-		// Check admin access for the current player
-		axios
-			.get(`/api/v1/players/${playerId}`)
-			.then((response) => {
-				setIsAdmin(response.data[0]?.is_admin || false);
-			})
-			.catch((error) => {
-				console.error("Error fetching user details:", error);
-			});
 	}, [match_id, playerId]);
 
 	const fetchPlayersInMatch = useCallback(() => {
@@ -147,13 +138,17 @@ function IndividualMatch() {
 	}, [match_id, playerId]);
 
 	useEffect(() => {
-		fetchMatchDetails();
-	}, [fetchMatchDetails]);
-
-	useEffect(() => {
-		if (!match) return;
-		fetchPlayersInMatch();
-	}, [match, fetchPlayersInMatch]);
+		if (!playerId) return;
+		const fetchData = async () => {
+			try {
+				await fetchMatchDetails();
+				await fetchPlayersInMatch();
+			} catch (error) {
+				console.error("Error fetching match and players data:", error);
+			}
+		};
+		fetchData();
+	}, [playerId]);
 
 	const handleSaveMatch = async () => {
 		const {
@@ -300,30 +295,15 @@ function IndividualMatch() {
 		}
 	};
 
+	const calculateTeamScore = (team, opponentOwnGoals) =>
+		team.reduce((sum, player) => sum + player.goals, 0) +
+		opponentOwnGoals.reduce((sum, player) => sum + player.own_goals, 0);
+
 	useEffect(() => {
 		// Calculate Team Scores
-		const team1TotalGoals =
-			team1.reduce(
-				(sum, player) => sum + player.goals, // Team 1's goals
-				0
-			) +
-			team2.reduce(
-				(sum, player) => sum + player.own_goals, // Team 2's own goals
-				0
-			);
-
-		const team2TotalGoals =
-			team2.reduce(
-				(sum, player) => sum + player.goals, // Team 2's goals
-				0
-			) +
-			team1.reduce(
-				(sum, player) => sum + player.own_goals, // Team 1's own goals
-				0
-			);
-
-		setTeam1Goals(team1TotalGoals);
-		setTeam2Goals(team2TotalGoals);
+		if (!team1 || !team2) return;
+		setTeam1Goals(calculateTeamScore(team1, team2));
+		setTeam2Goals(calculateTeamScore(team2, team1));
 
 		// Fetch Man of the Match if already selected
 		axios
