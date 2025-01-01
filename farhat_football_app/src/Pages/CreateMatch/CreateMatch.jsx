@@ -39,7 +39,7 @@ function CreateMatch() {
 			.post("/api/v1/matches", formData)
 			.then((response) => {
 				alert("Match created successfully!");
-				navigate("/matches/pending"); // Redirect to pending matches
+				navigate("/matches"); // Redirect to pending matches
 			})
 			.catch((error) => {
 				console.error("Error creating match:", error);

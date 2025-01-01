@@ -85,11 +85,12 @@ const getMonthlyPlayerStats = (req, res) => {
 // Update Player
 const updatePlayer = async (req, res) => {
 	const { player_id } = req.params;
-	const { preferred_name } = req.body;
+	const { preferred_name, year_of_birth } = req.body;
 
 	try {
 		const result = await pool.query(queries.updatePlayer, [
 			preferred_name || null,
+			year_of_birth || null,
 			player_id,
 		]);
 

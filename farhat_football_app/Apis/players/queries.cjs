@@ -1,4 +1,7 @@
-const getPlayers = "SELECT * FROM players";
+const getPlayers = `
+  SELECT player_id, first_name, last_name, preferred_name 
+  FROM players;
+`;
 const checkEmailExists = "SELECT * FROM players WHERE email = $1";
 const addPlayer = `
   INSERT INTO players (first_name, last_name, preferred_name, year_of_birth, email)
@@ -47,8 +50,10 @@ const getMonthlyPlayerStats = `
 
 const updatePlayer = `
   UPDATE players
-  SET preferred_name = COALESCE($1, preferred_name)
-  WHERE player_id = $2
+  SET 
+    preferred_name = COALESCE($1, preferred_name),
+    year_of_birth = COALESCE($2, year_of_birth)
+  WHERE player_id = $3
   RETURNING *;
 `;
 

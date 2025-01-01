@@ -123,6 +123,15 @@ function AccountDetails() {
 							onChange={handleChange}
 						/>
 					</label>
+					<label>
+						Year of Birth:
+						<input
+							type="number"
+							name="year_of_birth"
+							value={userDetails.year_of_birth}
+							onChange={handleChange}
+						/>
+					</label>
 					<button onClick={handleSave}>Save</button>
 				</div>
 			)}
