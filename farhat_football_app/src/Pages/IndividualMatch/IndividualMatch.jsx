@@ -230,10 +230,14 @@ function IndividualMatch() {
 				account_balance < -12
 			) {
 				alert(
-					"Players born between 2005 and 2009 must have a balance above -£12 to join this match."
+					"Players born between 2006 and 2008 must have a balance above -£12 to join this match."
 				);
 				return;
-			} else if (total_matches < 10 && account_balance < match.price) {
+			} else if (
+				year_of_birth < 2006 &&
+				total_matches < 10 &&
+				account_balance < match.price
+			) {
 				alert(
 					`You need a balance of at least £${match.price} to join this match.`
 				);
