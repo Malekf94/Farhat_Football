@@ -1,30 +1,50 @@
+import { useState } from "react";
 import MainImage from "../../../images/Farhatfootballlogo1.jpeg";
 import "./Header.css";
 import { Link } from "react-router-dom";
 
 function Header() {
+	const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+	const toggleMenu = () => {
+		setIsMenuOpen((prev) => !prev);
+	};
+
 	return (
 		<header>
 			<nav className="navbar">
 				<Link to="/">
-					<img className="our-logo" src={MainImage} />
+					<img
+						className="our-logo"
+						src={MainImage}
+						alt="Farhat Football Logo"
+					/>
 				</Link>
-				<div>
-					<ul className="nav-links">
-						<li className="header-li">
-							<Link to="../rules">Rules</Link>
-						</li>
-						<li className="header-li">
-							<Link to="../matches">Matches</Link>
-						</li>
-						<li className="header-li">
-							<Link to="../players">Players</Link>
-						</li>
-						<li className="header-li">
-							<Link to="../your-account">Your Account</Link>
-						</li>
-					</ul>
-				</div>
+				<button className="menu-toggle" onClick={toggleMenu}>
+					☰
+				</button>
+				<ul className={`nav-links ${isMenuOpen ? "open" : ""}`}>
+					<li className="header-li">
+						<Link to="../rules" onClick={() => setIsMenuOpen(false)}>
+							Rules
+						</Link>
+					</li>
+					<li className="header-li">
+						<Link to="../matches" onClick={() => setIsMenuOpen(false)}>
+							Matches
+						</Link>
+					</li>
+					<li className="header-li">
+						<Link to="../players" onClick={() => setIsMenuOpen(false)}>
+							Players
+						</Link>
+					</li>
+					<li className="header-li">
+						<Link to="../your-account" onClick={() => setIsMenuOpen(false)}>
+							Your Account
+						</Link>
+					</li>
+				</ul>
 			</nav>
 		</header>
 	);

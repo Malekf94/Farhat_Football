@@ -176,42 +176,6 @@ const updateMatch = async (req, res) => {
 	}
 };
 
-const chargePlayers = async (req, res) => {
-	const { match_id } = req.params;
-	const { price } = req.body;
-
-	try {
-		const players = await pool.query(matchPlayerQueries.getMatchPlayers, [
-			match_id,
-		]);
-
-		if (players.rows.length === 0) {
-			return res.status(404).json({ error: "No players found for the match." });
-		}
-
-		for (const player of players.rows) {
-			const lateFee = player.late ? 1 : 0;
-			const totalCharge = -(parseFloat(price) + lateFee);
-
-			const result = await pool.query(matchPlayerQueries.updatePlayerBalance, [
-				totalCharge,
-				player.player_id,
-			]);
-
-			if (result.rowCount === 0) {
-				console.error(`Failed to charge player_id: ${player.player_id}`);
-			}
-		}
-
-		res.status(200).json({ message: "Players charged successfully." });
-	} catch (error) {
-		console.error("Error in chargePlayers:", error);
-		res
-			.status(500)
-			.json({ error: "An error occurred while charging players." });
-	}
-};
-
 // Get Man of the Match
 const getManOfTheMatch = async (req, res) => {
 	const { match_id } = req.params;
@@ -253,7 +217,6 @@ module.exports = {
 	getFriendlyMatches,
 	getInProgressMatches,
 	updateMatch,
-	chargePlayers,
 	getManOfTheMatch,
 	updateManOfTheMatch,
 };

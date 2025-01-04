@@ -46,17 +46,34 @@ const addFeedback = async (req, res) => {
 
 // Add a reply to feedback
 const addReply = async (req, res) => {
-	const { feedback_id, name, reply_content } = req.body;
+	const { feedback_id } = req.params; // Feedback ID from the route
+	const { user_id, reply_content } = req.body; // User ID and reply content from the request body
+
 	try {
+		// Check if feedback exists
+		const feedbackExists = await pool.query(
+			"SELECT 1 FROM feedback WHERE feedback_id = $1",
+			[feedback_id]
+		);
+		if (feedbackExists.rowCount === 0) {
+			return res.status(404).json({ error: "Feedback not found." });
+		}
+
+		// Add the reply to the replies table
 		const result = await pool.query(queries.addReply, [
 			feedback_id,
-			name || "Anonymous",
+			user_id,
 			reply_content,
 		]);
-		res.status(201).json(result.rows[0]);
+
+		return res
+			.status(201)
+			.json({ message: "Reply added successfully.", reply: result.rows[0] });
 	} catch (error) {
 		console.error("Error adding reply:", error);
-		res.status(500).json({ error: "An error occurred while adding reply." });
+		res
+			.status(500)
+			.json({ error: "An error occurred while adding the reply." });
 	}
 };
 
@@ -65,26 +82,68 @@ const deleteFeedbackAndReplies = async (req, res) => {
 	const { feedback_id } = req.params;
 
 	try {
-		// Use a transaction to delete feedback and associated replies
-		await pool.query("BEGIN"); // Start transaction
-		await pool.query(queries.deleteReplies, [feedback_id]);
-		const result = await pool.query(queries.deleteFeedback, [feedback_id]);
-		await pool.query("COMMIT"); // Commit transaction
+		// Start transaction
+		await pool.query("BEGIN");
 
-		// Return success even if it was the last feedback
-		if (result.rowCount > 0) {
-			return res
-				.status(200)
-				.json({ message: "Feedback and replies deleted successfully." });
+		// Check if feedback exists
+		const feedbackExists = await pool.query(
+			"SELECT 1 FROM feedback WHERE feedback_id = $1",
+			[feedback_id]
+		);
+		if (feedbackExists.rowCount === 0) {
+			await pool.query("ROLLBACK");
+			return res.status(404).json({ error: "Feedback not found." });
 		}
 
-		res.status(404).json({ error: "Feedback not found." });
+		// Delete replies
+		await pool.query(queries.deleteReplies, [feedback_id]);
+
+		// Delete feedback
+		const result = await pool.query(queries.deleteFeedback, [feedback_id]);
+
+		// Commit transaction
+		await pool.query("COMMIT");
+
+		return res.status(200).json({
+			message: "Feedback and replies deleted successfully.",
+			deletedFeedback: result.rows[0],
+		});
 	} catch (error) {
-		await pool.query("ROLLBACK"); // Rollback transaction on error
+		await pool.query("ROLLBACK");
 		console.error("Error deleting feedback:", error);
 		res
 			.status(500)
 			.json({ error: "An error occurred while deleting feedback." });
+	}
+};
+
+const deleteReply = async (req, res) => {
+	const { feedback_id, reply_id } = req.params; // Feedback ID and Reply ID from the route
+	const { user_id } = req.body; // The user ID from the request body (for permission check)
+
+	try {
+		// Check if the reply exists and belongs to the user
+		const reply = await pool.query(
+			"SELECT * FROM replies WHERE feedback_id = $1 AND reply_id = $2 AND user_id = $3",
+			[feedback_id, reply_id, user_id]
+		);
+
+		if (reply.rowCount === 0) {
+			return res.status(403).json({
+				error:
+					"You are not authorized to delete this reply or it doesn't exist.",
+			});
+		}
+
+		// Delete the reply
+		await pool.query(queries.deleteReply, [reply_id]);
+
+		return res.status(200).json({ message: "Reply deleted successfully." });
+	} catch (error) {
+		console.error("Error deleting reply:", error);
+		res
+			.status(500)
+			.json({ error: "An error occurred while deleting the reply." });
 	}
 };
 
@@ -94,4 +153,5 @@ module.exports = {
 	addFeedback,
 	addReply,
 	deleteFeedbackAndReplies,
+	deleteReply,
 };

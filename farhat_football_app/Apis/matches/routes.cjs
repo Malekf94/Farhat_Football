@@ -11,7 +11,6 @@ router.get("/friendly", controller.getFriendlyMatches);
 router.get("/in_progress", controller.getInProgressMatches);
 router.get("/:match_id", controller.getMatchById);
 router.put("/:match_id", controller.updateMatch);
-router.put("/:match_id/chargePlayers", controller.chargePlayers);
 router.get("/:match_id/manOfTheMatch", controller.getManOfTheMatch);
 router.put("/:match_id/manOfTheMatch", controller.updateManOfTheMatch);
 

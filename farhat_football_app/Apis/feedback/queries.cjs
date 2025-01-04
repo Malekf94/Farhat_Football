@@ -18,9 +18,9 @@ const addFeedback = `
 `;
 
 const addReply = `
-  INSERT INTO replies (feedback_id, name, reply_content, created_at)
-  VALUES ($1, $2, $3, NOW())
-  RETURNING reply_id, feedback_id, name, reply_content, created_at;
+ INSERT INTO replies (feedback_id, user_id, reply_content, created_at)
+VALUES ($1, $2, $3, NOW())
+RETURNING *;
 `;
 
 const deleteFeedback = `
@@ -31,6 +31,10 @@ RETURNING *;
 
 const deleteReplies = `
   DELETE FROM replies WHERE feedback_id = $1;
+`;
+
+const deleteReply = `
+  DELETE FROM replies WHERE reply_id = $1;
 `;
 module.exports = {
 	getAllFeedback,

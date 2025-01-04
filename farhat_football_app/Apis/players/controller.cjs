@@ -198,54 +198,58 @@ const auth0Signup = async (req, res) => {
 	const { email, first_name, last_name, preferred_name, year_of_birth } =
 		req.body;
 
+	// Input validation
+	if (
+		!email ||
+		!first_name ||
+		!last_name ||
+		!preferred_name ||
+		!year_of_birth
+	) {
+		return res.status(400).json({ error: "All fields are required." });
+	}
+
+	if (!/^\S+@\S+\.\S+$/.test(email)) {
+		return res.status(400).json({ error: "Invalid email format." });
+	}
+
+	if (year_of_birth < 1900 || year_of_birth > new Date().getFullYear()) {
+		return res
+			.status(400)
+			.json({
+				error: "Invalid year of birth. Must be between 1900 and current year.",
+			});
+	}
+
+	// Proceed to database operations
 	try {
 		// Check if the user already exists
-		const result = await pool.query("SELECT * FROM players WHERE email = $1", [
-			email,
-		]);
+		const existingUser = await pool.query(
+			"SELECT * FROM players WHERE email = $1",
+			[email]
+		);
 
-		if (result.rows.length > 0) {
+		if (existingUser.rows.length > 0) {
 			// User already exists
 			return res
 				.status(200)
-				.json({ message: "User already exists in the database" });
+				.json({ message: "User already exists in the database." });
 		}
 
-		// // Insert new user into the players table
-		// await pool.query(queries.addPlayer, [
-		// 	email,
-		// 	first_name,
-		// 	last_name,
-		// 	preferred_name,
-		// 	year_of_birth,
-		// ]);
-		// Input validation
-		if (
-			!first_name ||
-			!last_name ||
-			!preferred_name ||
-			!year_of_birth ||
-			!email
-		) {
-			return res.status(400).json({ error: "All fields are required." });
-		}
+		// Insert the new user
+		const newUser = await pool.query(queries.addAuthPlayer, [
+			email,
+			first_name,
+			last_name,
+			preferred_name,
+			year_of_birth,
+		]);
 
-		await pool.query(
-			queries.addAuthPlayer,
-			[email, first_name, last_name, preferred_name, year_of_birth],
-			(error, results) => {
-				if (error) {
-					console.error(error);
-					return res.status(500).json({ error: "Database error occurred." });
-				}
-				res.status(201).json(results.rows[0]); // Respond with the created player
-			}
-		);
-
-		// res.status(201).json({ message: "User added to the database" });
+		// Respond with the created player
+		return res.status(201).json(newUser.rows[0]);
 	} catch (error) {
 		console.error("Error adding user to the database:", error);
-		res.status(500).json({ error: "Internal Server Error" });
+		return res.status(500).json({ error: "Internal Server Error" });
 	}
 };
 
