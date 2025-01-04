@@ -219,9 +219,7 @@ function IndividualMatch() {
 				`/api/v1/players/${playerId}/stats`
 			);
 			const { total_matches, account_balance } = playerStatsResponse.data;
-			const playerYOBResponse = await axios.get(
-				`/api/v1/players/${playerId}/stats`
-			);
+			const playerYOBResponse = await axios.get(`/api/v1/players/${playerId}`);
 			const { year_of_birth } = playerYOBResponse.data;
 
 			// Check conditions
