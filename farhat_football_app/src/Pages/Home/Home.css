@@ -1,13 +1,23 @@
-.btn-group {
-	margin-bottom: 20px;
+/* Centralize btn-group elements */
+.buttons {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
 }
 
+/* Style for h2 with yellow and black color scheme */
 .btn-group h2 {
-	font-size: 18px;
-	margin-bottom: 10px;
-	color: #333;
+	padding: 10px 20px;
+	font-size: 1rem;
+	border: 1px solid #ffcc00;
+	border-radius: 5px;
+	margin: 10px 5px;
+	background-color: #333333;
+	color: #ffcc00;
+	transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+/* Buttons style */
 .btn-group .btn {
 	display: block;
 	margin: 5px 0;
@@ -19,8 +29,26 @@
 	border: none;
 	cursor: pointer;
 	text-align: center;
+	width: 200px; /* Consistent button width */
 }
 
 .btn-group .btn:hover {
 	background-color: #0056b3;
+}
+
+/* Responsive dropdown for mobile devices */
+@media only screen and (max-width: 600px) {
+	.buttons {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.btn-group h2 {
+		text-align: center;
+		font-size: 16px;
+	}
+
+	.btn-group .btn {
+		width: 100%; /* Full width on mobile */
+	}
 }

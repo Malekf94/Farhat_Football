@@ -11,7 +11,6 @@ function Home() {
 
 	useEffect(() => {
 		if (isAuthenticated && user) {
-			// Fetch admin status
 			const checkAdmin = async () => {
 				try {
 					const response = await fetch(
@@ -32,10 +31,15 @@ function Home() {
 			<h1>Welcome to Farhat Football</h1>
 			<p>
 				Familiarize yourself with our group by checking our rules in the{" "}
-				<Link to="/rules">Rules</Link> link at the top of the page. Once you
-				have created an account, feel free to play in our upcoming games by
-				clicking the button below.
+				<Link to="/rules">Rules</Link> link at the top of the page.
 			</p>
+			<p>
+				Once you have created an account, feel free to play in our upcoming
+				games by clicking on Matches in the navigation bar.
+			</p>
+			<p>You can click on the logo to come back to this page</p>
+
+			{/* Dropdown toggle for mobile */}
 
 			<div className="buttons">
 				<div className="btn-group">
@@ -80,7 +84,6 @@ function Home() {
 						>
 							Update Player Attributes
 						</button>
-						{/* Check Payments Button */}
 						<button
 							className="btn"
 							onClick={async () => {
@@ -95,8 +98,6 @@ function Home() {
 						>
 							Check Payments
 						</button>
-
-						{/* Sync Balances Button */}
 						<button
 							className="btn"
 							onClick={async () => {

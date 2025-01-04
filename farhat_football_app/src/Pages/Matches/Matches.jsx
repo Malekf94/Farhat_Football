@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 
 function Matches() {
 	const [matches, setMatches] = useState([]);
-	const [view, setView] = useState("completed"); // "completed", "pending", "friendly", or "in_progress"
+	const [view, setView] = useState("pending"); // "completed", "pending", "friendly", or "in_progress"
 
 	useEffect(() => {
 		const endpoint = `/api/v1/matches/${view}`;
