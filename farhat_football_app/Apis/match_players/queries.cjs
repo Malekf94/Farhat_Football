@@ -46,6 +46,9 @@ const getLates = `
   WHERE mp.late = true
   ORDER BY m.match_date ASC;
 `;
+const removeAllPlayerFromMatch =
+	"DELETE FROM match_players WHERE match_id = $1";
+
 module.exports = {
 	getPlayersInMatch,
 	addPlayerToMatch,
@@ -54,4 +57,5 @@ module.exports = {
 	getMatchPlayers,
 	updatePlayerBalance,
 	getLates,
+	removeAllPlayerFromMatch,
 };

@@ -9,16 +9,20 @@ function Rules() {
 					<li>Respect others and respect the game</li>
 					<li>
 						To update your balance, send the money to my monzo with the
-						reference ffc and then your playerd ID, for example if your player
-						ID is 25 you would type ffc25
+						reference ffc and then your player ID, for example if your player ID
+						is 25, you would type ffc25
 					</li>
 					<li>
 						To join the next game, go to the home page and click on next game
-						and click on IN, you need to be signed in for it to register your
-						name.
+						and click on join match. You need to be signed in for it to register
+						your name
+					</li>
+					<li>
+						If you attempt to leave the match less than 5 hours before kickoff,
+						you will be automatically charged the match price
 					</li>
 					<li>Be early, if youre on time, then youre late</li>
-					<li>If youre there after cameras are set up, late fee is £1</li>
+					<li>If you are there after cameras are set up, late fee is £1</li>
 					<li>
 						Goalkeeper is rotated every 7/8 minutes when the ball is out play or
 						in keepers hands

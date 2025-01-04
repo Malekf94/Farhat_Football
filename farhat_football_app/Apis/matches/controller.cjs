@@ -207,6 +207,35 @@ const updateManOfTheMatch = async (req, res) => {
 	}
 };
 
+const deleteMatch = async (req, res) => {
+	const { match_id } = req.params;
+
+	try {
+		// Start a transaction to delete players and the match
+		await pool.query("BEGIN");
+
+		// Delete players in the match
+		await pool.query(matchPlayerQueries.removeAllPlayerFromMatch, [match_id]);
+
+		// Delete the match itself
+		const result = await pool.query(matchQueries.deleteMatch, [match_id]);
+
+		// Commit transaction
+		await pool.query("COMMIT");
+
+		if (result.rowCount > 0) {
+			res.json({ message: "Match successfully deleted." });
+		} else {
+			res.status(404).json({ error: "Match not found." });
+		}
+	} catch (error) {
+		// Rollback transaction on error
+		await pool.query("ROLLBACK");
+		console.error("Error deleting match:", error);
+		res.status(500).json({ error: "Internal server error." });
+	}
+};
+
 module.exports = {
 	createMatch,
 	getMatches,
@@ -219,4 +248,5 @@ module.exports = {
 	updateMatch,
 	getManOfTheMatch,
 	updateManOfTheMatch,
+	deleteMatch,
 };

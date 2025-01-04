@@ -69,6 +69,8 @@ const getManOfTheMatch = `SELECT man_of_the_match FROM matches WHERE match_id = 
 
 const updateManOfTheMatch = `UPDATE matches SET man_of_the_match = $1 WHERE match_id = $2`;
 
+const deleteMatch = `DELETE FROM matches WHERE match_id=$1`;
+
 module.exports = {
 	getMatches,
 	getMatchById,
@@ -86,4 +88,5 @@ module.exports = {
 	deductPlayerBalance,
 	getManOfTheMatch,
 	updateManOfTheMatch,
+	deleteMatch,
 };

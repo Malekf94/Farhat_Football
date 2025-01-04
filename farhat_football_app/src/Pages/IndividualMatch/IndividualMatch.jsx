@@ -3,7 +3,7 @@ import PropTypes from "prop-types"; // Added prop-types
 import "./IndividualMatch.css";
 import axios from "axios";
 import { useAuth0 } from "@auth0/auth0-react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { parseISO, differenceInHours } from "date-fns";
 
 function IndividualMatch() {
@@ -18,6 +18,7 @@ function IndividualMatch() {
 	const [team2Goals, setTeam2Goals] = useState(0);
 	const [manOfTheMatch, setManOfTheMatch] = useState(null);
 	const [manOfTheMatchName, setManOfTheMatchName] = useState(null);
+	const navigate = useNavigate();
 
 	// Toggle edit modes
 	const [isEditingMatch, setIsEditingMatch] = useState(false);
@@ -358,9 +359,48 @@ function IndividualMatch() {
 		}
 	};
 
+	const handleRemovePlayers = async () => {
+		try {
+			await Promise.all(
+				playersInMatch.map((player) =>
+					axios.delete("/api/v1/matchPlayer", {
+						data: {
+							match_id: parseInt(match_id, 10),
+							player_id: player.player_id,
+						},
+					})
+				)
+			);
+			alert("All players removed successfully.");
+		} catch (error) {
+			console.error("Error removing players:", error);
+			alert("Unable to remove players.");
+		}
+	};
+
+	const handleDeleteMatch = async () => {
+		try {
+			// First, remove all players
+			await handleRemovePlayers();
+
+			// Then, delete the match
+			await axios.delete(`/api/v1/matches/${match_id}`);
+			alert("Match deleted successfully.");
+
+			// Navigate to the home page
+			navigate("/");
+		} catch (error) {
+			console.error("Error deleting match:", error);
+			alert("Unable to delete match.");
+		}
+	};
 	return (
 		<div className="page-content individual-match">
 			<h1>{match.match_name}</h1>
+			<div>
+				{/* <button onClick={handleRemovePlayers}>Remove Players</button> */}
+				<button onClick={handleDeleteMatch}>Delete Match</button>
+			</div>
 			<div className="match-details">
 				{isAdmin && isEditingMatch ? (
 					<EditMatchForm
@@ -373,11 +413,11 @@ function IndividualMatch() {
 						match={match}
 						pitch={pitch}
 						isAdmin={isAdmin}
-						isEditingMatch={isEditingMatch} // Pass this prop
-						setIsEditingMatch={setIsEditingMatch} // Pass this prop
-						editMatchFields={editMatchFields} // Pass this prop
-						setEditMatchFields={setEditMatchFields} // Pass this prop
-						handleSaveMatch={handleSaveMatch} // Pass this prop
+						isEditingMatch={isEditingMatch}
+						setIsEditingMatch={setIsEditingMatch}
+						editMatchFields={editMatchFields}
+						setEditMatchFields={setEditMatchFields}
+						handleSaveMatch={handleSaveMatch}
 						userInMatch={userInMatch}
 						handleJoinMatch={handleJoinMatch}
 						handleLeaveMatch={handleLeaveMatch}
