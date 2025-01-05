@@ -396,8 +396,7 @@ function IndividualMatch() {
 		<div className="page-content individual-match">
 			<h1>{match.match_name}</h1>
 			<div>
-				{/* <button onClick={handleRemovePlayers}>Remove Players</button> */}
-				<button onClick={handleDeleteMatch}>Delete Match</button>
+				{isAdmin && <button onClick={handleDeleteMatch}>Delete Match</button>}
 			</div>
 			<div className="match-details">
 				{isAdmin && isEditingMatch ? (
