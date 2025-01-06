@@ -220,7 +220,7 @@ function IndividualMatch() {
 			);
 			const { total_matches, account_balance } = playerStatsResponse.data;
 			const playerYOBResponse = await axios.get(`/api/v1/players/${playerId}`);
-			const { year_of_birth } = playerYOBResponse.data;
+			const { year_of_birth } = playerYOBResponse.data[0];
 
 			// Check conditions
 			if (
