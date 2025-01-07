@@ -387,7 +387,11 @@ function IndividualMatch() {
 				await handleRemovePlayers();
 
 				// Then, delete the match
-				await axios.delete(`/api/v1/matches/${match_id}`);
+				await axios.delete(`/api/v1/matches/${match_id}`, {
+					data: {
+						player_id: playerId,
+					},
+				});
 				alert("Match deleted successfully.");
 
 				// Navigate to the home page

@@ -209,6 +209,11 @@ const updateManOfTheMatch = async (req, res) => {
 
 const deleteMatch = async (req, res) => {
 	const { match_id } = req.params;
+	const { player_id } = player_id;
+
+	if (player_id != 1) {
+		return;
+	}
 
 	try {
 		// Start a transaction to delete players and the match
