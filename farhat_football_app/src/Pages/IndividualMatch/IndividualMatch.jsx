@@ -228,9 +228,7 @@ function IndividualMatch() {
 				year_of_birth < 2009 &&
 				account_balance < -12
 			) {
-				alert(
-					"Players born between 2006 and 2008 must have a balance above -£12 to join this match."
-				);
+				alert("You need money in your balance to join");
 				return;
 			} else if (
 				year_of_birth < 2006 &&
@@ -242,7 +240,7 @@ function IndividualMatch() {
 				);
 				return;
 			} else if (total_matches >= 10 && account_balance < -12) {
-				alert("Your balance must be above -£12 to join this match.");
+				alert("You need money in your balance to join");
 				return;
 			}
 
@@ -357,39 +355,47 @@ function IndividualMatch() {
 		}
 	};
 
-	const handleRemovePlayers = async () => {
-		try {
-			await Promise.all(
-				playersInMatch.map((player) =>
-					axios.delete("/api/v1/matchPlayer", {
-						data: {
-							match_id: parseInt(match_id, 10),
-							player_id: player.player_id,
-						},
-					})
-				)
-			);
-			alert("All players removed successfully.");
-		} catch (error) {
-			console.error("Error removing players:", error);
-			alert("Unable to remove players.");
-		}
-	};
-
 	const handleDeleteMatch = async () => {
-		try {
-			// First, remove all players
-			await handleRemovePlayers();
+		const handleRemovePlayers = async () => {
+			try {
+				await Promise.all(
+					playersInMatch.map((player) =>
+						axios.delete("/api/v1/matchPlayer", {
+							data: {
+								match_id: parseInt(match_id, 10),
+								player_id: player.player_id,
+							},
+						})
+					)
+				);
+				alert("All players removed successfully.");
+			} catch (error) {
+				console.error("Error removing players:", error);
+				alert("Unable to remove players.");
+			}
+		};
+		if (isAdmin && playerId == 1) {
+			const confirmDelete = window.confirm(
+				"Are you sure you want to delete this match? This action cannot be undone."
+			);
 
-			// Then, delete the match
-			await axios.delete(`/api/v1/matches/${match_id}`);
-			alert("Match deleted successfully.");
+			if (!confirmDelete) {
+				return; // Exit if the user cancels
+			}
+			try {
+				// First, remove all players
+				await handleRemovePlayers();
 
-			// Navigate to the home page
-			navigate("/");
-		} catch (error) {
-			console.error("Error deleting match:", error);
-			alert("Unable to delete match.");
+				// Then, delete the match
+				await axios.delete(`/api/v1/matches/${match_id}`);
+				alert("Match deleted successfully.");
+
+				// Navigate to the home page
+				navigate("/");
+			} catch (error) {
+				console.error("Error deleting match:", error);
+				alert("Unable to delete match.");
+			}
 		}
 	};
 	return (
