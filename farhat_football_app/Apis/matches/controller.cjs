@@ -209,7 +209,7 @@ const updateManOfTheMatch = async (req, res) => {
 
 const deleteMatch = async (req, res) => {
 	const { match_id } = req.params;
-	const { player_id } = player_id;
+	const { player_id } = req.body;
 
 	if (player_id != 1) {
 		return;
