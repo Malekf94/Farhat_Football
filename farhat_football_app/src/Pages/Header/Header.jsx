@@ -31,7 +31,7 @@ function Header() {
 					</li>
 					<li className="header-li">
 						<Link to="/how-to-pay" onClick={() => setIsMenuOpen(false)}>
-							Rules
+							How To Pay
 						</Link>
 					</li>
 					<li className="header-li">
