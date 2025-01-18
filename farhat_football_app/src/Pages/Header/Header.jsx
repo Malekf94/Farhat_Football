@@ -25,22 +25,27 @@ function Header() {
 				</button>
 				<ul className={`nav-links ${isMenuOpen ? "open" : ""}`}>
 					<li className="header-li">
-						<Link to="../rules" onClick={() => setIsMenuOpen(false)}>
+						<Link to="/rules" onClick={() => setIsMenuOpen(false)}>
 							Rules
 						</Link>
 					</li>
 					<li className="header-li">
-						<Link to="../matches" onClick={() => setIsMenuOpen(false)}>
+						<Link to="/how-to-pay" onClick={() => setIsMenuOpen(false)}>
+							Rules
+						</Link>
+					</li>
+					<li className="header-li">
+						<Link to="/matches" onClick={() => setIsMenuOpen(false)}>
 							Matches
 						</Link>
 					</li>
 					<li className="header-li">
-						<Link to="../players" onClick={() => setIsMenuOpen(false)}>
+						<Link to="/players" onClick={() => setIsMenuOpen(false)}>
 							Players
 						</Link>
 					</li>
 					<li className="header-li">
-						<Link to="../your-account" onClick={() => setIsMenuOpen(false)}>
+						<Link to="/your-account" onClick={() => setIsMenuOpen(false)}>
 							Your Account
 						</Link>
 					</li>

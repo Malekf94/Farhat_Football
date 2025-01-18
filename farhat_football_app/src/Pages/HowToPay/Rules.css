@@ -1,0 +1,33 @@
+.rules-box {
+	/* background: rgba(0, 0, 0, 0.7); */
+	padding: 20px 40px;
+	border-radius: 10px;
+	text-align: center;
+	max-width: 80%;
+}
+
+.rules-box h1 {
+	padding: 10px 20px;
+	font-size: 1rem;
+	border: 1px solid #ffcc00;
+	border-radius: 5px;
+	margin: 10px 5px;
+	background-color: #333333;
+	color: #ffcc00;
+	transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.rules-box ul {
+	list-style: none;
+	padding: 0;
+}
+
+.rules-box ul li {
+	font-size: 1.2rem;
+	margin-bottom: 10px;
+	text-align: left;
+}
+
+.page-content li {
+	margin-bottom: 15px;
+}

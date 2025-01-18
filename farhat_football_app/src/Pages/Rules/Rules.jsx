@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import "./Rules.css";
 
 function Rules() {
@@ -8,9 +9,11 @@ function Rules() {
 				<ul>
 					<li>Respect others and respect the game</li>
 					<li>
-						To update your balance, send the money to my monzo with the
-						reference ffc and then your player ID, for example if your player ID
-						is 25, you would type ffc25
+						Check the{" "}
+						<Link to="/how-to-pay">
+							How to Pay page for information on how to pay for games and join
+							them
+						</Link>
 					</li>
 					<li>
 						To join the next game, go to the home page and click on next game
