@@ -9,11 +9,8 @@ function Rules() {
 				<ul>
 					<li>Respect others and respect the game</li>
 					<li>
-						Check the{" "}
-						<Link to="/how-to-pay">
-							How to Pay page for information on how to pay for games and join
-							them
-						</Link>
+						Check the <Link to="/how-to-pay">How to Pay</Link>
+						page for information on how to pay for games and join them
 					</li>
 					<li>
 						To join the next game, go to the home page and click on next game
