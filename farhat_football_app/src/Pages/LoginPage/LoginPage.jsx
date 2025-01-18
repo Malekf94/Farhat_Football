@@ -121,7 +121,6 @@ function LoginPage() {
 
 	return (
 		<div className="page-content login-page">
-			<h1>Login</h1>
 			{!isAuthenticated ? (
 				<button onClick={handleLogin}>Login with Auth0</button>
 			) : isLoading ? (
