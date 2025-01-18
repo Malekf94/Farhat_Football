@@ -4,6 +4,10 @@
 	border-radius: 10px;
 	text-align: center;
 	max-width: 80%;
+	background: rgba(0, 0, 0, 0.6); /* Adds a semi-transparent black background */
+	border-radius: 10px; /* Optional: Adds rounded corners */
+	box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4); /* Adds a subtle shadow for depth */
+	color: white; /* Ensures text remains white */
 }
 
 .rules-box h1 {

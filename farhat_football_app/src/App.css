@@ -24,7 +24,6 @@ body {
 	font-family: Arial, sans-serif;
 	text-align: center; /* Center the text */
 	line-height: 1.6; /* Add more spacing between lines */
-	background: rgba(0, 0, 0, 0.6); /* Adds a semi-transparent black background */
 }
 
 /* Content Wrapper for All Pages */
@@ -36,9 +35,6 @@ body {
 	align-items: center;
 	justify-content: flex-start;
 	padding: 20px;
-	border-radius: 10px; /* Optional: Adds rounded corners */
-	box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4); /* Adds a subtle shadow for depth */
-	color: white; /* Ensures text remains white */
 }
 
 .page-content h1 {
