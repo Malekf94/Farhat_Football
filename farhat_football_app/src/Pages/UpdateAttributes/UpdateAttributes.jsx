@@ -63,6 +63,7 @@ function UpdateAttributes() {
 
 	// Save updated attributes
 	const handleSave = () => {
+		axios.get(`/api/v1/players/owndetails/${selectedPlayerId}`);
 		axios
 			.put(`/api/v1/attributes/${selectedPlayerId}`, attributes)
 			.then(() => {

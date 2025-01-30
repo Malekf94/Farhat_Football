@@ -285,6 +285,13 @@ function IndividualMatch() {
 				alert(
 					`You are leaving less than 5 hours before the match starts. The match price of £${matchData.price} will be deducted from your balance.`
 				);
+				const confirmDelete = window.confirm(
+					"Are you sure you want to leave this match?"
+				);
+
+				if (!confirmDelete) {
+					return; // Exit if the user cancels
+				}
 
 				// Deduct the match price from the player's balance
 				await axios.put(`/api/v1/players/balance/${playerId}`, {

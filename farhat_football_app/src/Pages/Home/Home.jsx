@@ -30,7 +30,7 @@ function Home() {
 		<div className="page-content">
 			<h1>Welcome to Farhat Football</h1>
 			<p>
-				Familiarize yourself with our group by checking our rules in the{" "}
+				Familiarize yourself with our group by checking our{" "}
 				<Link to="/rules">Rules</Link> link at the top of the page.
 			</p>
 			<p>
