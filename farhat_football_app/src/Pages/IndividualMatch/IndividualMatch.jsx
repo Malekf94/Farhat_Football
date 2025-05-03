@@ -226,7 +226,7 @@ function IndividualMatch() {
 			if (
 				year_of_birth > 2005 &&
 				year_of_birth < 2009 &&
-				account_balance < -12
+				account_balance < -4
 			) {
 				alert("You need money in your balance to join");
 				return;
