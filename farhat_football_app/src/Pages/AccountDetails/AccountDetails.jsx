@@ -87,6 +87,15 @@ function AccountDetails() {
 			});
 	};
 
+	const handlePayment = () => {
+		if (!playerId) {
+			alert("Player ID is missing.");
+			return;
+		}
+		const monzoLink = `https://monzo.me/malekfarhat/1?d=ffc${playerId}`;
+		window.open(monzoLink, "_blank");
+	};
+
 	if (isLoading) {
 		return <p>Loading...</p>;
 	}
@@ -100,6 +109,10 @@ function AccountDetails() {
 			<h1>Hello {userDetails.preferred_name}</h1>
 
 			{/* Update Details Form */}
+			<button onClick={handlePayment} className="bg-blue-600 text-white">
+				Update Balance
+			</button>
+
 			<button
 				className="toggle-edit-btn"
 				onClick={() => setShowEditForm(!showEditForm)}
