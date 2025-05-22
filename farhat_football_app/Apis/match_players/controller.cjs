@@ -117,10 +117,78 @@ const getLates = async (req, res) => {
 	}
 };
 
+const getPlayerAttributesInMatch = async (req, res) => {
+	const { match_id } = req.params;
+	try {
+		const result = await pool.query(queries.getPlayerAttributesInMatch, [
+			match_id,
+		]);
+		res.status(200).json(result.rows);
+	} catch (error) {
+		console.error("Error fetching players in match:", error);
+		res
+			.status(500)
+			.json({ error: "An error occurred while fetching players." });
+	}
+};
+
+// const updateTeamAssignments = async (req, res) => {
+// 	const { match_id } = req.params;
+
+// 	try {
+// 		// Step 1: Get the player attributes from the match
+// 		const { rows: playersAttributes } = await pool.query(
+// 			queries.getPlayerAttributesInMatch,
+// 			[match_id]
+// 		);
+
+// 		// Step 2: Run the randomiser function to distribute players into two teams
+// 		const { team1, team2 } = randomiser(playersAttributes);
+
+// 		// Step 3: Extract player IDs for each team
+// 		const team1Ids = team1.map((player) => player.player_id);
+// 		const team2Ids = team2.map((player) => player.player_id);
+
+// 		// Step 4: Run the update query to set team_id
+// 		await pool.query(queries.updateTeamAssignments, [
+// 			team1Ids,
+// 			team2Ids,
+// 			match_id,
+// 		]);
+
+// 		// Step 5: Respond with success
+// 		res
+// 			.status(200)
+// 			.json({ message: "Teams successfully updated", team1, team2 });
+// 	} catch (error) {
+// 		console.error("Error updating team assignments:", error);
+// 		res
+// 			.status(500)
+// 			.json({ error: "An error occurred while updating team assignments." });
+// 	}
+// };
+const updateTeamAssignments = async (req, res) => {
+	const { match_id } = req.params;
+	const { team1, team2 } = req.body;
+
+	try {
+		await pool.query(queries.updateTeamAssignments, [team1, team2, match_id]);
+
+		res.status(200).json({ message: "Teams successfully updated" });
+	} catch (error) {
+		console.error("Error updating team assignments:", error);
+		res
+			.status(500)
+			.json({ error: "An error occurred while updating team assignments." });
+	}
+};
+
 module.exports = {
 	addPlayerToMatch,
 	removePlayerFromMatch,
 	getPlayersInMatch,
 	updateMatchPlayer,
 	getLates,
+	getPlayerAttributesInMatch,
+	updateTeamAssignments,
 };

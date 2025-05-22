@@ -5,6 +5,8 @@ import axios from "axios";
 import { useAuth0 } from "@auth0/auth0-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { parseISO, differenceInHours } from "date-fns";
+// import { response } from "express";
+import { randomiser } from "../../../../randomisermk2";
 
 function IndividualMatch() {
 	const { user, isAuthenticated } = useAuth0(); // Use Auth0 to get user info
@@ -362,6 +364,30 @@ function IndividualMatch() {
 		}
 	};
 
+	const handleBalanceTeams = async () => {
+		try {
+			const response = await axios.get(
+				`/api/v1/match_players/attributes/${match_id}`
+			);
+			const playersAttributes = response.data;
+
+			// 🔀 Run the randomiser function
+			const { team1, team2 } = randomiser(playersAttributes);
+
+			// Extract the player IDs from the two teams
+			const team1Ids = team1.map((player) => player.player_id);
+			const team2Ids = team2.map((player) => player.player_id);
+
+			await axios.put(`/api/v1/match_players/update-teams/${match_id}`, {
+				team1: team1Ids,
+				team2: team2Ids,
+			});
+		} catch (error) {
+			console.error("Error updating teams", error);
+			alert("Failed to update teams. Please try again.");
+		}
+	};
+
 	const handleDeleteMatch = async () => {
 		const handleRemovePlayers = async () => {
 			try {
@@ -414,6 +440,9 @@ function IndividualMatch() {
 			<h1>{match.match_name}</h1>
 			<div>
 				{isAdmin && <button onClick={handleDeleteMatch}>Delete Match</button>}
+			</div>
+			<div>
+				{isAdmin && <button onClick={handleBalanceTeams}>Balance Teams</button>}
 			</div>
 			<div className="match-details">
 				{isAdmin && isEditingMatch ? (
