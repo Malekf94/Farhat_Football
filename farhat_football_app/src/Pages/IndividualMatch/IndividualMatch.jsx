@@ -367,7 +367,7 @@ function IndividualMatch() {
 	const handleBalanceTeams = async () => {
 		try {
 			const response = await axios.get(
-				`/api/v1/match_players/attributes/${match_id}`
+				`/api/v1/matchPlayer/attributes/${match_id}`
 			);
 			const playersAttributes = response.data;
 
@@ -378,7 +378,7 @@ function IndividualMatch() {
 			// const team1Ids = team1.map((player) => player.player_id);
 			// const team2Ids = team2.map((player) => player.player_id);
 
-			// await axios.put(`/api/v1/match_players/update-teams/${match_id}`, {
+			// await axios.put(`/api/v1/matchPlayer/update-teams/${match_id}`, {
 			// 	team1: team1Ids,
 			// 	team2: team2Ids,
 			// });
