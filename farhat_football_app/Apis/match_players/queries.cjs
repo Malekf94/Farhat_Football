@@ -70,13 +70,13 @@ WHERE
 `;
 
 const updateTeamAssignments = `
-    UPDATE match_players
+        UPDATE match_players
     SET team_id = CASE
-        WHEN player_id = ANY($1) THEN 1
-        WHEN player_id = ANY($2) THEN 2
+        WHEN player_id = ANY($1::int[]) THEN 1
+        WHEN player_id = ANY($2::int[]) THEN 2
     END
     WHERE match_id = $3
-    AND (player_id = ANY($1) OR player_id = ANY($2));
+    AND (player_id = ANY($1::int[]) OR player_id = ANY($2::int[]));
 `;
 
 module.exports = {
