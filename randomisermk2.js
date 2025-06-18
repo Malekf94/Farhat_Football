@@ -10,7 +10,9 @@ export const randomiser = (playersAttributes) => {
 
 	let restOfPlayers = players.slice(2);
 
-	const topTwoDefenders = players
+	console.log(players);
+
+	const topTwoDefenders = restOfPlayers
 		.sort(
 			(a, b) =>
 				b.marking +
