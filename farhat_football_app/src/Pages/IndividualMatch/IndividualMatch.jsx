@@ -371,17 +371,17 @@ function IndividualMatch() {
 			);
 			const playersAttributes = response.data;
 
-			// // 🔀 Run the randomiser function
-			// const { team1, team2 } = randomiser(playersAttributes);
+			// 🔀 Run the randomiser function
+			const { team1, team2 } = randomiser(playersAttributes);
 
-			// // Extract the player IDs from the two teams
-			// const team1Ids = team1.map((player) => player.player_id);
-			// const team2Ids = team2.map((player) => player.player_id);
+			// Extract the player IDs from the two teams
+			const team1Ids = team1.map((player) => player.player_id);
+			const team2Ids = team2.map((player) => player.player_id);
 
-			// await axios.put(`/api/v1/matchPlayer/update-teams/${match_id}`, {
-			// 	team1: team1Ids,
-			// 	team2: team2Ids,
-			// });
+			await axios.put(`/api/v1/matchPlayer/update-teams/${match_id}`, {
+				team1: team1Ids,
+				team2: team2Ids,
+			});
 		} catch (error) {
 			console.error("Error updating teams", error);
 			alert("Failed to update teams. Please try again.");
