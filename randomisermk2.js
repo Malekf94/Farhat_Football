@@ -22,7 +22,7 @@ export const randomiser = (playersAttributes) => {
 		)
 		.slice(0, 2);
 
-	restOfPlayers = players.slice(2);
+	restOfPlayers = restOfPlayers.slice(2);
 
 	team1.push(topTwoFinishers[0]);
 	team2.push(topTwoFinishers[1]);
