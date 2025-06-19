@@ -8,7 +8,9 @@ export const randomiser = (playersAttributes) => {
 		.sort((a, b) => b.finishing + b.movement - (a.finishing + a.movement))
 		.slice(0, 2);
 
-	let restOfPlayers = players.slice(2);
+	const usedIds = new Set(topTwoFinishers.map((p) => p.player_id));
+
+	let restOfPlayers = players.filter((p) => !usedIds.has(p.player_id));
 
 	console.log(players);
 
@@ -22,7 +24,8 @@ export const randomiser = (playersAttributes) => {
 		)
 		.slice(0, 2);
 
-	restOfPlayers = restOfPlayers.slice(2);
+	topTwoDefenders.forEach((p) => usedIds.add(p.player_id));
+	restOfPlayers = players.filter((p) => !usedIds.has(p.player_id));
 
 	team1.push(topTwoFinishers[0]);
 	team2.push(topTwoFinishers[1]);
@@ -30,29 +33,38 @@ export const randomiser = (playersAttributes) => {
 	team2.push(topTwoDefenders[0]);
 
 	// Step 1: Calculate the total attribute score for each player
+	// restOfPlayers.forEach((player) => {
+	// 	player.totalAttributes =
+	// 		player.dribbling +
+	// 		player.finishing +
+	// 		player.first_touch +
+	// 		player.long_shots +
+	// 		player.movement +
+	// 		player.short_passing +
+	// 		player.long_passing +
+	// 		player.vision +
+	// 		player.tackling +
+	// 		player.positioning +
+	// 		player.marking +
+	// 		player.aggression +
+	// 		player.concentration +
+	// 		player.decision_making +
+	// 		player.leadership +
+	// 		player.consistency +
+	// 		player.stamina +
+	// 		player.pace +
+	// 		player.strength +
+	// 		player.workrate +
+	// 		player.teamwork;
+	// });
+
 	restOfPlayers.forEach((player) => {
-		player.totalAttributes =
-			player.dribbling +
-			player.finishing +
-			player.first_touch +
-			player.long_shots +
-			player.movement +
-			player.short_passing +
-			player.long_passing +
-			player.vision +
-			player.tackling +
-			player.positioning +
-			player.marking +
-			player.aggression +
-			player.concentration +
-			player.decision_making +
-			player.leadership +
-			player.consistency +
-			player.stamina +
-			player.pace +
-			player.strength +
-			player.workrate +
-			player.teamwork;
+		player.totalAttributes = Object.entries(player)
+			.filter(
+				([key, val]) =>
+					typeof val === "number" && key !== "player_id" && key !== "team_id"
+			)
+			.reduce((sum, [_, val]) => sum + val, 0);
 	});
 
 	// Step 2: Sort players by total attribute score (descending order)
