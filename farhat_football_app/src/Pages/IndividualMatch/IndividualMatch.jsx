@@ -382,6 +382,8 @@ function IndividualMatch() {
 				team1: team1Ids,
 				team2: team2Ids,
 			});
+
+			await fetchPlayersInMatch();
 		} catch (error) {
 			console.error("Error updating teams", error);
 			alert("Failed to update teams. Please try again.");
