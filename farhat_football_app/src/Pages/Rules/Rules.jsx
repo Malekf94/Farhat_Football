@@ -13,9 +13,8 @@ function Rules() {
 						page for information on how to pay for games and join them
 					</li>
 					<li>
-						To join the next game, go to the home page and click on next game
-						and click on join match. You need to be signed in for it to register
-						your name
+						To join the next game, go to the home page and click on matches,
+						then one of the games under pending and click on join match.
 					</li>
 					<li>
 						If you attempt to leave the match less than 5 hours before kickoff,

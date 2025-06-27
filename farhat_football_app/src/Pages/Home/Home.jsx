@@ -30,14 +30,18 @@ function Home() {
 		<div className="page-content">
 			<h1>Welcome to Farhat Football</h1>
 			<p>
-				Familiarize yourself with our group by checking our{" "}
+				Familiarise yourself with our group by checking our{" "}
 				<Link to="/rules">Rules</Link> link at the top of the page.
 			</p>
 			<p>
 				Once you have created an account, feel free to play in our upcoming
 				games by clicking on Matches in the navigation bar.
 			</p>
-			<p>You can click on the logo to come back to this page</p>
+			<p>Games are on a pay before you play basis</p>
+			<p>
+				You can click on the logo in the top left corner to come back to this
+				page
+			</p>
 
 			{/* Dropdown toggle for mobile */}
 
