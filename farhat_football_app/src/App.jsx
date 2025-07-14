@@ -72,9 +72,9 @@ function App() {
 				<Route
 					path="/update-attributes"
 					element={
-						<ProtectedAdminRoute>
+						<ProtectedRoute>
 							<UpdateAttributes />
-						</ProtectedAdminRoute>
+						</ProtectedRoute>
 					}
 				/>
 				<Route
