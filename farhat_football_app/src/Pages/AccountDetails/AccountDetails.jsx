@@ -100,7 +100,7 @@ function AccountDetails() {
 			setTimeout(() => {
 				axios.get("/api/v1/payments/sync");
 			}, 5000); // 5-second delay
-		}, 60000); // 90-second delay
+		}, 10000); // 10-second delay
 
 		// Open Monzo payment link
 		const monzoLink = `https://monzo.me/malekfarhat/1?d=ffc${playerId}`;
