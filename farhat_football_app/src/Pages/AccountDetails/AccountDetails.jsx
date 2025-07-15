@@ -92,8 +92,33 @@ function AccountDetails() {
 			alert("Player ID is missing.");
 			return;
 		}
+		// Open Monzo payment link
 		const monzoLink = `https://monzo.me/malekfarhat/1?d=ffc${playerId}`;
 		window.open(monzoLink, "_blank");
+
+		// Trigger Axios requests after 90 seconds
+		setTimeout(() => {
+			axios
+				.get("/api/v1/payments/check")
+				.then((res) => {
+					console.log("Check response:", res.data);
+				})
+				.catch((err) => {
+					console.error("Error during check:", err);
+				});
+
+			// Then wait another 5 seconds before the second request
+			setTimeout(() => {
+				axios
+					.get("/api/v1/payments/sync")
+					.then((res) => {
+						console.log("Sync response:", res.data);
+					})
+					.catch((err) => {
+						console.error("Error during sync:", err);
+					});
+			}, 5000); // 5-second delay
+		}, 90000); // 90-second delay
 	};
 
 	if (isLoading) {
