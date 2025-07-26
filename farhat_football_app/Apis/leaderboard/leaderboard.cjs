@@ -38,23 +38,19 @@ winning_teams AS (
     CASE 
       WHEN tg1.team_goals > tg2.team_goals THEN tg1.team_id
       WHEN tg2.team_goals > tg1.team_goals THEN tg2.team_id
-      ELSE NULL  -- draw
+      ELSE NULL
     END AS winning_team_id
   FROM team_goals tg1
   JOIN team_goals tg2 
     ON tg1.match_id = tg2.match_id AND tg1.team_id != tg2.team_id
 )
-SELECT 
+SELECT
   p.preferred_name,
   SUM(mp.goals) AS total_goals,
   SUM(mp.assists) AS total_assists,
   COUNT(*) AS matches_played,
-  COUNT(CASE 
-    WHEN wt.winning_team_id IS NOT NULL AND mp.team_id = wt.winning_team_id THEN 1
-  END) AS wins,
-  COUNT(CASE 
-    WHEN m.man_of_the_match = p.player_id THEN 1 
-  END) AS man_of_the_match_count
+  COUNT(CASE WHEN wt.winning_team_id IS NOT NULL AND wt.winning_team_id = mp.team_id THEN 1 END) AS wins,
+  COUNT(CASE WHEN m.man_of_the_match = mp.player_id THEN 1 END) AS man_of_the_match_count
 FROM match_players mp
 JOIN players p ON mp.player_id = p.player_id
 JOIN matches m ON mp.match_id = m.match_id
