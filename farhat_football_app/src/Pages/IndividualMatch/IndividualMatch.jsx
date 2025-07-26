@@ -164,6 +164,12 @@ function IndividualMatch() {
 
 		try {
 			// Update match details
+			let winningTeam = null;
+			if (team1Goals > team2Goals) {
+				winningTeam = 1;
+			} else if (team2Goals > team1Goals) {
+				winningTeam = 2;
+			} // else it's a draw, winningTeam remains null
 
 			const response = await axios.put(`/api/v1/matches/${match_id}`, {
 				match_status,
@@ -171,6 +177,7 @@ function IndividualMatch() {
 				number_of_players: parseInt(number_of_players, 10) || null,
 				price: parseFloat(price) || null,
 				youtube_links: youtube_links || null,
+				winning_team: winningTeam,
 			});
 
 			// Update match state from the response

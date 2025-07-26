@@ -120,8 +120,14 @@ const createMatch = async (req, res) => {
 // Update Match
 const updateMatch = async (req, res) => {
 	const { match_id } = req.params;
-	const { match_status, match_time, number_of_players, price, youtube_links } =
-		req.body;
+	const {
+		match_status,
+		match_time,
+		number_of_players,
+		price,
+		youtube_links,
+		winning_team,
+	} = req.body;
 
 	try {
 		// Fetch the current match status
@@ -165,6 +171,7 @@ const updateMatch = async (req, res) => {
 			price,
 			youtube_links,
 			match_id,
+			winning_team,
 		]);
 
 		res.status(200).json(updatedMatch.rows[0]);
