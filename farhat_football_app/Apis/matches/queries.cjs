@@ -33,7 +33,7 @@ const updateMatch = `
       price = COALESCE($4, price),
       youtube_links = COALESCE($5, youtube_links),
       winning_team = COALESCE($6, winning_team)
-  WHERE match_id = $6
+  WHERE match_id = $7
   RETURNING *;
 `;
 
