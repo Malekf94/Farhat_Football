@@ -170,8 +170,8 @@ const updateMatch = async (req, res) => {
 			number_of_players,
 			price,
 			youtube_links,
-			match_id,
 			winning_team,
+			match_id,
 		]);
 
 		res.status(200).json(updatedMatch.rows[0]);
