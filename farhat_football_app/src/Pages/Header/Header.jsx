@@ -1,5 +1,5 @@
 import { useState } from "react";
-import MainImage from "../../../images/Farhatfootballlogo1-nobg.jpeg";
+import MainImage from "../../../images/Farhatfootballlogo1-nobg.png";
 import "./Header.css";
 import { Link } from "react-router-dom";
 
