@@ -228,22 +228,11 @@ function IndividualMatch() {
 				`/api/v1/players/${playerId}/stats`
 			);
 			const { total_matches, account_balance } = playerStatsResponse.data;
-			const playerYOBResponse = await axios.get(`/api/v1/players/${playerId}`);
-			const { year_of_birth } = playerYOBResponse.data[0];
+			// const playerYOBResponse = await axios.get(`/api/v1/players/${playerId}`);
+			// const { year_of_birth } = playerYOBResponse.data[0];
 
 			// Check conditions
-			if (
-				year_of_birth > 2005 &&
-				year_of_birth < 2009 &&
-				account_balance < -0.5
-			) {
-				alert("You need money in your balance to join");
-				return;
-			} else if (
-				year_of_birth < 2006 &&
-				total_matches < 10 &&
-				account_balance < match.price
-			) {
+			if (account_balance < match.price) {
 				alert(
 					`You need a balance of at least £${match.price} to join this match.`
 				);
