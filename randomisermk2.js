@@ -27,10 +27,46 @@ export const randomiser = (playersAttributes) => {
 	topTwoDefenders.forEach((p) => usedIds.add(p.player_id));
 	restOfPlayers = players.filter((p) => !usedIds.has(p.player_id));
 
-	team1.push(topTwoFinishers[0]);
-	team2.push(topTwoFinishers[1]);
-	team1.push(topTwoDefenders[1]);
-	team2.push(topTwoDefenders[0]);
+	// team1.push(topTwoFinishers[0]);
+	// team2.push(topTwoFinishers[1]);
+	// team1.push(topTwoDefenders[1]);
+	// team2.push(topTwoDefenders[0]);
+	// Instead of the above commented lines, I'm using the below configuration to balance the teams
+
+	// --- STEP 0: Try both possible assignments for fairness ---
+	const option1_team1 = [topTwoFinishers[0], topTwoDefenders[1]];
+	const option1_team2 = [topTwoFinishers[1], topTwoDefenders[0]];
+
+	const option2_team1 = [topTwoFinishers[0], topTwoDefenders[0]];
+	const option2_team2 = [topTwoFinishers[1], topTwoDefenders[1]];
+
+	// Helper to calculate total attributes
+	const calcScore = (team) =>
+		team.reduce(
+			(sum, p) =>
+				sum +
+				Object.entries(p)
+					.filter(
+						([key, val]) =>
+							typeof val === "number" &&
+							key !== "player_id" &&
+							key !== "team_id"
+					)
+					.reduce((s, [_, v]) => s + v, 0),
+			0
+		);
+
+	// Compare which option is more balanced
+	const diff1 = Math.abs(calcScore(option1_team1) - calcScore(option1_team2));
+	const diff2 = Math.abs(calcScore(option2_team1) - calcScore(option2_team2));
+
+	if (diff1 <= diff2) {
+		team1.push(...option1_team1);
+		team2.push(...option1_team2);
+	} else {
+		team1.push(...option2_team1);
+		team2.push(...option2_team2);
+	}
 
 	// Step 1: Calculate the total attribute score for each player
 	// restOfPlayers.forEach((player) => {
