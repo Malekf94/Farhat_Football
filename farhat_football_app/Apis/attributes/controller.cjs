@@ -43,8 +43,6 @@ const updateAttributes = async (req, res) => {
 	}
 };
 
-// controller.cjs
-
 let cachedAttributes = null; // cache
 
 async function loadAttributes(db) {
@@ -52,12 +50,12 @@ async function loadAttributes(db) {
 		SELECT column_name
 		FROM information_schema.columns
 		WHERE table_name = 'attributes'
-		AND column_name != 'player_id'
+		  AND table_schema = 'public'
+		  AND column_name NOT IN ('player_id')
 		ORDER BY ordinal_position;
 	`;
-	const { rows } = await db.query(query);
 
-	// Always return fresh column names
+	const { rows } = await db.query(query);
 	return rows.map((r) => r.column_name);
 }
 
