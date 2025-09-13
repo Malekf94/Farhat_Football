@@ -21,6 +21,7 @@ import ProtectedAdminRoute from "./ProtectedAdminRoute.jsx";
 import UpdateAttributes from "./Pages/UpdateAttributes/UpdateAttributes.jsx";
 import AddPitch from "./Pages/AddPitch/AddPitch.jsx";
 import HowToPay from "./Pages/HowToPay/HowToPay.jsx";
+import StatLeaderBoard from "./Pages/StatLeaderBoard/StatLeaderBoard.jsx";
 
 function App() {
 	return (
@@ -86,6 +87,7 @@ function App() {
 					}
 				/>
 				<Route path="/seasonal-leaderboard" element={<SeasonalLeaderBoard />} />
+				<Route path="/attribute-leaderboard" element={<StatLeaderBoard />} />
 			</Routes>
 		</div>
 	);

@@ -56,13 +56,19 @@ function Home() {
 				<div className="btn-group">
 					<h2>Leaderboards</h2>
 					<button className="btn" onClick={() => navigate("/leaderboard")}>
-						Leaderboard
+						Monthly Leaderboard
 					</button>
 					<button
 						className="btn"
 						onClick={() => navigate("/seasonal-leaderboard")}
 					>
 						Seasonal Leaderboard
+					</button>
+					<button
+						className="btn"
+						onClick={() => navigate("/attribute-leaderboard")}
+					>
+						Attribute Leaderboard
 					</button>
 				</div>
 

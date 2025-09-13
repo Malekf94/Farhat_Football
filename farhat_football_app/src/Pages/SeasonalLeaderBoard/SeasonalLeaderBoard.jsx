@@ -4,7 +4,7 @@ import "./SeasonalLeaderBoard.css";
 
 function SeasonalLeaderBoard() {
 	const [year, setYear] = useState(new Date().getFullYear());
-	const [season, setSeason] = useState(1); // Default to Season 1
+	const [season, setSeason] = useState(4); // Default to Season 1
 	const [leaderboardData, setLeaderboardData] = useState([]);
 	const [sortKey, setSortKey] = useState("goals"); // Default sort by goals
 
@@ -12,17 +12,33 @@ function SeasonalLeaderBoard() {
 		const startMonth = (season - 1) * 4 + 1; // Calculate start month based on season
 		const endMonth = startMonth + 3; // End month is start month + 3
 
-		axios
-			.get("/api/v1/seasonal-leaderboard", {
-				params: { year, startMonth, endMonth },
-			})
-			.then((response) => {
-				const sortedData = sortData(response.data, sortKey);
-				setLeaderboardData(sortedData);
-			})
-			.catch((error) => {
-				console.error("Error fetching seasonal leaderboard:", error);
-			});
+		if (season == 4) {
+			let startM = 1;
+			let endM = 12;
+			axios
+				.get("/api/v1/seasonal-leaderboard", {
+					params: { year, startM, endM },
+				})
+				.then((response) => {
+					const sortedData = sortData(response.data, sortKey);
+					setLeaderboardData(sortedData);
+				})
+				.catch((error) => {
+					console.error("Error fetching seasonal leaderboard:", error);
+				});
+		} else {
+			axios
+				.get("/api/v1/seasonal-leaderboard", {
+					params: { year, startMonth, endMonth },
+				})
+				.then((response) => {
+					const sortedData = sortData(response.data, sortKey);
+					setLeaderboardData(sortedData);
+				})
+				.catch((error) => {
+					console.error("Error fetching seasonal leaderboard:", error);
+				});
+		}
 	};
 
 	// Sort leaderboard data
@@ -58,6 +74,7 @@ function SeasonalLeaderBoard() {
 						<option value={1}>Season 1 (Jan - Apr)</option>
 						<option value={2}>Season 2 (May - Aug)</option>
 						<option value={3}>Season 3 (Sep - Dec)</option>
+						<option value={4}>Full year (Jan - Dec)</option>
 					</select>
 				</label>
 				<label>

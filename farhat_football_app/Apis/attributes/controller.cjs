@@ -43,4 +43,64 @@ const updateAttributes = async (req, res) => {
 	}
 };
 
-module.exports = { getAttributes, updateAttributes };
+// controller.cjs
+
+let cachedAttributes = null; // cache
+
+async function loadAttributes(db) {
+	if (cachedAttributes) return cachedAttributes; // already cached
+
+	const query = `
+    SELECT column_name
+    FROM information_schema.columns
+    WHERE table_name = 'attributes'
+    AND column_name != 'player_id'
+    ORDER BY ordinal_position;
+  `;
+	const { rows } = await db.query(query);
+	cachedAttributes = rows.map((r) => r.column_name);
+	return cachedAttributes;
+}
+
+const listAttributes = async (req, res) => {
+	try {
+		const attributes = await loadAttributes(req.db);
+		res.json(attributes);
+	} catch (err) {
+		console.error(err);
+		res.status(500).json({ error: "Database error" });
+	}
+};
+
+const getLeadingAttributes = async (req, res) => {
+	const { attribute } = req.params;
+
+	try {
+		const validAttributes = await loadAttributes(req.db);
+
+		if (!validAttributes.includes(attribute)) {
+			return res.status(400).json({ error: "Invalid attribute" });
+		}
+
+		const leaderboardQuery = `
+      SELECT a.player_id, p.preferred_name, a.${attribute} AS stat
+      FROM attributes a
+      JOIN players p ON a.player_id = p.player_id
+      ORDER BY a.${attribute} DESC
+      LIMIT 10;
+    `;
+		const { rows } = await req.db.query(leaderboardQuery);
+
+		res.json(rows);
+	} catch (err) {
+		console.error(err);
+		res.status(500).json({ error: "Database error" });
+	}
+};
+
+module.exports = {
+	getAttributes,
+	updateAttributes,
+	getLeadingAttributes,
+	listAttributes,
+};
