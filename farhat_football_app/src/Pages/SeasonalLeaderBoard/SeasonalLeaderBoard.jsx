@@ -9,15 +9,15 @@ function SeasonalLeaderBoard() {
 	const [sortKey, setSortKey] = useState("goals"); // Default sort by goals
 
 	const fetchSeasonalLeaderboard = () => {
-		const startMonth = (season - 1) * 4 + 1; // Calculate start month based on season
-		const endMonth = startMonth + 3; // End month is start month + 3
+		let startMonth = (season - 1) * 4 + 1; // Calculate start month based on season
+		let endMonth = startMonth + 3; // End month is start month + 3
 
 		if (season == 4) {
-			let startM = 1;
-			let endM = 12;
+			startMonth = 1;
+			endMonth = 12;
 			axios
 				.get("/api/v1/seasonal-leaderboard", {
-					params: { year, startM, endM },
+					params: { year, startMonth, endMonth },
 				})
 				.then((response) => {
 					const sortedData = sortData(response.data, sortKey);
