@@ -64,7 +64,7 @@ async function loadAttributes(db) {
 
 const listAttributes = async (req, res) => {
 	try {
-		const attributes = await loadAttributes(req.db);
+		const attributes = await loadAttributes(pool); // use pool directly
 		res.json(attributes);
 	} catch (err) {
 		console.error(err);
