@@ -10,7 +10,7 @@ function StatLeaderBoard() {
 	// Fetch list of attributes for dropdown
 	useEffect(() => {
 		axios
-			.get("/api/v1/attributes")
+			.get("/api/v1/attributes/")
 			.then((res) => {
 				setAttributes(res.data);
 			})
