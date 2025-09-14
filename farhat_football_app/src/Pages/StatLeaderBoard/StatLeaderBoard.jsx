@@ -8,11 +8,12 @@ function StatLeaderBoard() {
 	const [leaderboardData, setLeaderboardData] = useState([]);
 
 	// Fetch list of attributes for dropdown
+	// Fetch list of attributes for dropdown
 	useEffect(() => {
 		axios
 			.get("/api/v1/attributes/")
 			.then((res) => {
-				setAttributes(res.data);
+				setAttributes([...res.data, "total_stats"]); // add virtual option
 			})
 			.catch((error) => {
 				console.error("Error fetching attribute list:", error);
@@ -31,6 +32,14 @@ function StatLeaderBoard() {
 			});
 	}, [sortKey]);
 
+	function formatLabel(attr) {
+		if (attr === "total_stats") return "Total Stats";
+		return attr
+			.split("_")
+			.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+			.join(" ");
+	}
+
 	return (
 		<div className="page-content leaderboard">
 			<h1>Leader board</h1>
@@ -45,9 +54,11 @@ function StatLeaderBoard() {
 				>
 					{attributes.map((attr, idx) => (
 						<option key={idx} value={attr}>
-							{attr.charAt(0).toUpperCase() + attr.slice(1)}
+							{formatLabel(attr)}
 						</option>
 					))}
+					<option value="total">{formatLabel("total")}</option>{" "}
+					{/* add manually */}
 				</select>
 			</div>
 
@@ -56,7 +67,7 @@ function StatLeaderBoard() {
 				<thead>
 					<tr>
 						<th>Player</th>
-						<th>{sortKey.charAt(0).toUpperCase() + sortKey.slice(1)}</th>
+						<th>{formatLabel(sortKey)}</th>
 					</tr>
 				</thead>
 				<tbody>

@@ -75,17 +75,33 @@ const getLeadingAttributes = async (req, res) => {
 	try {
 		const validAttributes = await loadAttributes(pool);
 
+		if (attribute === "total_stats") {
+			// Build SUM of all attributes
+			const sumExpr = validAttributes.map((attr) => `a.${attr}`).join(" + ");
+
+			const leaderboardQuery = `
+        SELECT a.player_id, p.preferred_name, (${sumExpr}) AS stat
+        FROM attributes a
+        JOIN players p ON a.player_id = p.player_id
+        ORDER BY stat DESC
+        LIMIT 10;
+      `;
+			const { rows } = await pool.query(leaderboardQuery);
+			return res.json(rows);
+		}
+
+		// normal single attribute leaderboard
 		if (!validAttributes.includes(attribute)) {
 			return res.status(400).json({ error: "Invalid attribute" });
 		}
 
 		const leaderboardQuery = `
-			SELECT a.player_id, p.preferred_name, a.${attribute} AS stat
-			FROM attributes a
-			JOIN players p ON a.player_id = p.player_id
-			ORDER BY a.${attribute} DESC
-			LIMIT 10;
-		`;
+      SELECT a.player_id, p.preferred_name, a.${attribute} AS stat
+      FROM attributes a
+      JOIN players p ON a.player_id = p.player_id
+      ORDER BY a.${attribute} DESC
+      LIMIT 10;
+    `;
 		const { rows } = await pool.query(leaderboardQuery);
 
 		res.json(rows);
