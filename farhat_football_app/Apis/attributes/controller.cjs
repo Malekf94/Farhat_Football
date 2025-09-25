@@ -84,7 +84,7 @@ const getLeadingAttributes = async (req, res) => {
         FROM attributes a
         JOIN players p ON a.player_id = p.player_id
         ORDER BY stat DESC
-        LIMIT 10;
+        LIMIT 20;
       `;
 			const { rows } = await pool.query(leaderboardQuery);
 			return res.json(rows);
