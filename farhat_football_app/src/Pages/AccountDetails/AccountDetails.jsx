@@ -201,6 +201,7 @@ function AccountDetails() {
 						<tr>
 							<th>Date</th>
 							<th>Amount</th>
+							<th>Description</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -209,6 +210,7 @@ function AccountDetails() {
 								<tr key={payment.transaction_id}>
 									<td>{new Date(payment.payment_date).toLocaleDateString()}</td>
 									<td>£{payment.amount}</td>
+									<td>£{payment.description}</td>
 								</tr>
 							))
 						) : (

@@ -8,7 +8,6 @@ function StatLeaderBoard() {
 	const [leaderboardData, setLeaderboardData] = useState([]);
 
 	// Fetch list of attributes for dropdown
-	// Fetch list of attributes for dropdown
 	useEffect(() => {
 		axios
 			.get("/api/v1/attributes/")
