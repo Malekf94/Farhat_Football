@@ -6,8 +6,18 @@ export const randomiserMk3 = (playersAttributes) => {
 
 	while (fair == false) {
 		// Splitting the players into two teams
-		const team1 = players.slice(0, numberOfPlayers / 2);
-		const team2 = players.slice(numberOfPlayers / 2);
+		function shuffle(array) {
+			for (let i = array.length - 1; i > 0; i--) {
+				const j = Math.floor(Math.random() * (i + 1)); // random index
+				[array[i], array[j]] = [array[j], array[i]]; // swap
+			}
+			return array;
+		}
+
+		let shuffledPlayers = shuffle(players);
+
+		const team1 = shuffledPlayers.slice(0, numberOfPlayers / 2);
+		const team2 = shuffledPlayers.slice(numberOfPlayers / 2);
 
 		//adding total attributes
 		let team1Total = team1.reduce((total, player) => {
