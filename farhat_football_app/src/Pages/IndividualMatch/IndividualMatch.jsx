@@ -6,7 +6,8 @@ import { useAuth0 } from "@auth0/auth0-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { parseISO, differenceInHours } from "date-fns";
 // import { response } from "express";
-import { randomiser } from "../../../../randomisermk2";
+// import { randomiser } from "../../../../randomisermk2";
+import { randomiserMk3 } from "../../../../randomisermk3";
 
 function IndividualMatch() {
 	const { user, isAuthenticated } = useAuth0(); // Use Auth0 to get user info
@@ -368,7 +369,8 @@ function IndividualMatch() {
 			const playersAttributes = response.data;
 
 			// 🔀 Run the randomiser function
-			const { team1, team2 } = randomiser(playersAttributes);
+			// const { team1, team2 } = randomiser(playersAttributes);
+			const { team1, team2 } = randomiserMk3(playersAttributes);
 
 			// Extract the player IDs from the two teams
 			const team1Ids = team1.map((player) => player.player_id);

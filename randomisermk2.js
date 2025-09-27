@@ -27,12 +27,6 @@ export const randomiser = (playersAttributes) => {
 	topTwoDefenders.forEach((p) => usedIds.add(p.player_id));
 	restOfPlayers = players.filter((p) => !usedIds.has(p.player_id));
 
-	// team1.push(topTwoFinishers[0]);
-	// team2.push(topTwoFinishers[1]);
-	// team1.push(topTwoDefenders[1]);
-	// team2.push(topTwoDefenders[0]);
-	// Instead of the above commented lines, I'm using the below configuration to balance the teams
-
 	// --- STEP 0: Try both possible assignments for fairness ---
 	const option1_team1 = [topTwoFinishers[0], topTwoDefenders[1]];
 	const option1_team2 = [topTwoFinishers[1], topTwoDefenders[0]];
@@ -69,30 +63,6 @@ export const randomiser = (playersAttributes) => {
 	}
 
 	// Step 1: Calculate the total attribute score for each player
-	// restOfPlayers.forEach((player) => {
-	// 	player.totalAttributes =
-	// 		player.dribbling +
-	// 		player.finishing +
-	// 		player.first_touch +
-	// 		player.long_shots +
-	// 		player.movement +
-	// 		player.short_passing +
-	// 		player.long_passing +
-	// 		player.vision +
-	// 		player.tackling +
-	// 		player.positioning +
-	// 		player.marking +
-	// 		player.aggression +
-	// 		player.concentration +
-	// 		player.decision_making +
-	// 		player.leadership +
-	// 		player.consistency +
-	// 		player.stamina +
-	// 		player.pace +
-	// 		player.strength +
-	// 		player.workrate +
-	// 		player.teamwork;
-	// });
 
 	restOfPlayers.forEach((player) => {
 		player.totalAttributes = Object.entries(player)
