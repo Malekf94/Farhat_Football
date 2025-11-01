@@ -3,7 +3,7 @@ const getPlayersInMatch =
 
 const addPlayerToMatch = `
 	INSERT INTO match_players (match_id, player_id, goals, assists, defcons, own_goals, late, price, team_id)
-	VALUES ($1, $2, 0, 0, 0, FALSE, $3, 0)
+	VALUES ($1, $2, 0, 0, 0, 0,FALSE, $3, 0)
 	RETURNING *;
   `;
 
@@ -16,11 +16,11 @@ const updateMatchPlayer = `
   UPDATE match_players
   SET goals = COALESCE($1, goals),
       assists = COALESCE($2, assists),
-      defcons = COALESCE($2, defcons),
-      own_goals = COALESCE($3, own_goals),
-      late = COALESCE($4, late),
-      team_id = COALESCE($5, team_id)
-  WHERE match_id = $6 AND player_id = $7
+      defcons = COALESCE($3, defcons),
+      own_goals = COALESCE($4, own_goals),
+      late = COALESCE($5, late),
+      team_id = COALESCE($6, team_id)
+  WHERE match_id = $7 AND player_id = $8
   RETURNING *;
 `;
 
