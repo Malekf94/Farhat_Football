@@ -82,6 +82,7 @@ function SeasonalLeaderBoard() {
 					<select value={sortKey} onChange={handleSortChange}>
 						<option value="total_goals">Goals</option>
 						<option value="total_assists">Assists</option>
+						<option value="total_defcons">Defcons</option>
 						<option value="matches_played">Matches Played</option>
 						<option value="wins">Wins</option>
 						<option value="man_of_the_match_count">Man of the Match</option>
@@ -94,6 +95,7 @@ function SeasonalLeaderBoard() {
 						<th>Player</th>
 						<th>Total Goals</th>
 						<th>Total Assists</th>
+						<th>Total Defcons</th>
 						<th>Matches Played</th>
 						<th>Wins</th>
 						<th>Man of the Match Wins</th>
@@ -105,6 +107,7 @@ function SeasonalLeaderBoard() {
 							<td>{player.preferred_name}</td>
 							<td>{player.total_goals}</td>
 							<td>{player.total_assists}</td>
+							<td>{player.total_defcons}</td>
 							<td>{player.matches_played}</td>
 							<td>{player.wins}</td>
 							<td>{player.man_of_the_match_count}</td>

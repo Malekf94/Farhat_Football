@@ -128,6 +128,7 @@ function IndividualMatch() {
 						acc[player.player_id] = {
 							goals: player.goals,
 							assists: player.assists,
+							defcons: player.defcons,
 							own_goals: player.own_goals,
 							late: player.late,
 							team_id: player.team_id,
@@ -197,10 +198,11 @@ function IndividualMatch() {
 
 	const handleSavePlayerStats = async () => {
 		const updatePromises = Object.entries(editedPlayerStats).map(
-			([player_id, { goals, assists, own_goals, late, team_id }]) =>
+			([player_id, { goals, assists, defcons, own_goals, late, team_id }]) =>
 				axios.put(`/api/v1/matchPlayer/${match_id}/${player_id}`, {
 					goals: parseInt(goals, 10),
 					assists: parseInt(assists, 10),
+					defcons: parseInt(defcons, 10),
 					own_goals: parseInt(own_goals, 10),
 					late: late,
 					team_id: team_id ? parseInt(team_id, 10) : null,
@@ -702,6 +704,7 @@ function PlayerTable({
 						<th>Name</th>
 						<th>Goals</th>
 						<th>Assists</th>
+						<th>Defcons</th>
 						<th>Own Goals</th>
 						<th>Late</th>
 						{isEditingStats && <th>Team</th>}
@@ -742,6 +745,21 @@ function PlayerTable({
 														[player.player_id]: {
 															...prev[player.player_id],
 															assists: e.target.value,
+														},
+													}))
+												}
+											/>
+										</td>
+										<td>
+											<input
+												type="number"
+												value={editData.defcons}
+												onChange={(e) =>
+													setEditedPlayerStats((prev) => ({
+														...prev,
+														[player.player_id]: {
+															...prev[player.player_id],
+															defcons: e.target.value,
 														},
 													}))
 												}
@@ -802,6 +820,7 @@ function PlayerTable({
 									<>
 										<td>{player.goals}</td>
 										<td>{player.assists}</td>
+										<td>{player.defcons}</td>
 										<td>{player.own_goals}</td>
 										<td>{player.late ? "Yes" : "No"}</td>
 									</>
@@ -869,6 +888,7 @@ PlayerTable.propTypes = {
 			preferred_name: PropTypes.string,
 			goals: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 			assists: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+			defcons: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 			own_goals: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 			late: PropTypes.bool,
 			team_id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
@@ -881,6 +901,7 @@ PlayerTable.propTypes = {
 		PropTypes.shape({
 			goals: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 			assists: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+			defcons: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 			own_goals: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 			late: PropTypes.bool,
 			team_id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),

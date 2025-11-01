@@ -63,6 +63,7 @@ const getPlayerStats = async (req, res) => {
 		const stats = result.rows[0] || {
 			total_goals: 0,
 			total_assists: 0,
+			total_defcons: 0,
 			total_own_goals: 0,
 			total_matches: 0,
 		};
@@ -214,11 +215,9 @@ const auth0Signup = async (req, res) => {
 	}
 
 	if (year_of_birth < 1900 || year_of_birth > new Date().getFullYear()) {
-		return res
-			.status(400)
-			.json({
-				error: "Invalid year of birth. Must be between 1900 and current year.",
-			});
+		return res.status(400).json({
+			error: "Invalid year of birth. Must be between 1900 and current year.",
+		});
 	}
 
 	// Proceed to database operations

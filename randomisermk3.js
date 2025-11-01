@@ -78,7 +78,7 @@ export const randomiserMk3 = (playersAttributes) => {
 			totalAttributesDifference
 		);
 		if (
-			goalkeepingDifference < 15 &&
+			goalkeepingDifference < 10 &&
 			mentalDifference < 15 &&
 			totalAttributesDifference < 30
 		) {

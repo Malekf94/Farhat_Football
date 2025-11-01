@@ -81,12 +81,13 @@ const removePlayerFromMatch = async (req, res) => {
 // Update Match Player (e.g. goals, assists, late)
 const updateMatchPlayer = async (req, res) => {
 	const { match_id, player_id } = req.params;
-	const { goals, assists, own_goals, late, team_id } = req.body;
+	const { goals, assists, defcons, own_goals, late, team_id } = req.body;
 
 	try {
 		const result = await pool.query(queries.updateMatchPlayer, [
 			goals !== undefined ? goals : null,
 			assists !== undefined ? assists : null,
+			defcons !== undefined ? defcons : null,
 			own_goals !== undefined ? own_goals : null,
 			late !== undefined ? late : null,
 			team_id !== undefined ? team_id : null,
@@ -167,6 +168,7 @@ const getPlayerAttributesInMatch = async (req, res) => {
 // 			.json({ error: "An error occurred while updating team assignments." });
 // 	}
 // };
+
 const updateTeamAssignments = async (req, res) => {
 	const { match_id } = req.params;
 	const { team1, team2 } = req.body;

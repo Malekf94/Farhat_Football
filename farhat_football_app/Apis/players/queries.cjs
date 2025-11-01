@@ -18,6 +18,7 @@ const getPlayerStats = `
       DATE_PART('year', m.match_date) AS year,
       COALESCE(SUM(mp.goals), 0) AS total_goals,
       COALESCE(SUM(mp.assists), 0) AS total_assists,
+      COALESCE(SUM(mp.defcons), 0) AS total_defcons,
       COALESCE(SUM(mp.own_goals), 0) AS total_own_goals,
       COUNT(mp.match_id) AS total_matches
   FROM 
@@ -37,6 +38,7 @@ const getMonthlyPlayerStats = `
       DATE_PART('year', m.match_date) AS year,
       SUM(mp.goals) AS total_goals,
       SUM(mp.assists) AS total_assists,
+      SUM(mp.defcons) AS total_defcons,
       SUM(mp.own_goals) AS total_own_goals
   FROM 
       match_players mp

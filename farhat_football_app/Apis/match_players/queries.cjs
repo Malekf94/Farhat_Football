@@ -1,8 +1,8 @@
 const getPlayersInMatch =
-	"SELECT p.player_id, p.first_name, p.last_name, p.preferred_name, p.year_of_birth, mp.goals, mp.assists, mp.own_goals, mp.late, mp.price, mp.team_id, mp.joined_at FROM match_players mp JOIN players p ON mp.player_id = p.player_id WHERE mp.match_id = $1";
+	"SELECT p.player_id, p.first_name, p.last_name, p.preferred_name, p.year_of_birth, mp.goals, mp.assists, mp.defcons,mp.own_goals, mp.late, mp.price, mp.team_id, mp.joined_at FROM match_players mp JOIN players p ON mp.player_id = p.player_id WHERE mp.match_id = $1";
 
 const addPlayerToMatch = `
-	INSERT INTO match_players (match_id, player_id, goals, assists, own_goals, late, price, team_id)
+	INSERT INTO match_players (match_id, player_id, goals, assists, defcons, own_goals, late, price, team_id)
 	VALUES ($1, $2, 0, 0, 0, FALSE, $3, 0)
 	RETURNING *;
   `;
@@ -16,6 +16,7 @@ const updateMatchPlayer = `
   UPDATE match_players
   SET goals = COALESCE($1, goals),
       assists = COALESCE($2, assists),
+      defcons = COALESCE($2, defcons),
       own_goals = COALESCE($3, own_goals),
       late = COALESCE($4, late),
       team_id = COALESCE($5, team_id)

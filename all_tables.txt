@@ -33,6 +33,7 @@ CREATE TABLE match_players (
     player_id INT NOT NULL REFERENCES players(player_id) ON DELETE CASCADE,
     goals INT DEFAULT 0 CHECK (goals >= 0),
     assists INT DEFAULT 0 CHECK (assists >= 0),
+    defcons INT DEFAULT 0 CHECK (defcons >= 0),
     late BOOLEAN DEFAULT FALSE,
     price FLOAT NOT NULL,
     team_id INT CHECK (team_id = 1 OR team_id = 2),

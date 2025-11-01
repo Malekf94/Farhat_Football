@@ -14,6 +14,7 @@ router.get("/", async (req, res) => {
   COUNT(*) AS matches_played,
   SUM(match_players.goals) AS total_goals,
   SUM(match_players.assists) AS total_assists,
+  SUM(match_players.defcons) AS total_defcons,
   COUNT(CASE WHEN matches.man_of_the_match = players.player_id THEN 1 END) AS man_of_the_match_count,
   COUNT(CASE WHEN matches.winning_team = match_players.team_id THEN 1 END) AS wins
 FROM match_players
@@ -23,7 +24,7 @@ WHERE EXTRACT(YEAR FROM matches.match_date) = $1
   AND EXTRACT(MONTH FROM matches.match_date) BETWEEN $2 AND $3
   AND matches.match_status = 'completed'
 GROUP BY players.preferred_name
-ORDER BY total_goals DESC, total_assists DESC, man_of_the_match_count DESC;
+ORDER BY total_goals DESC, total_assists DESC, total_defcons DESC,man_of_the_match_count DESC;
 		    `;
 
 		const result = await pool.query(query, [year, startMonth, endMonth]);
