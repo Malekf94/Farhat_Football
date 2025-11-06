@@ -9,12 +9,8 @@ function Rules() {
 				<ul>
 					<li>Respect others and respect the game</li>
 					<li>
-						Check the <Link to="/how-to-pay">How to Pay</Link>
-						page for information on how to pay for games and join them
-					</li>
-					<li>
-						To join the next game, go to the home page and click on matches,
-						then one of the games under pending and click on join match.
+						Check the <Link to="/faq">FAQ</Link>
+						page for help
 					</li>
 					<li>
 						If you attempt to leave the match less than 5 hours before kickoff,
@@ -28,7 +24,7 @@ function Rules() {
 					</li>
 					<li>
 						Avoid wearing blades if possible, if you do wear them, be concious
-						that you are wearing them and dont go full force. You may injure
+						that you are wearing them and dont use full force. You may injure
 						others
 					</li>
 				</ul>

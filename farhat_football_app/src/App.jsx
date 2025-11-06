@@ -20,8 +20,8 @@ import AccountDetails from "./Pages/AccountDetails/AccountDetails.jsx";
 import ProtectedAdminRoute from "./ProtectedAdminRoute.jsx";
 import UpdateAttributes from "./Pages/UpdateAttributes/UpdateAttributes.jsx";
 import AddPitch from "./Pages/AddPitch/AddPitch.jsx";
-import HowToPay from "./Pages/HowToPay/HowToPay.jsx";
 import StatLeaderBoard from "./Pages/StatLeaderBoard/StatLeaderBoard.jsx";
+import FAQ from "./Pages/FAQ/FAQ.jsx";
 
 function App() {
 	return (
@@ -30,7 +30,7 @@ function App() {
 			<Routes>
 				<Route path="/" element={<Home />} />
 				<Route path="/rules" element={<Rules />} />
-				<Route path="/how-to-pay" element={<HowToPay />} />
+				<Route path="/faq" element={<FAQ />} />
 				<Route path="/matches" element={<Matches />} />
 				<Route path="/lates" element={<Lates />} />
 				<Route path="/login" element={<LoginPage />} />
