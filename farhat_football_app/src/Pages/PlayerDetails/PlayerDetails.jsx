@@ -36,15 +36,15 @@ function PlayerDetails() {
 
 	return (
 		<div className="page-content player-details">
-			<h1>{player.preferred_name}'s Profile</h1>
-			<div className="player-info">
+			<h1>Profile of {player.preferred_name}</h1>
+			{/* <div className="player-info">
 				<p>
 					<strong>Full Name:</strong> {player.first_name} {player.last_name}
 				</p>
 				<p>
 					<strong>Year of Birth:</strong> {player.year_of_birth}
 				</p>
-			</div>
+			</div> */}
 
 			<div className="player-stats">
 				<h2>Performance Stats</h2>
@@ -56,6 +56,7 @@ function PlayerDetails() {
 								<th>Year</th>
 								<th>Goals</th>
 								<th>Assists</th>
+								<th>Defcons</th>
 								<th>Own Goals</th>
 							</tr>
 						</thead>
@@ -66,6 +67,7 @@ function PlayerDetails() {
 									<td>{stat.year}</td>
 									<td>{stat.total_goals}</td>
 									<td>{stat.total_assists}</td>
+									<td>{stat.total_defcons}</td>
 									<td>{stat.total_own_goals}</td>
 								</tr>
 							))}

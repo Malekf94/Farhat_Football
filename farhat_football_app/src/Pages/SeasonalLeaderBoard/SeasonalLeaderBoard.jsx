@@ -58,7 +58,7 @@ function SeasonalLeaderBoard() {
 
 	return (
 		<div className="page-content seasonal-leaderboard">
-			<h1>Seasonal LeaderBoard</h1>
+			<h1>Seasonal Leaderboard</h1>
 			<div className="filters">
 				<label>
 					Year:

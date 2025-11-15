@@ -35,7 +35,7 @@ function LeaderBoard() {
 
 	return (
 		<div className="page-content leaderboard">
-			<h1>Leader board</h1>
+			<h1>Leaderboard</h1>
 			<div className="filters">
 				<label>
 					Year:

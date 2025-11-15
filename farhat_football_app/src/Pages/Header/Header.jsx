@@ -30,8 +30,8 @@ function Header() {
 						</Link>
 					</li>
 					<li className="header-li">
-						<Link to="/how-to-pay" onClick={() => setIsMenuOpen(false)}>
-							How To Pay
+						<Link to="/FAQ" onClick={() => setIsMenuOpen(false)}>
+							FAQ
 						</Link>
 					</li>
 					<li className="header-li">
