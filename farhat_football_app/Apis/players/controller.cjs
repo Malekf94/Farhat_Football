@@ -64,6 +64,7 @@ const getPlayerStats = async (req, res) => {
 			total_goals: 0,
 			total_assists: 0,
 			total_defcons: 0,
+			total_chancescreated: 0,
 			total_own_goals: 0,
 			total_matches: 0,
 		};

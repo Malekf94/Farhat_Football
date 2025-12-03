@@ -57,6 +57,7 @@ function PlayerDetails() {
 								<th>Goals</th>
 								<th>Assists</th>
 								<th>Defcons</th>
+								<th>Chances Created</th>
 								<th>Own Goals</th>
 							</tr>
 						</thead>
@@ -68,6 +69,7 @@ function PlayerDetails() {
 									<td>{stat.total_goals}</td>
 									<td>{stat.total_assists}</td>
 									<td>{stat.total_defcons}</td>
+									<td>{stat.total_chancescreated}</td>
 									<td>{stat.total_own_goals}</td>
 								</tr>
 							))}

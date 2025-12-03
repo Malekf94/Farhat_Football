@@ -1,9 +1,9 @@
 const getPlayersInMatch =
-	"SELECT p.player_id, p.first_name, p.last_name, p.preferred_name, p.year_of_birth, mp.goals, mp.assists, mp.defcons,mp.own_goals, mp.late, mp.price, mp.team_id, mp.joined_at FROM match_players mp JOIN players p ON mp.player_id = p.player_id WHERE mp.match_id = $1";
+	"SELECT p.player_id, p.first_name, p.last_name, p.preferred_name, p.year_of_birth, mp.goals, mp.assists, mp.defcons, mp.chancescreated, mp.own_goals, mp.late, mp.price, mp.team_id, mp.joined_at FROM match_players mp JOIN players p ON mp.player_id = p.player_id WHERE mp.match_id = $1";
 
 const addPlayerToMatch = `
-	INSERT INTO match_players (match_id, player_id, goals, assists, defcons, own_goals, late, price, team_id)
-	VALUES ($1, $2, 0, 0, 0, 0,FALSE, $3, 0)
+	INSERT INTO match_players (match_id, player_id, goals, assists, defcons, chancescreated, own_goals, late, price, team_id)
+	VALUES ($1, $2, 0, 0, 0, 0, 0, FALSE, $3, 0)
 	RETURNING *;
   `;
 
@@ -17,10 +17,11 @@ const updateMatchPlayer = `
   SET goals = COALESCE($1, goals),
       assists = COALESCE($2, assists),
       defcons = COALESCE($3, defcons),
-      own_goals = COALESCE($4, own_goals),
-      late = COALESCE($5, late),
-      team_id = COALESCE($6, team_id)
-  WHERE match_id = $7 AND player_id = $8
+      chancescreated = COALESCE($4, chancescreated),
+      own_goals = COALESCE($5, own_goals),
+      late = COALESCE($6, late),
+      team_id = COALESCE($7, team_id)
+  WHERE match_id = $8 AND player_id = $9
   RETURNING *;
 `;
 

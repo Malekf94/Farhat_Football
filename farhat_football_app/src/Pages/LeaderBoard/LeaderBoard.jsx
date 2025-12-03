@@ -61,6 +61,7 @@ function LeaderBoard() {
 						<option value="total_goals">Goals</option>
 						<option value="total_assists">Assists</option>
 						<option value="total_defcons">Defcons</option>
+						<option value="total_chancescreated">Chances Created</option>
 						<option value="man_of_the_match_count">Man of the Match</option>
 						<option value="matches_played">Matches Played</option>
 						<option value="wins">Wins</option>
@@ -74,6 +75,7 @@ function LeaderBoard() {
 						<th>Total Goals</th>
 						<th>Total Assists</th>
 						<th>Total Defcons</th>
+						<th>Total Chances Created</th>
 						<th>Matches Played</th>
 						<th>Wins</th>
 						<th>Man of the Match Wins</th>
@@ -86,6 +88,7 @@ function LeaderBoard() {
 							<td>{player.total_goals}</td>
 							<td>{player.total_assists}</td>
 							<td>{player.total_defcons}</td>
+							<td>{player.total_chancescreated}</td>
 							<td>{player.matches_played}</td>
 							<td>{player.wins}</td>
 							<td>{player.man_of_the_match_count}</td>

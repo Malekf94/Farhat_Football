@@ -41,7 +41,7 @@ function StatLeaderBoard() {
 
 	return (
 		<div className="page-content leaderboard">
-			<h1>Leader board</h1>
+			<h1>Attribute Leaderboard</h1>
 
 			{/* Dropdown */}
 			<div className="filters">

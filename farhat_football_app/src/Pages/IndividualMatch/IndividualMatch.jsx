@@ -129,6 +129,7 @@ function IndividualMatch() {
 							goals: player.goals,
 							assists: player.assists,
 							defcons: player.defcons,
+							chancescreated: player.chancescreated,
 							own_goals: player.own_goals,
 							late: player.late,
 							team_id: player.team_id,
@@ -198,11 +199,15 @@ function IndividualMatch() {
 
 	const handleSavePlayerStats = async () => {
 		const updatePromises = Object.entries(editedPlayerStats).map(
-			([player_id, { goals, assists, defcons, own_goals, late, team_id }]) =>
+			([
+				player_id,
+				{ goals, assists, defcons, chancescreated, own_goals, late, team_id },
+			]) =>
 				axios.put(`/api/v1/matchPlayer/${match_id}/${player_id}`, {
 					goals: parseInt(goals, 10),
 					assists: parseInt(assists, 10),
 					defcons: parseInt(defcons, 10),
+					chancescreated: parseInt(chancescreated, 10),
 					own_goals: parseInt(own_goals, 10),
 					late: late,
 					team_id: team_id ? parseInt(team_id, 10) : null,
@@ -705,6 +710,7 @@ function PlayerTable({
 						<th>Goals</th>
 						<th>Assists</th>
 						<th>Defcons</th>
+						<th>Chances Created</th>
 						<th>Own Goals</th>
 						<th>Late</th>
 						{isEditingStats && <th>Team</th>}
@@ -768,6 +774,21 @@ function PlayerTable({
 										<td>
 											<input
 												type="number"
+												value={editData.chancescreated}
+												onChange={(e) =>
+													setEditedPlayerStats((prev) => ({
+														...prev,
+														[player.player_id]: {
+															...prev[player.player_id],
+															chancescreated: e.target.value,
+														},
+													}))
+												}
+											/>
+										</td>
+										<td>
+											<input
+												type="number"
 												value={editData.own_goals}
 												onChange={(e) =>
 													setEditedPlayerStats((prev) => ({
@@ -821,6 +842,7 @@ function PlayerTable({
 										<td>{player.goals}</td>
 										<td>{player.assists}</td>
 										<td>{player.defcons}</td>
+										<td>{player.chancescreated}</td>
 										<td>{player.own_goals}</td>
 										<td>{player.late ? "Yes" : "No"}</td>
 									</>
@@ -889,6 +911,7 @@ PlayerTable.propTypes = {
 			goals: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 			assists: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 			defcons: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+			chancescreated: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 			own_goals: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 			late: PropTypes.bool,
 			team_id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
@@ -902,6 +925,7 @@ PlayerTable.propTypes = {
 			goals: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 			assists: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 			defcons: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+			chancescreated: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 			own_goals: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 			late: PropTypes.bool,
 			team_id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
