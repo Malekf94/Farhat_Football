@@ -85,6 +85,12 @@
 	font-size: 1rem;
 }
 
+.table-wrapper {
+	width: 100%;
+	overflow-x: auto;
+	-webkit-overflow-scrolling: touch; /* smooth iOS scroll */
+}
+
 /* Buttons */
 button {
 	padding: 10px 20px;
@@ -168,9 +174,27 @@ h2 {
 		font-size: 1.8rem;
 	}
 
+	.table-wrapper {
+		margin-top: 15px;
+	}
+
+	.playerTable {
+		min-width: 650px; /* forces scroll instead of squish */
+	}
+
 	.playerTable th,
 	.playerTable td {
-		font-size: 0.9rem;
+		padding: 8px;
+		font-size: 0.85rem;
+		white-space: nowrap; /* prevents text wrapping */
+	}
+
+	.playerTable th:first-child,
+	.playerTable td:first-child {
+		position: sticky;
+		left: 0;
+		background-color: #222;
+		z-index: 2;
 	}
 
 	button {

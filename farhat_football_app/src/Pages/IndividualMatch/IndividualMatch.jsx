@@ -443,7 +443,7 @@ function IndividualMatch() {
 		}
 	};
 	return (
-		<div className="page-content individual-match">
+		<div className="page-content individual-match table-wrapper">
 			<h1>{match.match_name}</h1>
 			<div>
 				{isAdmin && <button onClick={handleDeleteMatch}>Delete Match</button>}
