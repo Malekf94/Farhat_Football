@@ -53,7 +53,8 @@
 
 /* Tables for Player Stats */
 .playerTable {
-	width: 100%;
+	width: max-content;
+	min-width: 100%;
 	border-collapse: collapse;
 	margin-top: 20px;
 	background-color: rgba(0, 0, 0, 0.8); /* Matches the theme */
@@ -86,7 +87,7 @@
 }
 
 .table-wrapper {
-	background-color: #065e24;
+	width: 100%;
 	overflow-x: auto;
 	-webkit-overflow-scrolling: touch;
 }
