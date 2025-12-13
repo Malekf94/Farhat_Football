@@ -86,9 +86,9 @@
 }
 
 .table-wrapper {
-	width: 100%;
+	background-color: #000;
 	overflow-x: auto;
-	-webkit-overflow-scrolling: touch; /* smooth iOS scroll */
+	-webkit-overflow-scrolling: touch;
 }
 
 /* Buttons */
@@ -180,6 +180,15 @@ h2 {
 
 	.playerTable {
 		min-width: 650px; /* forces scroll instead of squish */
+		background-color: #000; /* no transparency */
+	}
+
+	.playerTable tr {
+		background-color: #000;
+	}
+
+	.playerTable tr:nth-child(even) {
+		background-color: #111;
 	}
 
 	.playerTable th,
@@ -187,6 +196,11 @@ h2 {
 		padding: 8px;
 		font-size: 0.85rem;
 		white-space: nowrap; /* prevents text wrapping */
+	}
+	.playerTable th:first-child,
+	.playerTable td:first-child {
+		background-color: #000;
+		box-shadow: 2px 0 0 #ffcc00; /* keeps grid line visible */
 	}
 
 	.playerTable th:first-child,
