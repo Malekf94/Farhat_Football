@@ -177,10 +177,14 @@ h2 {
 
 	.table-wrapper {
 		margin-top: 15px;
+		width: 100%;
+		overflow-x: auto;
+		-webkit-overflow-scrolling: touch;
 	}
 
 	.playerTable {
-		min-width: 650px; /* forces scroll instead of squish */
+		width: max-content; /* ✅ allow horizontal growth */
+		min-width: 100%; /* ✅ at least viewport width */
 	}
 
 	.playerTable tr {
