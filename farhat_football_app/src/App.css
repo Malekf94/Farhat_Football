@@ -1,4 +1,4 @@
-/* Reset Default Margins and Padding */
+/* Reset */
 html,
 body {
 	margin: 0;
@@ -16,21 +16,23 @@ body {
 	text-align: center;
 	line-height: 1.6;
 
-	min-height: 100vh; /* ✅ */
-	width: 100%; /* ✅ */
-	overflow-x: visible; /* ✅ */
+	min-height: 100vh;
+	width: 100%;
+	overflow-x: visible;
 
 	display: flex;
 	flex-direction: column;
 }
 
-/* Content Wrapper */
+/* Page layout */
 .page-content {
 	min-height: 100%;
 	width: 100%;
+	max-width: 1200px; /* ✅ desktop constraint */
+	margin: 0 auto; /* ✅ centered */
 	display: flex;
 	flex-direction: column;
-	align-items: stretch; /* ✅ IMPORTANT */
+	align-items: center; /* ✅ restore desktop look */
 	justify-content: flex-start;
 	padding: 20px;
 }
@@ -70,4 +72,12 @@ tr:hover {
 td {
 	color: #f9f9f9;
 	font-size: 1rem;
+}
+
+@media (max-width: 768px) {
+	.page-content {
+		width: 100%;
+		max-width: none;
+		align-self: stretch;
+	}
 }
