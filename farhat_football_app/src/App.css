@@ -1,42 +1,35 @@
-/* Reset */
-html,
-body {
+/* Reset Default Margins and Padding */
+body,
+html {
 	margin: 0;
 	padding: 0;
 	width: 100%;
+	height: 100%;
 	box-sizing: border-box;
-}
-
+} /* Consistent Background Across All Pages */
 body {
 	background-image: url("./final_cropped_pitch.png");
 	background-size: cover;
-	background-position: center;
+	background-position: center; /* background-repeat: no-repeat; */
+	height: 100vh;
+	width: 100vw;
 	font-family: Arial, sans-serif;
-	color: white;
-	text-align: center;
-	line-height: 1.6;
-
-	min-height: 100vh;
-	width: 100%;
-	overflow-x: visible;
-
 	display: flex;
 	flex-direction: column;
-}
-
-/* Page layout */
+	color: white;
+	font-family: Arial, sans-serif;
+	text-align: center; /* Center the text */
+	line-height: 1.6; /* Add more spacing between lines */
+} /* Content Wrapper for All Pages */
 .page-content {
 	min-height: 100%;
 	width: 100%;
-	max-width: 1200px; /* ✅ desktop constraint */
-	margin: 0 auto; /* ✅ centered */
 	display: flex;
 	flex-direction: column;
-	align-items: center; /* ✅ restore desktop look */
+	align-items: center;
 	justify-content: flex-start;
 	padding: 20px;
 }
-
 .page-content h1 {
 	padding: 10px 20px;
 	font-size: 1rem;
@@ -47,37 +40,55 @@ body {
 	color: #ffcc00;
 	transition: background-color 0.3s ease, color 0.3s ease;
 }
-
 th,
 td {
 	border: 1px solid #ffcc00;
 	text-align: center;
 	padding: 12px;
 }
-
 th {
 	background-color: #333333; /* Darker header */
 	font-weight: bold;
 	color: #ffcc00;
 }
-
 tr:nth-child(even) {
 	background-color: rgba(50, 50, 50, 0.8); /* Slight variation */
 }
-
 tr:hover {
 	background-color: rgba(80, 80, 80, 0.9); /* Highlight row on hover */
 }
-
 td {
 	color: #f9f9f9;
 	font-size: 1rem;
 }
 
 @media (max-width: 768px) {
+	/* General page spacing */
+	body {
+		font-size: 14px;
+	}
+
 	.page-content {
+		padding: 10px;
+	}
+
+	.page-content h1 {
+		font-size: 0.9rem;
+		padding: 8px 12px;
+	}
+
+	/* Tables */
+	table {
+		display: block;
 		width: 100%;
-		max-width: none;
-		align-self: stretch;
+		overflow-x: auto; /* 👈 horizontal scroll */
+		-webkit-overflow-scrolling: touch;
+	}
+
+	th,
+	td {
+		padding: 8px;
+		font-size: 0.8rem;
+		white-space: nowrap; /* 👈 prevents ugly wrapping */
 	}
 }

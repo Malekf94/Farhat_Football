@@ -7,92 +7,67 @@
 	border-radius: 10px;
 	box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
 }
-
 .match-details p {
 	font-size: 1.4rem;
 	margin: 8px 0;
 	line-height: 1.6;
 }
-
 .match-details strong {
 	font-weight: bold;
 	color: #ffffff;
-}
-
-/* YouTube Links Styling */
+} /* YouTube Links Styling */
 .youtube-links {
 	margin-top: 20px;
 }
-
 .youtube-links h2 {
 	font-size: 1.8rem;
 	color: #ffcc00;
 	margin-bottom: 10px;
 	text-align: left;
 }
-
 .youtube-links ul {
 	list-style-type: none;
 	padding: 0;
 }
-
 .youtube-links li {
 	margin: 5px 0;
 }
-
 .youtube-links a {
 	text-decoration: none;
 	color: #ffcc00;
 	font-weight: bold;
 }
-
 .youtube-links a:hover {
 	text-decoration: underline;
 	color: #fff; /* Hover effect for contrast */
-}
-
-/* Tables for Player Stats */
+} /* Tables for Player Stats */
 .playerTable {
-	width: max-content;
-	min-width: 100%;
+	width: 100%;
 	border-collapse: collapse;
 	margin-top: 20px;
 	background-color: rgba(0, 0, 0, 0.8); /* Matches the theme */
 }
-
 .playerTable th,
 .playerTable td {
 	border: 1px solid #ffcc00;
 	text-align: center;
 	padding: 12px;
 }
-
 .playerTable th {
 	background-color: #333333; /* Darker header */
 	font-weight: bold;
 	color: #ffcc00;
 }
-
 .playerTable tr:nth-child(even) {
 	background-color: rgba(50, 50, 50, 0.8); /* Slight variation */
 }
-
 .playerTable tr:hover {
 	background-color: rgba(80, 80, 80, 0.9); /* Highlight row on hover */
 }
-
 .playerTable td {
 	color: #f9f9f9;
 	font-size: 1rem;
-}
-
-.table-wrapper {
-	width: 100%;
-	overflow-x: auto;
-	-webkit-overflow-scrolling: touch;
-}
-
-/* Buttons */
+} /* Buttons */
 button {
 	padding: 10px 20px;
 	font-size: 1rem;
@@ -104,19 +79,15 @@ button {
 	color: #ffcc00;
 	transition: background-color 0.3s ease, color 0.3s ease;
 }
-
 button:hover {
 	background-color: #ffcc00; /* Bright hover effect */
 	color: #000; /* Contrast text */
 }
-
 button:disabled {
 	cursor: not-allowed;
 	background-color: #555;
 	color: #ccc;
-}
-
-/* Edit Form Styling */
+} /* Edit Form Styling */
 .edit-form {
 	margin-top: 20px;
 	padding: 20px;
@@ -124,14 +95,12 @@ button:disabled {
 	border-radius: 10px;
 	background-color: rgba(0, 0, 0, 0.9); /* Subtle opacity for dark theme */
 }
-
 .edit-form label {
 	display: block;
 	font-size: 1.2rem;
 	margin-bottom: 10px;
 	color: #ffcc00;
 }
-
 .edit-form input,
 .edit-form select {
 	width: 100%;
@@ -143,12 +112,9 @@ button:disabled {
 	background-color: #333333; /* Input field matches dark theme */
 	color: #f9f9f9;
 }
-
 .edit-form input::placeholder {
 	color: #ccc; /* Placeholder styling */
-}
-
-/* Section Headings */
+} /* Section Headings */
 h2 {
 	font-size: 2rem;
 	margin: 20px 0;
@@ -156,52 +122,32 @@ h2 {
 	text-align: center;
 	text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
 }
-
 .indiMatchesP {
 	color: white;
-}
-
-/* Responsive Design */
+} /* Responsive Design */
 @media (max-width: 768px) {
 	.match-details {
 		padding: 15px;
 	}
-
-	h1 {
-		font-size: 2.5rem;
-	}
-
-	h2 {
-		font-size: 1.8rem;
-	}
-
 	.table-wrapper {
-		margin-top: 15px;
 		width: 100%;
 		overflow-x: auto;
-		-webkit-overflow-scrolling: touch;
 	}
 
 	.playerTable {
-		width: max-content; /* ✅ allow horizontal growth */
-		min-width: 100%; /* ✅ at least viewport width */
+		min-width: 600px; /* force scroll instead of squeeze */
 	}
-
-	.playerTable tr {
-		background-color: #000;
+	h1 {
+		font-size: 2.5rem;
 	}
-
-	.playerTable tr:nth-child(even) {
-		background-color: #111;
+	h2 {
+		font-size: 1.8rem;
 	}
-
 	.playerTable th,
 	.playerTable td {
+		font-size: 0.8rem;
 		padding: 8px;
-		font-size: 0.85rem;
-		white-space: nowrap; /* prevents text wrapping */
 	}
-
 	button {
 		font-size: 0.9rem;
 		padding: 8px 15px;
