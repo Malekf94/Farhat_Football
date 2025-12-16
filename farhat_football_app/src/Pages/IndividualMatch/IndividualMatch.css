@@ -125,29 +125,37 @@ h2 {
 .indiMatchesP {
 	color: white;
 } /* Responsive Design */
+
 @media (max-width: 768px) {
 	.match-details {
 		padding: 15px;
 	}
-	.table-wrapper {
+	.playerTable {
 		width: 100%;
-		overflow-x: auto;
+		max-width: 100%;
+		table-layout: fixed; /* 🔑 forces fit */
 	}
 
-	.playerTable {
-		min-width: 600px; /* force scroll instead of squeeze */
+	.playerTable th,
+	.playerTable td {
+		white-space: normal; /* allow wrapping */
+		word-break: break-word;
+		font-size: 0.75rem;
+		padding: 6px;
 	}
+
+	.match-details {
+		padding: 15px;
+	}
+
 	h1 {
 		font-size: 2.5rem;
 	}
+
 	h2 {
 		font-size: 1.8rem;
 	}
-	.playerTable th,
-	.playerTable td {
-		font-size: 0.8rem;
-		padding: 8px;
-	}
+
 	button {
 		font-size: 0.9rem;
 		padding: 8px 15px;
