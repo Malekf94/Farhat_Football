@@ -7,7 +7,7 @@ const checkJwt = require("../auth/checkJwt.cjs");
 
 // const router = Router();
 
-router.use(checkJwt);
+// router.use(checkJwt);
 
 router.get("/check", controller.runCheckPaymentsScript);
 router.get("/sync", controller.runSyncPaymentsScript);

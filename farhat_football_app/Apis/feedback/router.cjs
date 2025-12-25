@@ -5,7 +5,7 @@ const checkJwt = require("../auth/checkJwt.cjs");
 
 const router = Router();
 
-router.use(checkJwt);
+// router.use(checkJwt);
 
 router.get("/", controller.getAllFeedback);
 router.get("/:feedback_id/replies", controller.getFeedbackReplies);

@@ -5,7 +5,7 @@ const checkJwt = require("../auth/checkJwt.cjs");
 
 const router = Router();
 
-router.use(checkJwt);
+// router.use(checkJwt);
 
 router.get("/", controller.listAttributes);
 router.get("/leaderboard/:attribute", controller.getLeadingAttributes);

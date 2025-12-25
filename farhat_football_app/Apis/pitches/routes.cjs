@@ -4,7 +4,7 @@ const checkJwt = require("../auth/checkJwt.cjs");
 
 const router = Router();
 
-router.use(checkJwt);
+// router.use(checkJwt);
 
 router.get("/", controller.getPitches);
 router.post("/", controller.addPitch);

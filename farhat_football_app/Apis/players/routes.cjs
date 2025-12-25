@@ -4,7 +4,7 @@ const checkJwt = require("../auth/checkJwt.cjs");
 
 const router = Router();
 
-router.use(checkJwt);
+// router.use(checkJwt);
 
 router.post("/", controller.addPlayer);
 router.post("/auth0-signup", controller.auth0Signup);
