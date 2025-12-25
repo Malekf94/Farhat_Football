@@ -1,7 +1,11 @@
 const { Router } = require("express");
 const controller = require("./controller.cjs");
 
+const checkJwt = require("../auth/checkJwt.cjs");
+
 const router = Router();
+
+router.use(checkJwt);
 
 router.get("/", controller.getAllFeedback);
 router.get("/:feedback_id/replies", controller.getFeedbackReplies);

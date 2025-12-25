@@ -1,7 +1,10 @@
 const { Router } = require("express");
 const controller = require("./controller.cjs");
+const checkJwt = require("../auth/checkJwt.cjs");
 
 const router = Router();
+
+router.use(checkJwt);
 
 router.post("/", controller.addPlayer);
 router.post("/auth0-signup", controller.auth0Signup);
