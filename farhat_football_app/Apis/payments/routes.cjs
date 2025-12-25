@@ -1,11 +1,11 @@
 const express = require("express");
 const controller = require("./controller.cjs");
 
-// const router = express.Router();
+const router = express.Router();
 
 const checkJwt = require("../auth/checkJwt.cjs");
 
-const router = Router();
+// const router = Router();
 
 router.use(checkJwt);
 
