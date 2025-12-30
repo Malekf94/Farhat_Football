@@ -72,6 +72,13 @@ const updateManOfTheMatch = `UPDATE matches SET man_of_the_match = $1 WHERE matc
 
 const deleteMatch = `DELETE FROM matches WHERE match_id=$1`;
 
+const getEmailsByMatch = `
+    SELECT p.email 
+    FROM players p
+    JOIN match_players mp ON p.player_id = mp.player_id
+    WHERE mp.match_id = $1
+`;
+
 module.exports = {
 	getMatches,
 	getMatchById,
@@ -90,4 +97,5 @@ module.exports = {
 	getManOfTheMatch,
 	updateManOfTheMatch,
 	deleteMatch,
+	getEmailsByMatch,
 };

@@ -1,5 +1,8 @@
 {
   "dependencies": {
+    "@getbrevo/brevo": "^3.0.1",
+    "@sendgrid/mail": "^8.1.6",
+    "dotenv": "^17.2.3",
     "express-oauth2-jwt-bearer": "^1.7.2"
   }
 }

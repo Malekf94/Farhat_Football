@@ -1,6 +1,16 @@
 const pool = require("../../db.cjs");
 const matchQueries = require("./queries.cjs");
 const matchPlayerQueries = require("../match_players/queries.cjs");
+const sgMail = require("@sendgrid/mail");
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+const SibApiV3Sdk = require("@getbrevo/brevo");
+
+// Initialize Brevo API client
+const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
+apiInstance.setApiKey(
+	SibApiV3Sdk.TransactionalEmailsApiApiKeys.apiKey,
+	process.env.BREVO_API_KEY
+);
 
 const getMatches = (req, res) => {
 	pool.query(matchQueries.getMatches, (error, results) => {
@@ -248,6 +258,54 @@ const deleteMatch = async (req, res) => {
 	}
 };
 
+// email players
+const notifyPlayers = async (req, res) => {
+	const { match_id } = req.params;
+
+	try {
+		// 1. Fetch player emails from database
+		const result = await pool.query(matchQueries.getEmailsByMatch, [match_id]);
+
+		// Map to Brevo's recipient format: [{ email: 'one@example.com' }, { email: 'two@example.com' }]
+		const recipients = result.rows
+			.filter((row) => row.email)
+			.map((row) => ({ email: row.email }));
+
+		if (recipients.length === 0) {
+			return res
+				.status(404)
+				.json({ error: "No player emails found for this match." });
+		}
+
+		// 2. Construct the Brevo message
+		const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
+
+		sendSmtpEmail.subject = "Match Day! ⚽";
+		sendSmtpEmail.htmlContent = `<html><body><strong>Reminder that you have joined tonight's game. Go to www.farhatfootball.co.uk/${match_id} to confirm details, teams may be subject to change</body></html>`;
+		sendSmtpEmail.textContent = `Reminder that you have joined tonight's game. Go to www.farhatfootball.co.uk/${match_id} to confirm details, teams may be subject to change`;
+		sendSmtpEmail.sender = {
+			email: process.env.BREVO_FROM_EMAIL,
+			name: "Match Notifier",
+		};
+
+		// By putting multiple recipients in the 'to' array, Brevo sends
+		// individual emails to each (they won't see each other's addresses).
+		sendSmtpEmail.to = recipients;
+
+		// 3. Send via Brevo
+		await apiInstance.sendTransacEmail(sendSmtpEmail);
+
+		res
+			.status(200)
+			.json({ message: "Emails sent successfully to all players via Brevo." });
+	} catch (error) {
+		console.error("Brevo Error:", error.response?.body || error.message);
+		res
+			.status(500)
+			.json({ error: "An error occurred while notifying players." });
+	}
+};
+
 module.exports = {
 	createMatch,
 	getMatches,
@@ -261,4 +319,5 @@ module.exports = {
 	getManOfTheMatch,
 	updateManOfTheMatch,
 	deleteMatch,
+	notifyPlayers,
 };
