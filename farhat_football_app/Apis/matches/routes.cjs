@@ -13,6 +13,7 @@ router.get("/pending", controller.getPendingMatches);
 router.get("/completed", controller.getCompletedMatches);
 router.get("/friendly", controller.getFriendlyMatches);
 router.get("/in_progress", controller.getInProgressMatches);
+router.post("/notify-all-players", controller.notifyAllPlayers);
 
 // nested routes FIRST
 router.post("/:match_id/notify-players", controller.notifyPlayers);

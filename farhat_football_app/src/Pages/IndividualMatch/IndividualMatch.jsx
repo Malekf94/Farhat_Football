@@ -411,6 +411,22 @@ function IndividualMatch() {
 		}
 	};
 
+	const handleEmailAllPlayers = async () => {
+		const confirmSend = window.confirm(
+			"Are you sure you want to email all players for this match?"
+		);
+		if (!confirmSend) return;
+
+		try {
+			// We only send the match_id; the backend will look up the emails for security
+			await axios.post(`/api/v1/matches/notify-all-players`);
+			alert("Emails sent successfully!");
+		} catch (error) {
+			console.error("Error sending emails:", error);
+			alert("Failed to send emails. Check console for details.");
+		}
+	};
+
 	const handleDeleteMatch = async () => {
 		const handleRemovePlayers = async () => {
 			try {
@@ -466,8 +482,10 @@ function IndividualMatch() {
 				{isAdmin && <button onClick={handleBalanceTeams}>Balance Teams</button>}
 				{isAdmin && <button onClick={handleEmailPlayers}>Email Players</button>}
 			</div>
-			{/* <div>
-			</div> */}
+			{isAdmin && (
+				<button onClick={handleEmailAllPlayers}>Email All Players</button>
+			)}
+			<div></div>
 			<div className="match-details">
 				{isAdmin && isEditingMatch ? (
 					<EditMatchForm
