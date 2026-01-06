@@ -37,17 +37,28 @@ const updatePlayerBalance = `
   WHERE player_id = $2
   RETURNING *;
 `;
-const getLates = `
-  SELECT 
-    mp.match_id,
-    m.match_date,
-    CONCAT(p.first_name, ' ', p.last_name) AS full_name
-  FROM match_players mp
-  JOIN matches m ON mp.match_id = m.match_id
-  JOIN players p ON mp.player_id = p.player_id
-  WHERE mp.late = true
-  ORDER BY m.match_date ASC;
+const getLates = `SELECT 
+  mp.match_id,
+  m.match_date,
+  CONCAT(p.first_name, ' ', p.last_name) AS full_name
+FROM match_players mp
+JOIN matches m ON mp.match_id = m.match_id
+JOIN players p ON mp.player_id = p.player_id
+WHERE mp.late = true
+  AND EXTRACT(YEAR FROM m.match_date) = 2026
+ORDER BY m.match_date ASC;
 `;
+// `
+//   SELECT
+//     mp.match_id,
+//     m.match_date,
+//     CONCAT(p.first_name, ' ', p.last_name) AS full_name
+//   FROM match_players mp
+//   JOIN matches m ON mp.match_id = m.match_id
+//   JOIN players p ON mp.player_id = p.player_id
+//   WHERE mp.late = true
+//   ORDER BY m.match_date ASC;
+// `;
 const removeAllPlayerFromMatch =
 	"DELETE FROM match_players WHERE match_id = $1";
 
