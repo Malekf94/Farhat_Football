@@ -745,7 +745,7 @@ function PlayerTable({
 						<th>Goals</th>
 						<th>Assists</th>
 						<th>Defcons</th>
-						<th>Chances Created</th>
+						<th>Key Passes</th>
 						<th>Own Goals</th>
 						<th>Late</th>
 						{isEditingStats && <th>Team</th>}

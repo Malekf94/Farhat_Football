@@ -83,7 +83,7 @@ function SeasonalLeaderBoard() {
 						<option value="total_goals">Goals</option>
 						<option value="total_assists">Assists</option>
 						<option value="total_defcons">Defcons</option>
-						<option value="total_chancescreated">Chances created</option>
+						<option value="total_chancescreated">Key Passes</option>
 						<option value="matches_played">Matches Played</option>
 						<option value="wins">Wins</option>
 						<option value="man_of_the_match_count">Man of the Match</option>
@@ -97,7 +97,7 @@ function SeasonalLeaderBoard() {
 						<th>Total Goals</th>
 						<th>Total Assists</th>
 						<th>Total Defcons</th>
-						<th>Total Chances Created</th>
+						<th>Total Key Passes</th>
 						<th>Matches Played</th>
 						<th>Wins</th>
 						<th>Man of the Match Wins</th>
