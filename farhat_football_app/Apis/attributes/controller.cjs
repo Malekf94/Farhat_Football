@@ -7,7 +7,7 @@ const getAttributes = async (req, res) => {
 	try {
 		const result = await pool.query(
 			"SELECT * FROM attributes WHERE player_id = $1",
-			[player_id]
+			[player_id],
 		);
 		if (result.rows.length > 0) {
 			res.json(result.rows[0]);
@@ -84,7 +84,7 @@ const getLeadingAttributes = async (req, res) => {
         FROM attributes a
         JOIN players p ON a.player_id = p.player_id
         ORDER BY stat DESC
-        LIMIT 20;
+        LIMIT 30;
       `;
 			const { rows } = await pool.query(leaderboardQuery);
 			return res.json(rows);
@@ -100,7 +100,7 @@ const getLeadingAttributes = async (req, res) => {
       FROM attributes a
       JOIN players p ON a.player_id = p.player_id
       ORDER BY a.${attribute} DESC
-      LIMIT 20;
+      LIMIT 30;
     `;
 		const { rows } = await pool.query(leaderboardQuery);
 
