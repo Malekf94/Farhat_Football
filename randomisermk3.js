@@ -33,7 +33,7 @@ export const randomiserMk3 = (playersAttributes) => {
 							key !== "player_id" &&
 							key !== "mental" &&
 							key !== "goalkeeping" &&
-							key !== "team_id"
+							key !== "team_id",
 					)
 					.reduce((sum, [_, val]) => sum + val, 0)
 			);
@@ -48,7 +48,7 @@ export const randomiserMk3 = (playersAttributes) => {
 							key !== "player_id" &&
 							key !== "mental" &&
 							key !== "goalkeeping" &&
-							key !== "team_id"
+							key !== "team_id",
 					)
 					.reduce((sum, [_, val]) => sum + val, 0)
 			);
@@ -67,19 +67,25 @@ export const randomiserMk3 = (playersAttributes) => {
 		let team1Goalkeeping = getTeamStat(team1, 1, "goalkeeping");
 		let team2Goalkeeping = getTeamStat(team2, 2, "goalkeeping");
 
+		let team1Teamwork = getTeamStat(team1, 1, "teamwork");
+		let team2Teamwork = getTeamStat(team2, 2, "teamwork");
+
 		//Calculating the difference for mental, goalkeeping and total attributes
 		let mentalDifference = Math.abs(team1Mental - team2Mental);
 		let goalkeepingDifference = Math.abs(team1Goalkeeping - team2Goalkeeping);
+		let teamworkDifference = Math.abs(team1Teamwork - team2Teamwork);
 		let totalAttributesDifference = Math.abs(team1Total - team2Total);
 
 		console.log(
 			mentalDifference,
 			goalkeepingDifference,
-			totalAttributesDifference
+			teamworkDifference,
+			totalAttributesDifference,
 		);
 		if (
 			goalkeepingDifference < 10 &&
 			mentalDifference < 15 &&
+			teamworkDifference < 10 &&
 			totalAttributesDifference < 30
 		) {
 			return { team1, team2 };
