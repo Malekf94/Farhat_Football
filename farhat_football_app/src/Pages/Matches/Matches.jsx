@@ -9,24 +9,52 @@ function Matches() {
 
 	const [year, setYear] = useState(""); // "" means no filter
 	const [month, setMonth] = useState(""); // "" means no filter
+	const [loading, setLoading] = useState(false);
+	const [page, setPage] = useState(1);
+	const [total, setTotal] = useState(0);
+	const limit = 10;
 
 	useEffect(() => {
-		let endpoint = `/api/v1/matches/all/${view}`;
-
-		const params = {};
-
-		if (year) params.year = year;
-		if (month) params.month = month;
+		setLoading(true);
 
 		axios
-			.get(endpoint, { params })
+			.get("/api/v1/matches", {
+				params: {
+					status: view,
+					year,
+					month,
+					page,
+					limit,
+				},
+			})
 			.then((response) => {
-				setMatches(response.data);
+				setMatches(response.data.data);
+				setTotal(response.data.total);
 			})
 			.catch((error) => {
-				console.error(`Error fetching ${view} matches:`, error);
+				console.error("Error fetching matches:", error);
+			})
+			.finally(() => {
+				setLoading(false);
 			});
-	}, [view, year, month]);
+	}, [view, year, month, page]);
+
+	const groupedMatches = matches.reduce((groups, match) => {
+		const date = new Date(match.match_date);
+
+		const monthYear = date.toLocaleString("default", {
+			month: "long",
+			year: "numeric",
+		});
+
+		if (!groups[monthYear]) {
+			groups[monthYear] = [];
+		}
+
+		groups[monthYear].push(match);
+
+		return groups;
+	}, {});
 
 	return (
 		<div className="page-content">
@@ -36,13 +64,25 @@ function Matches() {
 				Matches
 			</h1>
 			<div className="match-filters">
-				<select value={year} onChange={(e) => setYear(e.target.value)}>
+				<select
+					value={year}
+					onChange={(e) => {
+						setYear(e.target.value);
+						setPage(1);
+					}}
+				>
 					<option value="">All Years</option>
 					<option value="2025">2025</option>
 					<option value="2026">2026</option>
 				</select>
 
-				<select value={month} onChange={(e) => setMonth(e.target.value)}>
+				<select
+					value={month}
+					onChange={(e) => {
+						setMonth(e.target.value);
+						setPage(1);
+					}}
+				>
 					<option value="">All Months</option>
 					<option value="1">January</option>
 					<option value="2">February</option>
@@ -62,37 +102,78 @@ function Matches() {
 			<div className="match-toggle">
 				<button
 					className={view === "completed" ? "active" : ""}
-					onClick={() => setView("completed")}
+					onClick={() => {
+						setView("completed");
+						setPage(1);
+					}}
 				>
 					Completed
 				</button>
 				<button
 					className={view === "pending" ? "active" : ""}
-					onClick={() => setView("pending")}
+					onClick={() => {
+						setView("pending");
+						setPage(1);
+					}}
 				>
 					Upcoming
 				</button>
 				<button
 					className={view === "friendly" ? "active" : ""}
-					onClick={() => setView("friendly")}
+					onClick={() => {
+						setView("friendly");
+						setPage(1);
+					}}
 				>
 					Friendly
 				</button>
 				<button
 					className={view === "in_progress" ? "active" : ""}
-					onClick={() => setView("in_progress")}
+					onClick={() => {
+						setView("in_progress");
+						setPage(1);
+					}}
 				>
 					In Progress
 				</button>
 			</div>
+			{loading && <p>Loading matches...</p>}
 
-			<ul className="playerList">
-				{matches.map((match) => (
-					<li key={match.match_id}>
-						<Link to={`/matches/${match.match_id}`}>{match.match_name}</Link>
-					</li>
-				))}
-			</ul>
+			{Object.keys(groupedMatches).map((monthYear) => (
+				<div key={monthYear} className="month-group">
+					<h3>{monthYear}</h3>
+
+					<ul className="playerList">
+						{groupedMatches[monthYear].map((match) => (
+							<li key={match.match_id}>
+								<Link to={`/matches/${match.match_id}`}>
+									{match.match_name}
+								</Link>
+							</li>
+						))}
+					</ul>
+				</div>
+			))}
+
+			<div className="pagination">
+				<button
+					disabled={page === 1}
+					onClick={() => setPage((prev) => prev - 1)}
+				>
+					Previous
+				</button>
+
+				<span>
+					Page {page} of {Math.ceil(total / limit)}
+				</span>
+
+				<button
+					disabled={page >= Math.ceil(total / limit)}
+					onClick={() => setPage((prev) => prev + 1)}
+				>
+					Next
+				</button>
+			</div>
 		</div>
 	);
 }

@@ -1,40 +1,136 @@
 .playerList {
-	list-style: none; /* Remove default bullet points */
+	list-style: none;
 	padding: 0;
-	width: 90%; /* Responsive width */
-	max-width: 800px; /* Restrict max width for larger screens */
-	border-radius: 10px; /* Rounded corners for modern look */
-	box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Slight shadow for depth */
-	overflow: hidden;
+	margin: 20px 0;
+	width: 95%;
+	max-width: 800px;
+	display: flex;
+	flex-direction: column;
+	gap: 12px; /* space between cards */
 }
 
 .playerList li {
-	margin: 0;
-	padding: 15px 20px;
-	font-size: 1.2rem;
-	color: #333; /* Neutral color for text */
+	background: rgba(255, 255, 255, 0.95);
+	border-radius: 12px;
+	padding: 16px 20px;
+	font-size: 1rem;
 	display: flex;
-	justify-content: center; /* Center the text inside the list item */
 	align-items: center;
-	border-bottom: 1px solid rgba(0, 0, 0, 0.1); /* Subtle divider between items */
-	transition: background-color 0.3s ease;
-}
-
-.playerList li:last-child {
-	border-bottom: none; /* Remove border from the last item */
+	justify-content: space-between;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+	transition:
+		transform 0.15s ease,
+		box-shadow 0.15s ease;
 }
 
 .playerList li:hover {
-	background-color: #f5f5f5; /* Highlight on hover */
+	transform: translateY(-2px);
+	box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
 }
 
 .playerList a {
-	text-decoration: none; /* Remove underline from links */
-	color: #2a4d14; /* Dark green to complement the background */
-	font-weight: bold;
-	transition: color 0.3s ease;
+	text-decoration: none;
+	color: #1b3c1b;
+	font-weight: 600;
+	width: 100%;
+	text-align: left;
+}
+.match-filters {
+	display: flex;
+	gap: 10px;
+	margin: 15px 0;
+	flex-wrap: wrap;
+	justify-content: center;
 }
 
-.playerList a:hover {
-	color: #1d3610; /* Slightly darker green on hover */
+.match-filters select {
+	padding: 8px 12px;
+	border-radius: 8px;
+	border: none;
+	font-size: 0.9rem;
+	background: white;
+	color: #333;
+}
+.match-toggle {
+	display: flex;
+	gap: 10px;
+	flex-wrap: wrap;
+	justify-content: center;
+	margin-bottom: 20px;
+}
+
+.match-toggle button {
+	padding: 8px 14px;
+	border-radius: 20px;
+	border: none;
+	cursor: pointer;
+	background: #444;
+	color: white;
+	font-weight: 600;
+	transition: 0.2s ease;
+}
+
+.match-toggle button:hover {
+	background: #666;
+}
+
+.match-toggle button.active {
+	background: #ffcc00;
+	color: #222;
+}
+.month-group {
+	width: 100%;
+	max-width: 800px;
+	margin-bottom: 25px;
+}
+
+.month-group h3 {
+	text-align: left;
+	margin-bottom: 10px;
+	padding-left: 5px;
+	font-size: 1.1rem;
+	color: #ffcc00;
+}
+.pagination {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 15px;
+	margin: 20px 0;
+}
+
+.pagination button {
+	padding: 8px 14px;
+	border-radius: 8px;
+	border: none;
+	cursor: pointer;
+	background: #ffcc00;
+	color: #222;
+	font-weight: bold;
+	transition: 0.2s ease;
+}
+
+.pagination button:disabled {
+	background: #777;
+	cursor: not-allowed;
+}
+
+.pagination span {
+	font-weight: 600;
+}
+@media (max-width: 768px) {
+	.match-filters,
+	.match-toggle {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.match-toggle button {
+		width: 100%;
+	}
+
+	.pagination {
+		flex-direction: column;
+		gap: 8px;
+	}
 }

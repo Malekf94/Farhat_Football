@@ -35,10 +35,7 @@ function Header() {
 						</Link>
 					</li>
 					<li className="header-li">
-						<Link
-							to="/matches/all/pending"
-							onClick={() => setIsMenuOpen(false)}
-						>
+						<Link to="/matches" onClick={() => setIsMenuOpen(false)}>
 							Matches
 						</Link>
 					</li>

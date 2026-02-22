@@ -12,11 +12,66 @@ apiInstance.setApiKey(
 	process.env.BREVO_API_KEY,
 );
 
-const getMatches = (req, res) => {
-	pool.query(matchQueries.getMatches, (error, results) => {
-		if (error) throw error;
-		res.status(200).json(results.rows);
-	});
+const getMatches = async (req, res) => {
+	try {
+		const { status, year, month, pitch_id, page = 1, limit = 10 } = req.query;
+
+		const pageNum = parseInt(page);
+		const limitNum = parseInt(limit);
+
+		let baseQuery = `FROM matches WHERE 1=1`;
+		const values = [];
+		let index = 1;
+
+		if (status) {
+			baseQuery += ` AND match_status = $${index}`;
+			values.push(status);
+			index++;
+		}
+
+		if (year) {
+			baseQuery += ` AND EXTRACT(YEAR FROM match_date) = $${index}`;
+			values.push(year);
+			index++;
+		}
+
+		if (month) {
+			baseQuery += ` AND EXTRACT(MONTH FROM match_date) = $${index}`;
+			values.push(month);
+			index++;
+		}
+
+		if (pitch_id) {
+			baseQuery += ` AND pitch_id = $${index}`;
+			values.push(pitch_id);
+			index++;
+		}
+
+		// 🔹 Get total count
+		const countQuery = `SELECT COUNT(*) ${baseQuery}`;
+		const countResult = await pool.query(countQuery, values);
+		const total = parseInt(countResult.rows[0].count);
+
+		// 🔹 Get paginated data
+		const offset = (pageNum - 1) * limitNum;
+
+		const dataQuery = `
+      SELECT *
+      ${baseQuery}
+      ORDER BY match_date DESC
+      LIMIT $${index} OFFSET $${index + 1}
+    `;
+
+		const result = await pool.query(dataQuery, [...values, limitNum, offset]);
+
+		res.status(200).json({
+			data: result.rows,
+			total,
+		});
+	} catch (error) {
+		console.error("Error fetching matches:", error);
+		res.status(500).json({ error: "Error fetching matches" });
+	}
 };
 
 const getMatchesByStatus = async (req, res) => {
