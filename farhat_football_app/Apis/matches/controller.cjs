@@ -9,7 +9,7 @@ const SibApiV3Sdk = require("@getbrevo/brevo");
 const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
 apiInstance.setApiKey(
 	SibApiV3Sdk.TransactionalEmailsApiApiKeys.apiKey,
-	process.env.BREVO_API_KEY
+	process.env.BREVO_API_KEY,
 );
 
 const getMatches = (req, res) => {
@@ -18,51 +18,41 @@ const getMatches = (req, res) => {
 		res.status(200).json(results.rows);
 	});
 };
-const getPendingMatches = async (req, res) => {
-	try {
-		const result = await pool.query(matchQueries.getPendingMatches);
-		res.status(200).json(result.rows);
-	} catch (error) {
-		console.error("Error fetching pending matches:", error);
-		res
-			.status(500)
-			.json({ error: "An error occurred while fetching pending matches." });
-	}
-};
 
-const getCompletedMatches = async (req, res) => {
+const getMatchesByStatus = async (req, res) => {
 	try {
-		const result = await pool.query(matchQueries.getCompletedMatches);
-		res.status(200).json(result.rows);
-	} catch (error) {
-		console.error("Error fetching completed matches:", error);
-		res
-			.status(500)
-			.json({ error: "An error occurred while fetching completed matches." });
-	}
-};
+		const { status } = req.params; // pending, completed etc
+		const { year, month } = req.query; // optional filters
 
-const getFriendlyMatches = async (req, res) => {
-	try {
-		const result = await pool.query(matchQueries.getFriendlyMatches);
-		res.status(200).json(result.rows);
-	} catch (error) {
-		console.error("Error fetching friendly matches:", error);
-		res
-			.status(500)
-			.json({ error: "An error occurred while fetching friendly matches." });
-	}
-};
+		let query = `
+      SELECT *
+      FROM matches
+      WHERE match_status = $1
+    `;
 
-const getInProgressMatches = async (req, res) => {
-	try {
-		const result = await pool.query(matchQueries.getInProgressMatches);
+		const values = [status];
+		let index = 2;
+
+		if (year) {
+			query += ` AND EXTRACT(YEAR FROM match_date) = $${index}`;
+			values.push(year);
+			index++;
+		}
+
+		if (month) {
+			query += ` AND EXTRACT(MONTH FROM match_date) = $${index}`;
+			values.push(month);
+			index++;
+		}
+
+		query += ` ORDER BY match_date DESC`;
+
+		const result = await pool.query(query, values);
+
 		res.status(200).json(result.rows);
 	} catch (error) {
-		console.error("Error fetching in-progress matches:", error);
-		res
-			.status(500)
-			.json({ error: "An error occurred while fetching in-progress matches." });
+		console.error("Error fetching matches:", error);
+		res.status(500).json({ error: "Error fetching matches." });
 	}
 };
 
@@ -143,7 +133,7 @@ const updateMatch = async (req, res) => {
 		// Fetch the current match status
 		const currentStatusResult = await pool.query(
 			matchQueries.getCurrentStatus,
-			[match_id]
+			[match_id],
 		);
 		const currentStatus = currentStatusResult.rows[0].match_status;
 
@@ -400,7 +390,7 @@ const notifyAllPlayers = async (req, res) => {
 				emailObj.to = [{ email }];
 
 				return apiInstance.sendTransacEmail(emailObj);
-			})
+			}),
 		);
 
 		return res.json({ message: "Emails sent individually." });
@@ -425,4 +415,5 @@ module.exports = {
 	deleteMatch,
 	notifyPlayers,
 	notifyAllPlayers,
+	getMatchesByStatus,
 };

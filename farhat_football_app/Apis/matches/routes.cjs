@@ -9,10 +9,11 @@ const router = Router();
 router.get("/", controller.getMatches);
 router.post("/", controller.createMatch);
 
-router.get("/pending", controller.getPendingMatches);
-router.get("/completed", controller.getCompletedMatches);
-router.get("/friendly", controller.getFriendlyMatches);
-router.get("/in_progress", controller.getInProgressMatches);
+// router.get("/pending", controller.getPendingMatches);
+// router.get("/completed", controller.getCompletedMatches);
+// router.get("/friendly", controller.getFriendlyMatches);
+// router.get("/in_progress", controller.getInProgressMatches);
+router.get("/all/:status", controller.getMatchesByStatus);
 router.post("/notify-all-players", controller.notifyAllPlayers);
 
 // nested routes FIRST

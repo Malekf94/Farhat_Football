@@ -8,7 +8,8 @@ html {
 	box-sizing: border-box;
 } /* Consistent Background Across All Pages */
 body {
-	background-image: url("./final_cropped_pitch.png");
+	/* background-image: url("./final_cropped_pitch.png"); */
+	background-image: url("./grassbackground.png");
 	background-size: cover;
 	background-position: center; /* background-repeat: no-repeat; */
 	height: 100vh;
@@ -38,7 +39,9 @@ body {
 	margin: 10px 5px;
 	background-color: #333333;
 	color: #ffcc00;
-	transition: background-color 0.3s ease, color 0.3s ease;
+	transition:
+		background-color 0.3s ease,
+		color 0.3s ease;
 }
 th,
 td {
