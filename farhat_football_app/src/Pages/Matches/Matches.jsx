@@ -38,8 +38,8 @@ function Matches() {
 			<div className="match-filters">
 				<select value={year} onChange={(e) => setYear(e.target.value)}>
 					<option value="">All Years</option>
-					<option value="2024">2024</option>
 					<option value="2025">2025</option>
+					<option value="2026">2026</option>
 				</select>
 
 				<select value={month} onChange={(e) => setMonth(e.target.value)}>
