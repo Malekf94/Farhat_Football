@@ -1,38 +1,47 @@
 /* Reset Default Margins and Padding */
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
 body,
 html {
 	margin: 0;
 	padding: 0;
 	width: 100%;
 	height: 100%;
-	box-sizing: border-box;
-} /* Consistent Background Across All Pages */
+}
+
+/* Consistent Background Across All Pages */
 body {
-	/* background-image: url("./final_cropped_pitch.png"); */
 	background-image: url("./grassbackground.png");
 	background-size: cover;
-	background-position: center; /* background-repeat: no-repeat; */
-	height: 100vh;
+	background-position: center;
+	background-attachment: fixed;
+	min-height: 100vh;
 	width: 100vw;
 	font-family: Arial, sans-serif;
 	display: flex;
 	flex-direction: column;
 	color: white;
-	font-family: Arial, sans-serif;
-	text-align: center; /* Center the text */
-	line-height: 1.6; /* Add more spacing between lines */
-} /* Content Wrapper for All Pages */
+	text-align: center;
+	line-height: 1.6;
+}
+
+/* Content Wrapper for All Pages */
 .page-content {
-	min-height: 100%;
+	min-height: 100vh;
 	width: 100%;
 	display: flex;
 	flex-direction: column;
 	align-items: center;
 	justify-content: flex-start;
 	padding: 20px;
-	background: rgba(0, 0, 0, 0.55); /* 👈 overlay */
+	background: rgba(0, 0, 0, 0.55);
 	backdrop-filter: blur(2px);
 }
+
 .page-content h1 {
 	padding: 10px 20px;
 	font-size: 1rem;
@@ -45,57 +54,64 @@ body {
 		background-color 0.3s ease,
 		color 0.3s ease;
 }
+
+/* Table Styles */
 th,
 td {
 	border: 1px solid #ffcc00;
 	text-align: center;
 	padding: 12px;
 }
+
 th {
-	background-color: #333333; /* Darker header */
+	background-color: #333333;
 	font-weight: bold;
 	color: #ffcc00;
 }
+
 tr:nth-child(even) {
-	background-color: rgba(50, 50, 50, 0.8); /* Slight variation */
+	background-color: rgba(50, 50, 50, 0.8);
 }
+
 tr:hover {
-	background-color: rgba(80, 80, 80, 0.9); /* Highlight row on hover */
+	background-color: rgba(80, 80, 80, 0.9);
 }
+
 td {
 	color: #f9f9f9;
 	font-size: 1rem;
 }
 
+/* Mobile */
 @media (max-width: 768px) {
 	body {
 		font-size: 14px;
+		background-attachment: scroll; /* fixed causes issues on iOS */
 	}
 
 	.page-content {
 		padding: 12px;
+		overflow-x: hidden;
 	}
 
 	.page-content h1 {
 		font-size: 1rem;
 		padding: 8px 12px;
-	}
-
-	.playerList {
 		width: 100%;
-		gap: 10px;
 	}
 
-	.playerList li {
-		padding: 14px;
-		font-size: 0.95rem;
-		border-radius: 10px;
+	/* Table scrolling on small screens */
+	table {
+		display: block;
+		overflow-x: auto;
+		-webkit-overflow-scrolling: touch;
+		width: 100%;
 	}
 
-	.playerList a {
-		font-size: 0.95rem;
-	}
-	.playerList li:active {
-		transform: scale(0.98);
+	td,
+	th {
+		padding: 8px;
+		font-size: 0.85rem;
+		white-space: nowrap;
 	}
 }

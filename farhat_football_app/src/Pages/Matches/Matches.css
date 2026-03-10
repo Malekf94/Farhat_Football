@@ -1,12 +1,13 @@
 .playerList {
 	list-style: none;
 	padding: 0;
-	margin: 20px 0;
-	width: 95%;
+	margin: 20px auto;
+	width: 100%;
 	max-width: 800px;
 	display: flex;
 	flex-direction: column;
-	gap: 12px; /* space between cards */
+	gap: 12px;
+	box-sizing: border-box;
 }
 
 .playerList li {
@@ -21,6 +22,8 @@
 	transition:
 		transform 0.15s ease,
 		box-shadow 0.15s ease;
+	box-sizing: border-box;
+	min-width: 0;
 }
 
 .playerList li:hover {
@@ -34,7 +37,9 @@
 	font-weight: 600;
 	width: 100%;
 	text-align: left;
+	word-break: break-word;
 }
+
 .match-filters {
 	display: flex;
 	gap: 10px;
@@ -50,7 +55,9 @@
 	font-size: 0.9rem;
 	background: white;
 	color: #333;
+	box-sizing: border-box;
 }
+
 .match-toggle {
 	display: flex;
 	gap: 10px;
@@ -78,10 +85,12 @@
 	background: #ffcc00;
 	color: #222;
 }
+
 .month-group {
 	width: 100%;
 	max-width: 800px;
 	margin-bottom: 25px;
+	box-sizing: border-box;
 }
 
 .month-group h3 {
@@ -91,6 +100,7 @@
 	font-size: 1.1rem;
 	color: #ffcc00;
 }
+
 .pagination {
 	display: flex;
 	align-items: center;
@@ -118,8 +128,33 @@
 .pagination span {
 	font-weight: 600;
 }
+
 @media (max-width: 768px) {
-	.match-filters,
+	.page-content {
+		padding: 0 12px;
+		box-sizing: border-box;
+		overflow-x: hidden;
+	}
+
+	.playerList {
+		width: 100%;
+		margin: 12px auto;
+	}
+
+	.playerList li {
+		padding: 12px 14px;
+		font-size: 0.95rem;
+	}
+
+	.match-filters {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.match-filters select {
+		width: 100%;
+	}
+
 	.match-toggle {
 		flex-direction: column;
 		align-items: stretch;
@@ -127,10 +162,20 @@
 
 	.match-toggle button {
 		width: 100%;
+		text-align: center;
+	}
+
+	.month-group {
+		width: 100%;
 	}
 
 	.pagination {
 		flex-direction: column;
 		gap: 8px;
+	}
+
+	.pagination button {
+		width: 100%;
+		text-align: center;
 	}
 }
