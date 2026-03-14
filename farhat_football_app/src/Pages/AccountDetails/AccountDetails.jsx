@@ -46,7 +46,7 @@ function AccountDetails() {
 
 		// Fetch player stats
 		axios
-			.get(`/api/v1/players/${playerId}/stats`)
+			.get(`/api/v1/players/${playerId}/monthlystats`)
 			.then((response) => setPlayerStats(response.data))
 			.catch((error) => console.error("Error fetching player stats:", error));
 
@@ -188,7 +188,7 @@ function AccountDetails() {
 							))
 						) : (
 							<tr>
-								<td colSpan="5">No stats available</td>
+								<td colSpan="7">No stats available</td>
 							</tr>
 						)}
 					</tbody>
