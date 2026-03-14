@@ -1,38 +1,81 @@
-/* Balance Section */
+.AccountDetails {
+	gap: 14px;
+}
+
+/* Action Buttons */
+.AccountDetails .action-buttons {
+	display: flex;
+	gap: 12px;
+	flex-wrap: wrap;
+	justify-content: center;
+}
+
+.AccountDetails button,
+.toggle-edit-btn,
+.toggle-attributes-btn {
+	padding: 10px 22px;
+	border-radius: 8px;
+	border: 2px solid #ffcc00;
+	font-weight: 700;
+	font-size: 0.95rem;
+	cursor: pointer;
+	transition:
+		background 0.2s ease,
+		color 0.2s ease;
+	background: #ffcc00;
+	color: #222;
+}
+
+.AccountDetails button:hover,
+.toggle-edit-btn:hover,
+.toggle-attributes-btn:hover {
+	background: #e6b800;
+	border-color: #e6b800;
+}
+
+.toggle-edit-btn,
+.toggle-attributes-btn {
+	background: transparent;
+	color: #ffcc00;
+}
+
+.toggle-edit-btn:hover,
+.toggle-attributes-btn:hover {
+	background: rgba(255, 204, 0, 0.15);
+	border-color: #ffcc00;
+}
+
+/* Balance */
 .balance-section {
-	margin-bottom: 20px;
+	margin: 4px 0 10px;
 }
 
 .balance-section h2 {
 	font-size: 1.8rem;
-	color: #27ae60;
+	color: #ffcc00;
+	margin: 0;
 }
 
-/* Toggle Button for Edit Form */
-.toggle-edit-btn {
-	background-color: #3498db;
-	color: #fff;
-	padding: 10px 15px;
-	border: none;
-	border-radius: 5px;
-	font-size: 1rem;
-	cursor: pointer;
-	margin: 20px 0;
-	transition: background-color 0.3s ease;
-}
-
-.toggle-edit-btn:hover {
-	background-color: #2980b9;
-}
-
-/* Edit Form Section */
+/* Edit Form */
 .edit-form {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	gap: 15px;
-	margin: 20px auto;
+	gap: 14px;
+	margin: 10px auto;
+	width: 100%;
 	max-width: 400px;
+	background: rgba(0, 0, 0, 0.45);
+	border: 1px solid rgba(255, 204, 0, 0.25);
+	border-radius: 12px;
+	padding: 20px;
+	box-sizing: border-box;
+	backdrop-filter: blur(4px);
+}
+
+.edit-form h2 {
+	color: #ffcc00;
+	margin: 0 0 6px;
 }
 
 .edit-form label {
@@ -40,69 +83,75 @@
 	flex-direction: column;
 	text-align: left;
 	width: 100%;
-	font-weight: bold;
+	font-weight: 700;
+	font-size: 0.8rem;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	color: #ffcc00;
+	gap: 5px;
 }
 
 .edit-form input {
-	padding: 8px;
-	border: 1px solid #ccc;
-	border-radius: 5px;
+	padding: 9px 12px;
+	border: 1px solid rgba(255, 204, 0, 0.4);
+	border-radius: 6px;
 	font-size: 1rem;
-	margin-top: 5px;
+	background: rgba(255, 255, 255, 0.1);
+	color: white;
+	width: 100%;
+	box-sizing: border-box;
+}
+
+.edit-form input:focus {
+	outline: none;
+	border-color: #ffcc00;
+	background: rgba(255, 255, 255, 0.15);
 }
 
 .edit-form button {
-	background-color: #e67e22;
-	color: #fff;
-	padding: 10px 15px;
-	border: none;
-	border-radius: 5px;
-	font-size: 1rem;
-	cursor: pointer;
-	transition: background-color 0.3s ease;
+	width: 100%;
 }
 
-.edit-form button:hover {
-	background-color: #d35400;
+/* Section headings */
+.stats-section h2,
+.payments-section h2,
+.attributes-section h2 {
+	color: #ffcc00;
+	font-size: 1.2rem;
+	margin-bottom: 10px;
 }
 
-/* Stats Section and Payments Table */
+/* Stats & Payments tables */
 .stats-section,
-.payments-section {
-	margin: 20px 0;
+.payments-section,
+.attributes-section {
+	width: 100%;
+	max-width: 900px;
+	margin: 6px 0;
 }
 
 .stats-table,
-.payments-table {
+.payments-table,
+.attributes-table {
 	width: 100%;
-	margin-top: 15px;
 	border-collapse: collapse;
 	text-align: center;
 }
 
-/* Responsive Adjustments */
+/* Mobile */
 @media screen and (max-width: 768px) {
-	.edit-form,
-	.stats-table,
-	.payments-table {
+	.balance-section h2 {
+		font-size: 1.4rem;
+	}
+
+	.edit-form {
+		padding: 16px;
+	}
+
+	.AccountDetails button,
+	.toggle-edit-btn,
+	.toggle-attributes-btn {
 		font-size: 0.9rem;
-	}
-
-	.edit-form input {
-		font-size: 0.9rem;
-	}
-
-	.balance-section button,
-	.toggle-edit-btn {
-		font-size: 0.9rem;
-		padding: 8px 10px;
-	}
-
-	h1 {
-		font-size: 1.8rem;
-	}
-
-	h2 {
-		font-size: 1.3rem;
+		padding: 9px 16px;
 	}
 }

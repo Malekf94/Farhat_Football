@@ -18,7 +18,7 @@ function AccountDetails() {
 			if (isAuthenticated && user) {
 				try {
 					const response = await axios.get(
-						`/api/v1/players/check?email=${user.email}`
+						`/api/v1/players/check?email=${user.email}`,
 					);
 					if (response.data.exists) {
 						setPlayerId(response.data.player_id);
@@ -55,13 +55,13 @@ function AccountDetails() {
 			.get(`/api/v1/attributes/${playerId}`)
 			.then((response) => setAttributes(response.data))
 			.catch((error) =>
-				console.error("Error fetching player attributes:", error)
+				console.error("Error fetching player attributes:", error),
 			);
 		axios
 			.get(`/api/v1/players/${playerId}/payments`)
 			.then((response) => setPaymentHistory(response.data))
 			.catch((error) =>
-				console.error("Error fetching payment history:", error)
+				console.error("Error fetching payment history:", error),
 			);
 	}, [playerId]);
 
@@ -120,9 +120,7 @@ function AccountDetails() {
 			<h1>Hello {userDetails.preferred_name}</h1>
 
 			{/* Update Details Form */}
-			<button onClick={handlePayment} className="bg-blue-600 text-white">
-				Update Balance
-			</button>
+			<button onClick={handlePayment}>Update Balance</button>
 
 			<button
 				className="toggle-edit-btn"
