@@ -40,6 +40,7 @@ body {
 	padding: 20px;
 	background: rgba(0, 0, 0, 0.55);
 	backdrop-filter: blur(2px);
+	z-index: 1;
 }
 
 .page-content h1 {
@@ -92,6 +93,7 @@ td {
 	.page-content {
 		padding: 12px;
 		overflow-x: hidden;
+		z-index: 1;
 	}
 
 	.page-content h1 {
