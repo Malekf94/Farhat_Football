@@ -12,6 +12,8 @@ const seasonalleaderRoutes = require("./Apis/leaderboard/seasonal-leaderboard.cj
 const attributesRoutes = require("./Apis/attributes/routes.cjs");
 const paymentRoutes = require("./Apis/payments/routes.cjs");
 const authRoutes = require("./Apis/auth/routes.cjs");
+const { pool } = require("./db"); // 👈 make sure this points to your DB pool
+const checkJwt = require("./Apis/auth/checkJwt.cjs");
 require("dotenv").config();
 
 const app = express();
@@ -27,7 +29,7 @@ app.use((req, res, next) => {
 				? "https://farhat-football.uk.auth0.com"
 				: "http://localhost:3000",
 		],
-		"frame-src": ["'self'", "https://farhat-football.uk.auth0.com"], // Add frame-src
+		"frame-src": ["'self'", "https://farhat-football.uk.auth0.com"],
 	};
 
 	const cspHeader = Object.entries(cspDirectives)
@@ -38,17 +40,17 @@ app.use((req, res, next) => {
 	next();
 });
 
-// Middleware: CORS (use environment variable for origin)
+// Middleware: CORS
 app.use(
 	cors({
 		origin:
 			process.env.NODE_ENV === "production"
-				? "https://farhatfootball.co.uk" // Your domain
+				? "https://farhatfootball.co.uk"
 				: "http://localhost:3000",
-	})
+	}),
 );
 
-// Middleware: Helmet for security headers
+// Middleware: Helmet
 app.use(
 	helmet({
 		contentSecurityPolicy: {
@@ -62,11 +64,60 @@ app.use(
 				frameSrc: ["'self'", "https://farhat-football.uk.auth0.com"],
 			},
 		},
-	})
+	}),
 );
 
 // Middleware: Parse JSON
 app.use(express.json());
+
+// ─── Monzo Webhook ────────────────────────────────────────────────────────────
+app.post("/monzo-webhook", async (req, res) => {
+	const data = req.body;
+	try {
+		if (data.type !== "transaction.created") {
+			return res.sendStatus(200);
+		}
+
+		const tx = data.data;
+
+		if (tx.amount <= 0) {
+			return res.sendStatus(200);
+		}
+
+		const notes = (tx.notes || "").toLowerCase();
+
+		if (!notes.includes("ffc")) {
+			return res.sendStatus(200);
+		}
+
+		const match = notes.match(/ffc(\d+)/);
+		const playerId = match ? parseInt(match[1], 10) : null;
+
+		if (!playerId) {
+			console.log("No valid player ID found in notes:", notes);
+			return res.sendStatus(200);
+		}
+
+		const amount = tx.amount / 100;
+		const transactionId = tx.id;
+		const created = tx.created;
+
+		await pool.query(
+			`INSERT INTO payments 
+				(transaction_id, payment_date, amount, description, user_id, processed)
+			 VALUES ($1, $2, $3, $4, $5, FALSE)
+			 ON CONFLICT (transaction_id) DO NOTHING;`,
+			[transactionId, created, amount, notes, playerId],
+		);
+
+		console.log(`💰 Payment logged: Player ${playerId} - £${amount}`);
+	} catch (err) {
+		console.error("❌ Webhook error:", err);
+	}
+
+	res.sendStatus(200);
+});
+// ─────────────────────────────────────────────────────────────────────────────
 
 // API Routes
 app.use("/api/v1/auth", authRoutes);
@@ -78,7 +129,7 @@ app.use(`/api/v1/matchPlayer`, matchPlayerRoutes);
 app.use("/api/v1/feedback", feedbackRoutes);
 app.use("/api/v1/leaderboard", leaderboardRoutes);
 app.use("/api/v1/seasonal-leaderboard", seasonalleaderRoutes);
-app.use("/api/v1/payments", paymentRoutes);
+app.use("/api/v1/payments", checkJwt, paymentRoutes);
 
 // Serve static files from React frontend
 app.use(express.static(path.join(__dirname, "./dist/client")));
@@ -94,5 +145,4 @@ app.use((err, req, res, next) => {
 	res.status(500).send({ message: "Internal Server Error" });
 });
 
-// Start the server
 app.listen(port, () => console.log(`App listening on port ${port}`));

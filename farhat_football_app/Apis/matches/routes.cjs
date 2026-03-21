@@ -7,23 +7,23 @@ const router = Router();
 // router.use(checkJwt);
 
 router.get("/", controller.getMatches);
-router.post("/", controller.createMatch);
+router.post("/", checkJwt, controller.createMatch);
 
-// router.get("/pending", controller.getPendingMatches);
-// router.get("/completed", controller.getCompletedMatches);
-// router.get("/friendly", controller.getFriendlyMatches);
-// router.get("/in_progress", controller.getInProgressMatches);
 router.get("/all/:status", controller.getMatchesByStatus);
-router.post("/notify-all-players", controller.notifyAllPlayers);
+router.post("/notify-all-players", checkJwt, controller.notifyAllPlayers);
 
 // nested routes FIRST
-router.post("/:match_id/notify-players", controller.notifyPlayers);
+router.post("/:match_id/notify-players", checkJwt, controller.notifyPlayers);
 
 router.get("/:match_id/manOfTheMatch", controller.getManOfTheMatch);
-router.put("/:match_id/manOfTheMatch", controller.updateManOfTheMatch);
+router.put(
+	"/:match_id/manOfTheMatch",
+	checkJwt,
+	controller.updateManOfTheMatch,
+);
 
 // base id routes LAST
 router.get("/:match_id", controller.getMatchById);
-router.put("/:match_id", controller.updateMatch);
-router.delete("/:match_id", controller.deleteMatch);
+router.put("/:match_id", checkJwt, controller.updateMatch);
+router.delete("/:match_id", checkJwt, controller.deleteMatch);
 module.exports = router;

@@ -47,7 +47,7 @@ function IndividualMatch() {
 			if (isAuthenticated && user) {
 				try {
 					const response = await axios.get(
-						`/api/v1/players/check?email=${user.email}`
+						`/api/v1/players/check?email=${user.email}`,
 					);
 
 					if (response.data.exists) {
@@ -73,7 +73,7 @@ function IndividualMatch() {
 			setMatch(matchData);
 
 			const pitchResponse = await axios.get(
-				`/api/v1/pitches/${matchData.pitch_id}`
+				`/api/v1/pitches/${matchData.pitch_id}`,
 			);
 			setPitch(pitchResponse.data[0]);
 
@@ -120,7 +120,7 @@ function IndividualMatch() {
 			.get(`/api/v1/matchPlayer/${match_id}`)
 			.then((response) => {
 				const sortedPlayers = response.data.sort(
-					(a, b) => new Date(a.joined_at) - new Date(b.joined_at)
+					(a, b) => new Date(a.joined_at) - new Date(b.joined_at),
 				);
 				setPlayersInMatch(sortedPlayers);
 				setEditedPlayerStats(
@@ -135,7 +135,7 @@ function IndividualMatch() {
 							team_id: player.team_id,
 						};
 						return acc;
-					}, {})
+					}, {}),
 				);
 			})
 			.catch((error) => {
@@ -211,7 +211,7 @@ function IndividualMatch() {
 					own_goals: parseInt(own_goals, 10),
 					late: late,
 					team_id: team_id ? parseInt(team_id, 10) : null,
-				})
+				}),
 		);
 
 		try {
@@ -226,27 +226,22 @@ function IndividualMatch() {
 	};
 
 	const userInMatch = playersInMatch.some(
-		(player) => player.player_id === playerId
+		(player) => player.player_id === playerId,
 	);
 
 	const handleJoinMatch = async () => {
 		try {
 			// Fetch player stats to get balance and match count
 			const playerStatsResponse = await axios.get(
-				`/api/v1/players/${playerId}/stats`
+				`/api/v1/players/${playerId}/stats`,
 			);
-			const { total_matches, account_balance } = playerStatsResponse.data;
-			// const playerYOBResponse = await axios.get(`/api/v1/players/${playerId}`);
-			// const { year_of_birth } = playerYOBResponse.data[0];
+			const { account_balance } = playerStatsResponse.data;
 
 			// Check conditions
 			if (account_balance < match.price) {
 				alert(
-					`You need a balance of at least £${match.price} to join this match.`
+					`You need a balance of at least £${match.price} to join this match.`,
 				);
-				return;
-			} else if (total_matches >= 10 && account_balance < -12) {
-				alert("You need money in your balance to join");
 				return;
 			}
 
@@ -264,7 +259,7 @@ function IndividualMatch() {
 		} catch (error) {
 			console.error("Error joining match:", error);
 			alert(
-				"Failed to join the match. Please check your balance or try again."
+				"Failed to join the match. Please check your balance or try again.",
 			);
 		}
 	};
@@ -275,7 +270,7 @@ function IndividualMatch() {
 			const matchResponse = await axios.get(`/api/v1/matches/${match_id}`);
 			const matchData = matchResponse.data[0];
 			const matchStartTime = parseISO(
-				`${matchData.match_date.substring(0, 10)}T${matchData.match_time}`
+				`${matchData.match_date.substring(0, 10)}T${matchData.match_time}`,
 			);
 			const currentTime = new Date();
 
@@ -289,10 +284,10 @@ function IndividualMatch() {
 			if (timeDifference < 5) {
 				// Notify the user and deduct the match price
 				alert(
-					`You are leaving less than 5 hours before the match starts. The match price of £${matchData.price} will be deducted from your balance.`
+					`You are leaving less than 5 hours before the match starts. The match price of £${matchData.price} will be deducted from your balance.`,
 				);
 				const confirmDelete = window.confirm(
-					"Are you sure you want to leave this match?"
+					"Are you sure you want to leave this match?",
 				);
 
 				if (!confirmDelete) {
@@ -338,12 +333,12 @@ function IndividualMatch() {
 			.then((response) => {
 				setManOfTheMatch(response.data.player_id || null);
 				const matchPlayer = playersInMatch.find(
-					(player) => player.player_id === response.data.player_id
+					(player) => player.player_id === response.data.player_id,
 				);
 				setManOfTheMatchName(matchPlayer?.preferred_name || null);
 			})
 			.catch((error) =>
-				console.error("Error fetching man of the match:", error)
+				console.error("Error fetching man of the match:", error),
 			);
 	}, [team1, team2, match_id, playersInMatch]);
 
@@ -357,7 +352,7 @@ function IndividualMatch() {
 				player_id: playerId,
 			});
 			const matchPlayer = playersInMatch.find(
-				(player) => player.player_id === playerId
+				(player) => player.player_id === playerId,
 			);
 			setManOfTheMatch(playerId);
 			setManOfTheMatchName(matchPlayer?.preferred_name || null);
@@ -371,7 +366,7 @@ function IndividualMatch() {
 	const handleBalanceTeams = async () => {
 		try {
 			const response = await axios.get(
-				`/api/v1/matchPlayer/attributes/${match_id}`
+				`/api/v1/matchPlayer/attributes/${match_id}`,
 			);
 			const playersAttributes = response.data;
 
@@ -397,7 +392,7 @@ function IndividualMatch() {
 
 	const handleEmailPlayers = async () => {
 		const confirmSend = window.confirm(
-			"Are you sure you want to email all players for this match?"
+			"Are you sure you want to email all players for this match?",
 		);
 		if (!confirmSend) return;
 
@@ -413,7 +408,7 @@ function IndividualMatch() {
 
 	const handleEmailAllPlayers = async () => {
 		const confirmSend = window.confirm(
-			"Are you sure you want to email all players for this match?"
+			"Are you sure you want to email all players for this match?",
 		);
 		if (!confirmSend) return;
 
@@ -437,8 +432,8 @@ function IndividualMatch() {
 								match_id: parseInt(match_id, 10),
 								player_id: player.player_id,
 							},
-						})
-					)
+						}),
+					),
 				);
 				alert("All players removed successfully.");
 			} catch (error) {
@@ -448,7 +443,7 @@ function IndividualMatch() {
 		};
 		if (isAdmin && playerId == 1) {
 			const confirmDelete = window.confirm(
-				"Are you sure you want to delete this match? This action cannot be undone."
+				"Are you sure you want to delete this match? This action cannot be undone.",
 			);
 
 			if (!confirmDelete) {
@@ -950,7 +945,7 @@ PlayerTable.propTypes = {
 			own_goals: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 			late: PropTypes.bool,
 			team_id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-		})
+		}),
 	),
 	isAdmin: PropTypes.bool,
 	isEditingStats: PropTypes.bool,
@@ -964,7 +959,7 @@ PlayerTable.propTypes = {
 			own_goals: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 			late: PropTypes.bool,
 			team_id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-		})
+		}),
 	),
 	setEditedPlayerStats: PropTypes.func.isRequired,
 	handleSavePlayerStats: PropTypes.func.isRequired,
