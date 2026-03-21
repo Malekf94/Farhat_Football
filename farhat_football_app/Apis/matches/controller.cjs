@@ -113,6 +113,11 @@ const getMatchesByStatus = async (req, res) => {
 
 const getMatchById = (req, res) => {
 	const match_id = parseInt(req.params.match_id);
+
+	if (isNaN(match_id)) {
+		return res.status(400).json({ error: "Invalid match ID" });
+	}
+
 	pool.query(matchQueries.getMatchById, [match_id], (error, results) => {
 		if (error) throw error;
 		res.status(200).json(results.rows);
