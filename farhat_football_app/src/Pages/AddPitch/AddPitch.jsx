@@ -1,6 +1,6 @@
 import { useState } from "react";
-import axios from "axios";
 import "./AddPitch.css";
+import { privateApi } from "../../api";
 
 function AddPitch() {
 	const [formData, setFormData] = useState({
@@ -22,7 +22,7 @@ function AddPitch() {
 		setMessage("");
 
 		try {
-			await axios.post("/api/v1/pitches", formData);
+			await privateApi.post("/api/v1/pitches", formData);
 			setMessage("Pitch added successfully!");
 			setFormData({
 				pitch_name: "",

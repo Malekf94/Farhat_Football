@@ -22,8 +22,17 @@ import UpdateAttributes from "./Pages/UpdateAttributes/UpdateAttributes.jsx";
 import AddPitch from "./Pages/AddPitch/AddPitch.jsx";
 import StatLeaderBoard from "./Pages/StatLeaderBoard/StatLeaderBoard.jsx";
 import FAQ from "./Pages/FAQ/FAQ.jsx";
+import { useAuth0 } from "@auth0/auth0-react";
+import { useEffect } from "react";
+import { setupInterceptors } from "./api.jsx";
 
 function App() {
+	const { getAccessTokenSilently } = useAuth0();
+
+	useEffect(() => {
+		// This runs once on mount and sets up the token logic for privateApi
+		setupInterceptors(getAccessTokenSilently);
+	}, [getAccessTokenSilently]);
 	return (
 		<div className="App">
 			<Header />

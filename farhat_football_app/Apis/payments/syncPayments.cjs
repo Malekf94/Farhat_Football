@@ -1,4 +1,5 @@
 const pool = require("../../db.cjs");
+const { privateApi } = require("../../src/api");
 require("dotenv").config();
 
 const updateBalancesFromPayments = async () => {

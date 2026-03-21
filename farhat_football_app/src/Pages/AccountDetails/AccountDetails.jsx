@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+// import axios from "axios";
 import { useAuth0 } from "@auth0/auth0-react";
 import "./AccountDetails.css";
+import { publicApi } from "../../api";
 
 function AccountDetails() {
 	const { user, isAuthenticated, isLoading } = useAuth0(); // Auth0 hook to access logged-in user details
@@ -17,7 +18,7 @@ function AccountDetails() {
 		const fetchPlayerId = async () => {
 			if (isAuthenticated && user) {
 				try {
-					const response = await axios.get(
+					const response = await publicApi.get(
 						`/api/v1/players/check?email=${user.email}`,
 					);
 					if (response.data.exists) {
@@ -39,25 +40,25 @@ function AccountDetails() {
 		if (!playerId) return;
 
 		// Fetch player details
-		axios
+		publicApi
 			.get(`/api/v1/players/owndetails/${playerId}`)
 			.then((response) => setUserDetails(response.data[0]))
 			.catch((error) => console.error("Error fetching user details:", error));
 
 		// Fetch player stats
-		axios
+		publicApi
 			.get(`/api/v1/players/${playerId}/monthlystats`)
 			.then((response) => setPlayerStats(response.data))
 			.catch((error) => console.error("Error fetching player stats:", error));
 
 		// Fetch player attributes
-		axios
+		publicApi
 			.get(`/api/v1/attributes/${playerId}`)
 			.then((response) => setAttributes(response.data))
 			.catch((error) =>
 				console.error("Error fetching player attributes:", error),
 			);
-		axios
+		publicApi
 			.get(`/api/v1/players/${playerId}/payments`)
 			.then((response) => setPaymentHistory(response.data))
 			.catch((error) =>
@@ -75,7 +76,7 @@ function AccountDetails() {
 	};
 
 	const handleSave = () => {
-		axios
+		publicApi
 			.put(`/api/v1/players/${playerId}`, userDetails)
 			.then(() => {
 				alert("Account details updated successfully.");
@@ -92,13 +93,13 @@ function AccountDetails() {
 			alert("Player ID is missing.");
 			return;
 		}
-		// Trigger Axios requests after 90 seconds
+		// Trigger publicApi requests after 90 seconds
 		setTimeout(() => {
-			axios.get("/api/v1/payments/check");
+			publicApi.get("/api/v1/payments/check");
 
 			// Then wait another 5 seconds before the second request
 			setTimeout(() => {
-				axios.get("/api/v1/payments/sync");
+				publicApi.get("/api/v1/payments/sync");
 			}, 5000); // 5-second delay
 		}, 10000); // 10-second delay
 

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "./CreateMatch.css";
+import { privateApi } from "../../api";
 
 function CreateMatch() {
 	const navigate = useNavigate();
@@ -17,7 +18,7 @@ function CreateMatch() {
 
 	useEffect(() => {
 		// Fetch the pitch data
-		axios
+		privateApi
 			.get("/api/v1/pitches/")
 			.then((response) => {
 				setPitches(response.data);
@@ -35,7 +36,7 @@ function CreateMatch() {
 	const handleSubmit = (e) => {
 		e.preventDefault();
 		// POST request to create match
-		axios
+		privateApi
 			.post("/api/v1/matches", formData)
 			.then((response) => {
 				alert("Match created successfully!");

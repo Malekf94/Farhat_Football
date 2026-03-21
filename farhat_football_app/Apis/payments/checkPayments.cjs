@@ -1,5 +1,6 @@
-const axios = require("axios");
+// const axios = require("axios");
 const pool = require("../../db.cjs");
+const { privateApi } = require("../../src/api");
 require("dotenv").config({ path: "../../.env" });
 
 // Monzo API configuration
@@ -19,11 +20,11 @@ const checkMonzoPayments = async () => {
 		const since = get24HoursAgoISO();
 
 		// Fetch transactions from Monzo API
-		const response = await axios.get(
+		const response = await privateApi.get(
 			`https://api.monzo.com/transactions?account_id=${ACCOUNT_ID}&since=${since}`,
 			{
 				headers: { Authorization: `Bearer ${MONZO_ACCESS_TOKEN}` },
-			}
+			},
 		);
 
 		const transactions = response.data.transactions;
@@ -43,13 +44,13 @@ const checkMonzoPayments = async () => {
 					`INSERT INTO payments (transaction_id, payment_date, amount, description, user_id, processed)
                      VALUES ($1, $2, $3, $4, $5, FALSE)
                      ON CONFLICT (transaction_id) DO NOTHING;`,
-					[id, created, Math.abs(amount) / 100, lowerNotes, playerId]
+					[id, created, Math.abs(amount) / 100, lowerNotes, playerId],
 				);
 
 				console.log(
 					`Payment processed: Transaction ID: ${id}, Player ID: ${playerId}, Amount: $${
 						Math.abs(amount) / 100
-					}`
+					}`,
 				);
 			}
 		}
@@ -61,7 +62,7 @@ const checkMonzoPayments = async () => {
 		if (error.response && error.response.status === 401) {
 			// Handle token expiry
 			console.log(
-				"Access token expired. Please update the MONZO_ACCESS_TOKEN in the .env file."
+				"Access token expired. Please update the MONZO_ACCESS_TOKEN in the .env file.",
 			);
 		}
 	} finally {

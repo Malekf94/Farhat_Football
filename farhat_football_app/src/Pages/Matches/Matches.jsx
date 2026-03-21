@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import "./Matches.css";
-import axios from "axios";
+// import axios from "axios";
 import { Link } from "react-router-dom";
+import { publicApi } from "../../api";
 
 function Matches() {
 	const [matches, setMatches] = useState([]);
@@ -17,7 +18,7 @@ function Matches() {
 	useEffect(() => {
 		setLoading(true);
 
-		axios
+		publicApi
 			.get("/api/v1/matches", {
 				params: {
 					status: view,

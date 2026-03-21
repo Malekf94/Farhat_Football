@@ -1,13 +1,13 @@
 import { useEffect, useState, useCallback } from "react";
 import PropTypes from "prop-types"; // Added prop-types
 import "./IndividualMatch.css";
-import axios from "axios";
 import { useAuth0 } from "@auth0/auth0-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { parseISO, differenceInHours } from "date-fns";
 // import { response } from "express";
 // import { randomiser } from "../../../../randomisermk2";
 import { randomiserMk3 } from "../../../../randomisermk3";
+import { privateApi, publicApi } from "../../api";
 
 function IndividualMatch() {
 	const { user, isAuthenticated } = useAuth0(); // Use Auth0 to get user info
@@ -46,7 +46,7 @@ function IndividualMatch() {
 		const fetchPlayerId = async () => {
 			if (isAuthenticated && user) {
 				try {
-					const response = await axios.get(
+					const response = await publicApi.get(
 						`/api/v1/players/check?email=${user.email}`,
 					);
 
@@ -68,11 +68,11 @@ function IndividualMatch() {
 	const fetchMatchDetails = useCallback(async () => {
 		if (!playerId) return;
 		try {
-			const matchResponse = await axios.get(`/api/v1/matches/${match_id}`);
+			const matchResponse = await publicApi.get(`/api/v1/matches/${match_id}`);
 			const matchData = matchResponse.data[0];
 			setMatch(matchData);
 
-			const pitchResponse = await axios.get(
+			const pitchResponse = await publicApi.get(
 				`/api/v1/pitches/${matchData.pitch_id}`,
 			);
 			setPitch(pitchResponse.data[0]);
@@ -92,7 +92,7 @@ function IndividualMatch() {
 	useEffect(() => {
 		// Fetch match details
 		if (!playerId) return;
-		axios
+		publicApi
 			.get(`/api/v1/matches/${match_id}`)
 			.then((response) => {
 				const matchData = response.data[0];
@@ -104,7 +104,7 @@ function IndividualMatch() {
 					price: matchData.price,
 					youtube_links: matchData.youtube_links || "",
 				});
-				return axios.get(`/api/v1/pitches/${matchData.pitch_id}`);
+				return publicApi.get(`/api/v1/pitches/${matchData.pitch_id}`);
 			})
 			.then((response) => {
 				setPitch(response.data[0]);
@@ -116,7 +116,7 @@ function IndividualMatch() {
 
 	const fetchPlayersInMatch = useCallback(() => {
 		if (!playerId) return;
-		axios
+		publicApi
 			.get(`/api/v1/matchPlayer/${match_id}`)
 			.then((response) => {
 				const sortedPlayers = response.data.sort(
@@ -174,7 +174,7 @@ function IndividualMatch() {
 				winningTeam = 2;
 			} // else it's a draw, winningTeam remains null
 
-			const response = await axios.put(`/api/v1/matches/${match_id}`, {
+			const response = await privateApi.put(`/api/v1/matches/${match_id}`, {
 				match_status,
 				match_time,
 				number_of_players: parseInt(number_of_players, 10) || null,
@@ -203,7 +203,7 @@ function IndividualMatch() {
 				player_id,
 				{ goals, assists, defcons, chancescreated, own_goals, late, team_id },
 			]) =>
-				axios.put(`/api/v1/matchPlayer/${match_id}/${player_id}`, {
+				privateApi.put(`/api/v1/matchPlayer/${match_id}/${player_id}`, {
 					goals: parseInt(goals, 10),
 					assists: parseInt(assists, 10),
 					defcons: parseInt(defcons, 10),
@@ -232,7 +232,7 @@ function IndividualMatch() {
 	const handleJoinMatch = async () => {
 		try {
 			// Fetch player stats to get balance and match count
-			const playerStatsResponse = await axios.get(
+			const playerStatsResponse = await publicApi.get(
 				`/api/v1/players/${playerId}/stats`,
 			);
 			const { account_balance } = playerStatsResponse.data;
@@ -246,7 +246,7 @@ function IndividualMatch() {
 			}
 
 			// Post join request with timestamp
-			await axios.post("/api/v1/matchPlayer", {
+			await publicApi.post("/api/v1/matchPlayer", {
 				match_id: parseInt(match_id, 10),
 				player_id: playerId,
 				price: match.price,
@@ -267,7 +267,7 @@ function IndividualMatch() {
 	const handleLeaveMatch = async () => {
 		try {
 			// Fetch match details to get match start time
-			const matchResponse = await axios.get(`/api/v1/matches/${match_id}`);
+			const matchResponse = await publicApi.get(`/api/v1/matches/${match_id}`);
 			const matchData = matchResponse.data[0];
 			const matchStartTime = parseISO(
 				`${matchData.match_date.substring(0, 10)}T${matchData.match_time}`,
@@ -295,14 +295,14 @@ function IndividualMatch() {
 				}
 
 				// Deduct the match price from the player's balance
-				await axios.put(`/api/v1/players/balance/${playerId}`, {
+				await publicApi.put(`/api/v1/players/balance/${playerId}`, {
 					amount: -matchData.price,
 					player_id: playerId,
 				});
 			}
 
 			// Proceed with leaving the match
-			await axios.delete("/api/v1/matchPlayer", {
+			await publicApi.delete("/api/v1/matchPlayer", {
 				data: {
 					match_id: parseInt(match_id, 10),
 					player_id: playerId,
@@ -328,7 +328,7 @@ function IndividualMatch() {
 		setTeam2Goals(calculateTeamScore(team2, team1));
 
 		// Fetch Man of the Match if already selected
-		axios
+		publicApi
 			.get(`/api/v1/matches/${match_id}/manOfTheMatch`)
 			.then((response) => {
 				setManOfTheMatch(response.data.player_id || null);
@@ -348,7 +348,7 @@ function IndividualMatch() {
 
 	const handleManOfTheMatchChange = async (playerId) => {
 		try {
-			await axios.put(`/api/v1/matches/${match_id}/manOfTheMatch`, {
+			await privateApi.put(`/api/v1/matches/${match_id}/manOfTheMatch`, {
 				player_id: playerId,
 			});
 			const matchPlayer = playersInMatch.find(
@@ -365,7 +365,7 @@ function IndividualMatch() {
 
 	const handleBalanceTeams = async () => {
 		try {
-			const response = await axios.get(
+			const response = await publicApi.get(
 				`/api/v1/matchPlayer/attributes/${match_id}`,
 			);
 			const playersAttributes = response.data;
@@ -378,7 +378,7 @@ function IndividualMatch() {
 			const team1Ids = team1.map((player) => player.player_id);
 			const team2Ids = team2.map((player) => player.player_id);
 
-			await axios.put(`/api/v1/matchPlayer/update-teams/${match_id}`, {
+			await privateApi.put(`/api/v1/matchPlayer/update-teams/${match_id}`, {
 				team1: team1Ids,
 				team2: team2Ids,
 			});
@@ -398,7 +398,7 @@ function IndividualMatch() {
 
 		try {
 			// We only send the match_id; the backend will look up the emails for security
-			await axios.post(`/api/v1/matches/${match_id}/notify-players`);
+			await publicApi.post(`/api/v1/matches/${match_id}/notify-players`);
 			alert("Emails sent successfully!");
 		} catch (error) {
 			console.error("Error sending emails:", error);
@@ -414,7 +414,7 @@ function IndividualMatch() {
 
 		try {
 			// We only send the match_id; the backend will look up the emails for security
-			await axios.post(`/api/v1/matches/notify-all-players`);
+			await publicApi.post(`/api/v1/matches/notify-all-players`);
 			alert("Emails sent successfully!");
 		} catch (error) {
 			console.error("Error sending emails:", error);
@@ -427,7 +427,7 @@ function IndividualMatch() {
 			try {
 				await Promise.all(
 					playersInMatch.map((player) =>
-						axios.delete("/api/v1/matchPlayer", {
+						privateApi.delete("/api/v1/matchPlayer", {
 							data: {
 								match_id: parseInt(match_id, 10),
 								player_id: player.player_id,
@@ -454,7 +454,7 @@ function IndividualMatch() {
 				await handleRemovePlayers();
 
 				// Then, delete the match
-				await axios.delete(`/api/v1/matches/${match_id}`, {
+				await privateApi.delete(`/api/v1/matches/${match_id}`, {
 					data: {
 						player_id: playerId,
 					},
