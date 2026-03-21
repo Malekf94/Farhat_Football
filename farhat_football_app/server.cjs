@@ -12,7 +12,7 @@ const seasonalleaderRoutes = require("./Apis/leaderboard/seasonal-leaderboard.cj
 const attributesRoutes = require("./Apis/attributes/routes.cjs");
 const paymentRoutes = require("./Apis/payments/routes.cjs");
 const authRoutes = require("./Apis/auth/routes.cjs");
-const { pool } = require("./db"); // 👈 make sure this points to your DB pool
+const { pool } = require("./db.cjs"); // 👈 make sure this points to your DB pool
 const checkJwt = require("./Apis/auth/checkJwt.cjs");
 require("dotenv").config();
 
