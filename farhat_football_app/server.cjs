@@ -58,7 +58,8 @@ app.use(
 				defaultSrc: ["'self'"],
 				connectSrc: [
 					"'self'",
-					"http://localhost:3000",
+					process.env.FRONTEND_URL,
+					process.env.BACKEND_URL,
 					"https://farhat-football.uk.auth0.com",
 				],
 				frameSrc: ["'self'", "https://farhat-football.uk.auth0.com"],
