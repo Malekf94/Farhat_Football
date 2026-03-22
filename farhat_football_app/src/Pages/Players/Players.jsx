@@ -1,7 +1,8 @@
 import "./Players.css";
-import axios from "axios";
+// import axios from "axios";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { publicApi } from "../../api";
 
 function Players() {
 	const [players, setPlayers] = useState([]); // Original list of players
@@ -10,7 +11,7 @@ function Players() {
 
 	// Fetch players
 	useEffect(() => {
-		axios
+		publicApi
 			.get("/api/v1/players/")
 			.then((response) => {
 				setPlayers(response.data);
@@ -30,7 +31,7 @@ function Players() {
 		const filtered = players.filter(
 			(player) =>
 				player.first_name.toLowerCase().includes(query) ||
-				player.last_name.toLowerCase().includes(query)
+				player.last_name.toLowerCase().includes(query),
 		);
 		setFilteredPlayers(filtered);
 	};

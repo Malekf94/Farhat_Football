@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+// import axios from "axios";
 import "./CreateMatch.css";
 import { privateApi } from "../../api";
 
@@ -38,7 +38,7 @@ function CreateMatch() {
 		// POST request to create match
 		privateApi
 			.post("/api/v1/matches", formData)
-			.then((response) => {
+			.then(() => {
 				alert("Match created successfully!");
 				navigate("/matches"); // Redirect to pending matches
 			})

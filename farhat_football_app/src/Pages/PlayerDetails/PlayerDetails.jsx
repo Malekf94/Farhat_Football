@@ -1,7 +1,9 @@
-import axios from "axios";
+// import axios from "axios";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import "./PlayerDetails.css";
+import { privateApi } from "../../api";
+privateApi;
 
 function PlayerDetails() {
 	const [player, setPlayer] = useState(null);
@@ -10,7 +12,7 @@ function PlayerDetails() {
 
 	useEffect(() => {
 		// Fetch player details
-		axios
+		privateApi
 			.get(`/api/v1/players/${player_id}`)
 			.then((response) => {
 				setPlayer(response.data[0]); // Assuming API returns an array
@@ -20,7 +22,7 @@ function PlayerDetails() {
 			});
 
 		// Fetch player stats
-		axios
+		privateApi
 			.get(`/api/v1/players/${player_id}/monthlystats`)
 			.then((response) => {
 				setStats(response.data);

@@ -7,7 +7,7 @@ import { parseISO, differenceInHours } from "date-fns";
 // import { response } from "express";
 // import { randomiser } from "../../../../randomisermk2";
 import { randomiserMk3 } from "../../../../randomisermk3";
-import { privateApi, publicApi } from "../../api";
+import { privateApi } from "../../api";
 
 function IndividualMatch() {
 	const { user, isAuthenticated } = useAuth0(); // Use Auth0 to get user info
@@ -46,7 +46,7 @@ function IndividualMatch() {
 		const fetchPlayerId = async () => {
 			if (isAuthenticated && user) {
 				try {
-					const response = await publicApi.get(
+					const response = await privateApi.get(
 						`/api/v1/players/check?email=${user.email}`,
 					);
 
@@ -68,11 +68,11 @@ function IndividualMatch() {
 	const fetchMatchDetails = useCallback(async () => {
 		if (!playerId) return;
 		try {
-			const matchResponse = await publicApi.get(`/api/v1/matches/${match_id}`);
+			const matchResponse = await privateApi.get(`/api/v1/matches/${match_id}`);
 			const matchData = matchResponse.data[0];
 			setMatch(matchData);
 
-			const pitchResponse = await publicApi.get(
+			const pitchResponse = await privateApi.get(
 				`/api/v1/pitches/${matchData.pitch_id}`,
 			);
 			setPitch(pitchResponse.data[0]);
@@ -92,7 +92,7 @@ function IndividualMatch() {
 	useEffect(() => {
 		// Fetch match details
 		if (!playerId) return;
-		publicApi
+		privateApi
 			.get(`/api/v1/matches/${match_id}`)
 			.then((response) => {
 				const matchData = response.data[0];
@@ -104,7 +104,7 @@ function IndividualMatch() {
 					price: matchData.price,
 					youtube_links: matchData.youtube_links || "",
 				});
-				return publicApi.get(`/api/v1/pitches/${matchData.pitch_id}`);
+				return privateApi.get(`/api/v1/pitches/${matchData.pitch_id}`);
 			})
 			.then((response) => {
 				setPitch(response.data[0]);
@@ -116,7 +116,7 @@ function IndividualMatch() {
 
 	const fetchPlayersInMatch = useCallback(() => {
 		if (!playerId) return;
-		publicApi
+		privateApi
 			.get(`/api/v1/matchPlayer/${match_id}`)
 			.then((response) => {
 				const sortedPlayers = response.data.sort(
@@ -232,7 +232,7 @@ function IndividualMatch() {
 	const handleJoinMatch = async () => {
 		try {
 			// Fetch player stats to get balance and match count
-			const playerStatsResponse = await publicApi.get(
+			const playerStatsResponse = await privateApi.get(
 				`/api/v1/players/${playerId}/stats`,
 			);
 			const { account_balance } = playerStatsResponse.data;
@@ -246,7 +246,7 @@ function IndividualMatch() {
 			}
 
 			// Post join request with timestamp
-			await publicApi.post("/api/v1/matchPlayer", {
+			await privateApi.post("/api/v1/matchPlayer", {
 				match_id: parseInt(match_id, 10),
 				player_id: playerId,
 				price: match.price,
@@ -267,7 +267,7 @@ function IndividualMatch() {
 	const handleLeaveMatch = async () => {
 		try {
 			// Fetch match details to get match start time
-			const matchResponse = await publicApi.get(`/api/v1/matches/${match_id}`);
+			const matchResponse = await privateApi.get(`/api/v1/matches/${match_id}`);
 			const matchData = matchResponse.data[0];
 			const matchStartTime = parseISO(
 				`${matchData.match_date.substring(0, 10)}T${matchData.match_time}`,
@@ -295,14 +295,24 @@ function IndividualMatch() {
 				}
 
 				// Deduct the match price from the player's balance
-				await publicApi.put(`/api/v1/players/balance/${playerId}`, {
+				await privateApi.put(`/api/v1/players/balance/${playerId}`, {
 					amount: -matchData.price,
 					player_id: playerId,
 				});
+			} else if (timeDifference > 5) {
+				// Notify the user and deduct the match price
+				alert(`You are attempting to leave this match.`);
+				const confirmDelete = window.confirm(
+					"Are you sure you want to leave this match?",
+				);
+
+				if (!confirmDelete) {
+					return; // Exit if the user cancels
+				}
 			}
 
 			// Proceed with leaving the match
-			await publicApi.delete("/api/v1/matchPlayer", {
+			await privateApi.delete("/api/v1/matchPlayer", {
 				data: {
 					match_id: parseInt(match_id, 10),
 					player_id: playerId,
@@ -328,18 +338,18 @@ function IndividualMatch() {
 		setTeam2Goals(calculateTeamScore(team2, team1));
 
 		// Fetch Man of the Match if already selected
-		publicApi
-			.get(`/api/v1/matches/${match_id}/manOfTheMatch`)
-			.then((response) => {
-				setManOfTheMatch(response.data.player_id || null);
-				const matchPlayer = playersInMatch.find(
-					(player) => player.player_id === response.data.player_id,
-				);
-				setManOfTheMatchName(matchPlayer?.preferred_name || null);
-			})
-			.catch((error) =>
-				console.error("Error fetching man of the match:", error),
-			);
+		// privateApi
+		// 	.get(`/api/v1/matches/${match_id}/manOfTheMatch`)
+		// 	.then((response) => {
+		// 		setManOfTheMatch(response.data.player_id || null);
+		// 		const matchPlayer = playersInMatch.find(
+		// 			(player) => player.player_id === response.data.player_id,
+		// 		);
+		// 		setManOfTheMatchName(matchPlayer?.preferred_name || null);
+		// 	})
+		// 	.catch((error) =>
+		// 		console.error("Error fetching man of the match:", error),
+		// 	);
 	}, [team1, team2, match_id, playersInMatch]);
 
 	if (!match || !pitch || playerId === null) {
@@ -365,7 +375,7 @@ function IndividualMatch() {
 
 	const handleBalanceTeams = async () => {
 		try {
-			const response = await publicApi.get(
+			const response = await privateApi.get(
 				`/api/v1/matchPlayer/attributes/${match_id}`,
 			);
 			const playersAttributes = response.data;
@@ -398,7 +408,7 @@ function IndividualMatch() {
 
 		try {
 			// We only send the match_id; the backend will look up the emails for security
-			await publicApi.post(`/api/v1/matches/${match_id}/notify-players`);
+			await privateApi.post(`/api/v1/matches/${match_id}/notify-players`);
 			alert("Emails sent successfully!");
 		} catch (error) {
 			console.error("Error sending emails:", error);
@@ -414,7 +424,7 @@ function IndividualMatch() {
 
 		try {
 			// We only send the match_id; the backend will look up the emails for security
-			await publicApi.post(`/api/v1/matches/notify-all-players`);
+			await privateApi.post(`/api/v1/matches/notify-all-players`);
 			alert("Emails sent successfully!");
 		} catch (error) {
 			console.error("Error sending emails:", error);
