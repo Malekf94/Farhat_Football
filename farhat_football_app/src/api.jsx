@@ -3,12 +3,12 @@ import axios from "axios";
 
 // 1. The Public Instance (No token needed)
 export const publicApi = axios.create({
-	baseURL: import.meta.env.VITE_AUTH0_AUDIENCE || "http://localhost:5000",
+	baseURL: import.meta.env.VITE_AUTH0_DOMAIN || "http://localhost:5000",
 });
 
 // 2. The Private Instance (Token will be attached here)
 export const privateApi = axios.create({
-	baseURL: import.meta.env.VITE_AUTH0_AUDIENCE || "http://localhost:5000",
+	baseURL: import.meta.env.VITE_AUTH0_DOMAIN || "http://localhost:5000",
 });
 
 // This function "primes" the private instance with the Auth0 token logic
