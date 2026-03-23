@@ -2,7 +2,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth0 } from "@auth0/auth0-react";
 import { useEffect, useState } from "react";
 import "./Home.css";
-import axios from "axios";
+// import axios from "axios";
+import { privateApi } from "../../api";
 
 function Home() {
 	const navigate = useNavigate();
@@ -14,7 +15,7 @@ function Home() {
 			const checkAdmin = async () => {
 				try {
 					const response = await fetch(
-						`/api/v1/players/check?email=${user.email}`
+						`/api/v1/players/check?email=${user.email}`,
 					);
 					const data = await response.json();
 					setIsAdmin(data.is_admin);
@@ -98,7 +99,9 @@ function Home() {
 							className="btn"
 							onClick={async () => {
 								try {
-									const response = await axios.get("/api/v1/payments/check");
+									const response = await privateApi.get(
+										"/api/v1/payments/check",
+									);
 									alert(response.data.message);
 								} catch (error) {
 									alert("Failed to check payments. Please try again.");
@@ -112,7 +115,9 @@ function Home() {
 							className="btn"
 							onClick={async () => {
 								try {
-									const response = await axios.get("/api/v1/payments/sync");
+									const response = await privateApi.get(
+										"/api/v1/payments/sync",
+									);
 									alert(response.data.message);
 								} catch (error) {
 									alert("Failed to sync balances. Please try again.");

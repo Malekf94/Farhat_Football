@@ -9,7 +9,7 @@ const checkJwt = require("../auth/checkJwt.cjs");
 
 // router.use(checkJwt);
 
-router.get("/check", controller.runCheckPaymentsScript);
-router.get("/sync", controller.runSyncPaymentsScript);
+router.get("/check", checkJwt, controller.runCheckPaymentsScript);
+router.get("/sync", checkJwt, controller.runSyncPaymentsScript);
 
 module.exports = router;
