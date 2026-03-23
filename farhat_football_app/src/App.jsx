@@ -25,6 +25,7 @@ import FAQ from "./Pages/FAQ/FAQ.jsx";
 import { useAuth0 } from "@auth0/auth0-react";
 import { useEffect } from "react";
 import { setupInterceptors } from "./api.jsx";
+import PaymentsDashboard from "./Pages/PaymentsDashboard/PaymentsDashboard.jsx";
 
 function App() {
 	const { getAccessTokenSilently } = useAuth0();
@@ -92,6 +93,14 @@ function App() {
 					element={
 						<ProtectedRoute>
 							<Feedback />
+						</ProtectedRoute>
+					}
+				/>
+				<Route
+					path="/payment-dashboard"
+					element={
+						<ProtectedRoute>
+							<PaymentsDashboard />
 						</ProtectedRoute>
 					}
 				/>

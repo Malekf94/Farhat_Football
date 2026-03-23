@@ -99,6 +99,26 @@ function Home() {
 							className="btn"
 							onClick={async () => {
 								try {
+									const response = await privateApi.get("/api/v1/payments/run");
+									alert(response.data.message);
+								} catch (error) {
+									alert("Failed to check payments. Please try again.");
+									console.error("Error checking payments:", error);
+								}
+							}}
+						>
+							Run Payments
+						</button>
+						<button
+							className="btn"
+							onClick={() => navigate("/payment-dashboard")}
+						>
+							Payment Dashboard
+						</button>
+						{/* <button
+							className="btn"
+							onClick={async () => {
+								try {
 									const response = await privateApi.get(
 										"/api/v1/payments/check",
 									);
@@ -126,7 +146,7 @@ function Home() {
 							}}
 						>
 							Sync Balances
-						</button>
+						</button> */}
 					</div>
 				)}
 			</div>

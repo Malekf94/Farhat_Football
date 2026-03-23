@@ -1,5 +1,4 @@
 const pool = require("../../db.cjs");
-const { privateApi } = require("../../src/api");
 require("dotenv").config();
 
 const updateBalancesFromPayments = async () => {
@@ -34,7 +33,7 @@ const updateBalancesFromPayments = async () => {
 	} catch (error) {
 		console.error("Error updating player balances:", error.message);
 	} finally {
-		pool.end();
+		// pool.end();
 	}
 };
 

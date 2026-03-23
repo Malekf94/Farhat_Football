@@ -11,5 +11,7 @@ const checkJwt = require("../auth/checkJwt.cjs");
 
 router.get("/check", checkJwt, controller.runCheckPaymentsScript);
 router.get("/sync", checkJwt, controller.runSyncPaymentsScript);
+router.get("/run", checkJwt, controller.runPayments);
+router.get("/", checkJwt, controller.paymentDashboard);
 
 module.exports = router;
