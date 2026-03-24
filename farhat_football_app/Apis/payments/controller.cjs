@@ -1,5 +1,6 @@
 const { exec } = require("child_process");
 const { runFullPaymentSync } = require("./runFullPaymentSync.cjs");
+const { pool } = require("../../db.cjs");
 
 // Run Check Payments Script
 const runCheckPaymentsScript = (req, res) => {
