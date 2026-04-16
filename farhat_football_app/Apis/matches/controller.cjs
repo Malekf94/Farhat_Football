@@ -353,6 +353,11 @@ const deleteMatch = async (req, res) => {
 // email players
 const notifyPlayers = async (req, res) => {
 	const { match_id } = req.params;
+	const { message } = req.body; // 👈 pull in the message
+
+	if (!message || message.trim() === "") {
+		return res.status(400).json({ error: "A message is required." });
+	}
 
 	try {
 		const result = await pool.query(matchQueries.getEmailsByMatch, [match_id]);
@@ -373,21 +378,13 @@ const notifyPlayers = async (req, res) => {
 
 				sendSmtpEmail.subject = "Match Day! ⚽";
 				sendSmtpEmail.htmlContent = `
-          <html>
-            <body>
-              <strong>
-                Reminder that you have joined tonight's game.<br/>
-                Go to www.farhatfootball.co.uk/matches/${match_id} to confirm details.
-                Teams may be subject to change.
-              </strong>
-            </body>
-          </html>
-        `;
-
-				sendSmtpEmail.textContent =
-					`Reminder that you have joined tonight's game. ` +
-					`Go to www.farhatfootball.co.uk/matches/${match_id} to confirm details. ` +
-					`Teams may be subject to change.`;
+                    <html>
+                        <body>
+                            <strong>${message}</strong>
+                        </body>
+                    </html>
+                `;
+				sendSmtpEmail.textContent = message; // 👈 used directly
 
 				sendSmtpEmail.sender = {
 					email: process.env.BREVO_FROM_EMAIL,
@@ -399,7 +396,6 @@ const notifyPlayers = async (req, res) => {
 				await apiInstance.sendTransacEmail(sendSmtpEmail);
 			} catch (err) {
 				console.error(`Failed to send to ${email}`, err);
-				// optional: continue sending to others
 			}
 		}
 

@@ -401,14 +401,34 @@ function IndividualMatch() {
 	};
 
 	const handleEmailPlayers = async () => {
-		const confirmSend = window.confirm(
-			"Are you sure you want to email all players for this match?",
+		const messageOptions = [
+			"Reminder that you have joined tonight's game. Go to www.farhatfootball.co.uk/matches/" +
+				match_id +
+				" to confirm details. Teams may be subject to change.",
+			"Tonight's game has been CANCELLED. Sorry for any inconvenience.",
+			"Kick-off time has changed — check www.farhatfootball.co.uk/matches/" +
+				match_id +
+				" for the latest details.",
+		];
+
+		const customMessage = window.prompt(
+			"Choose a message number or type your own:\n\n" +
+				messageOptions.map((msg, i) => `${i + 1}. ${msg}`).join("\n\n"),
 		);
-		if (!confirmSend) return;
+
+		if (!customMessage) return; // User cancelled
+
+		// Check if they picked a number, otherwise use their typed message
+		const choiceIndex = parseInt(customMessage) - 1;
+		const finalMessage =
+			choiceIndex >= 0 && choiceIndex < messageOptions.length
+				? messageOptions[choiceIndex]
+				: customMessage;
 
 		try {
-			// We only send the match_id; the backend will look up the emails for security
-			await privateApi.post(`/api/v1/matches/${match_id}/notify-players`);
+			await privateApi.post(`/api/v1/matches/${match_id}/notify-players`, {
+				message: finalMessage,
+			});
 			alert("Emails sent successfully!");
 		} catch (error) {
 			console.error("Error sending emails:", error);
