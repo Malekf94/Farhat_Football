@@ -93,15 +93,6 @@ function AccountDetails() {
 			alert("Player ID is missing.");
 			return;
 		}
-		// Trigger privateApi requests after 90 seconds
-		setTimeout(() => {
-			privateApi.get("/api/v1/payments/check");
-
-			// Then wait another 5 seconds before the second request
-			setTimeout(() => {
-				privateApi.get("/api/v1/payments/sync");
-			}, 5000); // 5-second delay
-		}, 10000); // 10-second delay
 
 		// Open Monzo payment link
 		const monzoLink = `https://monzo.me/malekfarhat/1?d=ffc${playerId}`;

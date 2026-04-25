@@ -242,6 +242,7 @@ function IndividualMatch() {
 				alert(
 					`You need a balance of at least £${match.price} to join this match.`,
 				);
+				window.location.href = "/your-account";
 				return;
 			}
 

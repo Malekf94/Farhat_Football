@@ -1,7 +1,8 @@
 import "./UpdateAttributes.css";
-import axios from "axios";
+// import axios from "axios";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { publicApi } from "../../api";
 
 function UpdateAttributes() {
 	const [players, setPlayers] = useState([]); // List of players
@@ -13,7 +14,7 @@ function UpdateAttributes() {
 
 	// Fetch players on component mount
 	useEffect(() => {
-		axios
+		publicApi
 			.get("/api/v1/players/")
 			.then((response) => {
 				setPlayers(response.data);
@@ -33,7 +34,7 @@ function UpdateAttributes() {
 		const filtered = players.filter(
 			(player) =>
 				player.first_name.toLowerCase().includes(query) ||
-				player.last_name.toLowerCase().includes(query)
+				player.last_name.toLowerCase().includes(query),
 		);
 		setFilteredPlayers(filtered);
 	};
@@ -42,7 +43,7 @@ function UpdateAttributes() {
 	const handleSelectPlayer = (playerId) => {
 		setSelectedPlayerId(playerId);
 
-		axios
+		publicApi
 			.get(`/api/v1/attributes/${playerId}`)
 			.then((response) => {
 				setAttributes(response.data);
@@ -63,8 +64,8 @@ function UpdateAttributes() {
 
 	// Save updated attributes
 	const handleSave = () => {
-		axios.get(`/api/v1/players/owndetails/${selectedPlayerId}`);
-		axios
+		publicApi.get(`/api/v1/players/owndetails/${selectedPlayerId}`);
+		publicApi
 			.put(`/api/v1/attributes/${selectedPlayerId}`, attributes)
 			.then(() => {
 				alert("Attributes updated successfully!");

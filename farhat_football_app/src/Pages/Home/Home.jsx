@@ -30,9 +30,12 @@ function Home() {
 	return (
 		<div className="page-content">
 			<h1>Welcome to Farhat Football</h1>
+			<button className="btn" onClick={() => navigate("/matches")}>
+				Click if you just want to play
+			</button>
 			<p>
-				Familiarise yourself with our group by checking our{" "}
-				<Link to="/rules">Rules</Link> link at the top of the page.
+				Familiarise yourself with our group by checking our Rules link at the
+				top of the page. There is also a page for FAQs
 			</p>
 			<p>
 				Once you have created an account, feel free to play in our upcoming
