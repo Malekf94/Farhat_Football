@@ -95,7 +95,7 @@ function AccountDetails() {
 		}
 
 		// Open Monzo payment link
-		const monzoLink = `https://monzo.me/malekfarhat/1?d=ffc${playerId}`;
+		const monzoLink = `https://monzo.me/malekfarhat/4.5?d=ffc${playerId}`;
 		window.open(monzoLink, "_blank");
 	};
 
