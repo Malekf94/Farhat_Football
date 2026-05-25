@@ -3,34 +3,45 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import "./PlayerDetails.css";
 import { privateApi } from "../../api";
-privateApi;
+import { useAuth0 } from "@auth0/auth0-react";
 
 function PlayerDetails() {
 	const [player, setPlayer] = useState(null);
 	const [stats, setStats] = useState([]);
 	const { player_id } = useParams();
+	const { getAccessTokenSilently, isAuthenticated, isLoading } = useAuth0();
 
 	useEffect(() => {
-		// Fetch player details
-		privateApi
-			.get(`/api/v1/players/${player_id}`)
-			.then((response) => {
-				setPlayer(response.data[0]); // Assuming API returns an array
-			})
-			.catch((error) => {
-				console.error("Error fetching player details:", error);
-			});
+		if (isLoading || !isAuthenticated) return;
 
-		// Fetch player stats
-		privateApi
-			.get(`/api/v1/players/${player_id}/monthlystats`)
-			.then((response) => {
-				setStats(response.data);
-			})
-			.catch((error) => {
-				console.error("Error fetching player stats:", error);
-			});
-	}, [player_id]);
+		const fetchData = async () => {
+			try {
+				const token = await getAccessTokenSilently();
+
+				const headers = {
+					Authorization: `Bearer ${token}`,
+				};
+
+				const playerResponse = await privateApi.get(
+					`/api/v1/players/${player_id}`,
+					{ headers },
+				);
+
+				setPlayer(playerResponse.data[0]);
+
+				const statsResponse = await privateApi.get(
+					`/api/v1/players/${player_id}/monthlystats`,
+					{ headers },
+				);
+
+				setStats(statsResponse.data);
+			} catch (error) {
+				console.error(error);
+			}
+		};
+
+		fetchData();
+	}, [player_id, getAccessTokenSilently, isAuthenticated, isLoading]);
 
 	if (!player) {
 		return <p>Loading player details...</p>;
