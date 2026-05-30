@@ -2,13 +2,15 @@ const pool = require("../../db.cjs");
 const matchQueries = require("./queries.cjs");
 const matchPlayerQueries = require("../match_players/queries.cjs");
 const sgMail = require("@sendgrid/mail");
-sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-const SibApiV3Sdk = require("@getbrevo/brevo");
+const {
+	TransactionalEmailsApi,
+	TransactionalEmailsApiApiKeys,
+} = require("@getbrevo/brevo");
 
 // Initialize Brevo API client
-const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
+const apiInstance = new TransactionalEmailsApi();
 apiInstance.setApiKey(
-	SibApiV3Sdk.TransactionalEmailsApiApiKeys.apiKey,
+	TransactionalEmailsApiApiKeys.apiKey,
 	process.env.BREVO_API_KEY,
 );
 
