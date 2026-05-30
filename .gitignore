@@ -1,5 +1,24 @@
+# Dependencies
+node_modules/
+farhat_football_app/node_modules/
 
+# Build output
+dist/
+farhat_football_app/dist/
+
+# Environment files
+.env
+*.env
+farhat_football_app/.env
+farhat_football_app/src/payments/.env
+
+# Editor
 .vscode/settings.json
+
+# OS
+.DS_Store
+
+# Misc
 edb_psqlodbc.exe
 My Football DB.session.sql
-farhat_football_app/src/payments/.env
+querydata

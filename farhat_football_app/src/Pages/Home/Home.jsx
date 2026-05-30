@@ -1,31 +1,11 @@
-import { Link, useNavigate } from "react-router-dom";
-import { useAuth0 } from "@auth0/auth0-react";
-import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "./Home.css";
-// import axios from "axios";
+import { useCurrentPlayer } from "../../hooks/useCurrentPlayer";
 import { privateApi } from "../../api";
 
 function Home() {
 	const navigate = useNavigate();
-	const { isAuthenticated, user } = useAuth0();
-	const [isAdmin, setIsAdmin] = useState(false);
-
-	useEffect(() => {
-		if (isAuthenticated && user) {
-			const checkAdmin = async () => {
-				try {
-					const response = await fetch(
-						`/api/v1/players/check?email=${user.email}`,
-					);
-					const data = await response.json();
-					setIsAdmin(data.is_admin);
-				} catch (error) {
-					console.error("Error checking admin status:", error);
-				}
-			};
-			checkAdmin();
-		}
-	}, [isAuthenticated, user]);
+	const { isAdmin } = useCurrentPlayer();
 
 	return (
 		<div className="page-content">

@@ -1,46 +1,57 @@
 import "./Players.css";
-// import axios from "axios";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { publicApi } from "../../api";
 
 function Players() {
-	const [players, setPlayers] = useState([]); // Original list of players
-	const [filteredPlayers, setFilteredPlayers] = useState([]); // For displaying filtered results
-	const [searchQuery, setSearchQuery] = useState(""); // For managing search input
+	const [players, setPlayers] = useState([]);
+	const [filteredPlayers, setFilteredPlayers] = useState([]);
+	const [searchQuery, setSearchQuery] = useState("");
+	const [isLoading, setIsLoading] = useState(true);
+	const [error, setError] = useState(null);
 
-	// Fetch players
 	useEffect(() => {
 		publicApi
 			.get("/api/v1/players/")
 			.then((response) => {
 				setPlayers(response.data);
-				setFilteredPlayers(response.data); // Initialize filtered list
+				setFilteredPlayers(response.data);
 			})
-			.catch((error) => {
-				console.error("Error fetching players:", error);
-			});
+			.catch((err) => {
+				console.error("Error fetching players:", err);
+				setError("Failed to load players. Please refresh the page.");
+			})
+			.finally(() => setIsLoading(false));
 	}, []);
 
-	// Handle search input
 	const handleSearch = (e) => {
 		const query = e.target.value.toLowerCase();
 		setSearchQuery(query);
-
-		// Filter players based on first name or last name
-		const filtered = players.filter(
-			(player) =>
-				player.first_name.toLowerCase().includes(query) ||
-				player.last_name.toLowerCase().includes(query),
+		setFilteredPlayers(
+			players.filter(
+				(player) =>
+					player.first_name.toLowerCase().includes(query) ||
+					player.last_name.toLowerCase().includes(query),
+			),
 		);
-		setFilteredPlayers(filtered);
 	};
+
+	if (isLoading)
+		return (
+			<div className="page-content">
+				<p>Loading players...</p>
+			</div>
+		);
+	if (error)
+		return (
+			<div className="page-content">
+				<p style={{ color: "red" }}>{error}</p>
+			</div>
+		);
 
 	return (
 		<div className="page-content">
 			<h1>Players</h1>
-
-			{/* Search Input */}
 			<div className="search-container">
 				<input
 					type="text"
@@ -50,8 +61,6 @@ function Players() {
 					className="search-input"
 				/>
 			</div>
-
-			{/* Players List */}
 			<ul className="playerList">
 				{filteredPlayers.length > 0 ? (
 					filteredPlayers.map((player) => (

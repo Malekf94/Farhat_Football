@@ -1,30 +1,13 @@
 import { useAuth0 } from "@auth0/auth0-react";
 import { Navigate } from "react-router-dom";
 import PropTypes from "prop-types";
-import { useEffect, useState } from "react";
-import axios from "axios";
+import { useCurrentPlayer } from "./hooks/useCurrentPlayer";
 
 function ProtectedAdminRoute({ children }) {
-	const { isAuthenticated, isLoading, user } = useAuth0();
-	const [isAdmin, setIsAdmin] = useState(false);
+	const { isAuthenticated, isLoading: authLoading } = useAuth0();
+	const { isAdmin, isLoading: playerLoading } = useCurrentPlayer();
 
-	useEffect(() => {
-		if (isAuthenticated) {
-			const checkAdmin = async () => {
-				try {
-					const response = await axios.get(
-						`/api/v1/players/check?email=${user.email}`
-					);
-					setIsAdmin(response.data.is_admin);
-				} catch (error) {
-					console.error("Error checking admin status:", error);
-				}
-			};
-			checkAdmin();
-		}
-	}, [isAuthenticated, user?.email]);
-
-	if (isLoading || isAdmin === false) {
+	if (authLoading || playerLoading) {
 		return <div>Loading...</div>;
 	}
 

@@ -9,7 +9,7 @@ const router = Router();
 router.post("/", controller.addPlayer);
 router.post("/auth0-signup", controller.auth0Signup);
 
-router.get("/check", controller.checkEmail);
+router.get("/check", checkJwt, controller.checkEmail);
 router.get("/negativeBalances", controller.getNegativeBalance);
 
 router.get("/", controller.getPlayers);

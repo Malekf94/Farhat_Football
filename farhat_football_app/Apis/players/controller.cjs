@@ -25,31 +25,40 @@ const addPlayer = (req, res) => {
 				return res.status(500).json({ error: "Database error occurred." });
 			}
 			res.status(201).json(results.rows[0]); // Respond with the created player
-		}
+		},
 	);
 };
 
-const getPlayers = (req, res) => {
-	pool.query(queries.getPlayers, (error, results) => {
-		if (error) throw error;
+const getPlayers = async (req, res) => {
+	try {
+		const results = await pool.query(queries.getPlayers);
 		res.status(200).json(results.rows);
-	});
+	} catch (error) {
+		console.error("Error fetching players:", error);
+		res.status(500).json({ error: "Failed to fetch players." });
+	}
 };
 
-const getPlayer = (req, res) => {
+const getPlayer = async (req, res) => {
 	const player_id = parseInt(req.params.player_id);
-	pool.query(queries.getPlayer, [player_id], (error, results) => {
-		if (error) throw error;
+	try {
+		const results = await pool.query(queries.getPlayer, [player_id]);
 		res.status(200).json(results.rows);
-	});
+	} catch (error) {
+		console.error("Error fetching player:", error);
+		res.status(500).json({ error: "Failed to fetch player." });
+	}
 };
 
-const getOwnPlayer = (req, res) => {
+const getOwnPlayer = async (req, res) => {
 	const player_id = parseInt(req.params.player_id);
-	pool.query(queries.getOwnPlayer, [player_id], (error, results) => {
-		if (error) throw error;
+	try {
+		const results = await pool.query(queries.getOwnPlayer, [player_id]);
 		res.status(200).json(results.rows);
-	});
+	} catch (error) {
+		console.error("Error fetching own player:", error);
+		res.status(500).json({ error: "Failed to fetch player details." });
+	}
 };
 const getPlayerStats = async (req, res) => {
 	const playerId = parseInt(req.params.player_id);
@@ -226,7 +235,7 @@ const auth0Signup = async (req, res) => {
 		// Check if the user already exists
 		const existingUser = await pool.query(
 			"SELECT * FROM players WHERE email = $1",
-			[email]
+			[email],
 		);
 
 		if (existingUser.rows.length > 0) {

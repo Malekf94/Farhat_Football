@@ -1,12 +1,15 @@
 const pool = require("../../db.cjs");
 const queries = require("./queries.cjs");
 
-const getPlayersInMatch = (req, res) => {
+const getPlayersInMatch = async (req, res) => {
 	const match_id = parseInt(req.params.match_id);
-	pool.query(queries.getPlayersInMatch, [match_id], (error, results) => {
-		if (error) throw error;
+	try {
+		const results = await pool.query(queries.getPlayersInMatch, [match_id]);
 		res.status(200).json(results.rows);
-	});
+	} catch (error) {
+		console.error("Error fetching players in match:", error);
+		res.status(500).json({ error: "Failed to fetch players in match." });
+	}
 };
 
 // Adds a player to a match without fetching match price from the DB.
@@ -18,7 +21,7 @@ const addPlayerToMatch = async (req, res) => {
 		// Fetch the player's account balance
 		const playerResult = await pool.query(
 			"SELECT account_balance FROM players WHERE player_id = $1",
-			[player_id]
+			[player_id],
 		);
 
 		if (playerResult.rows.length === 0) {
@@ -186,12 +189,57 @@ const updateTeamAssignments = async (req, res) => {
 			.json({ error: "An error occurred while updating team assignments." });
 	}
 };
+const batchUpdateMatchPlayers = async (req, res) => {
+	const { match_id } = req.params;
+	const { players } = req.body; // array of { player_id, goals, assists, defcons, chancescreated, own_goals, late, team_id }
 
+	if (!Array.isArray(players) || players.length === 0) {
+		return res.status(400).json({ error: "players array is required." });
+	}
+
+	const client = await pool.connect();
+	try {
+		await client.query("BEGIN");
+		for (const p of players) {
+			await client.query(
+				`UPDATE match_players
+         SET goals = COALESCE($1, goals),
+             assists = COALESCE($2, assists),
+             defcons = COALESCE($3, defcons),
+             chancescreated = COALESCE($4, chancescreated),
+             own_goals = COALESCE($5, own_goals),
+             late = COALESCE($6, late),
+             team_id = COALESCE($7, team_id)
+         WHERE match_id = $8 AND player_id = $9`,
+				[
+					p.goals ?? null,
+					p.assists ?? null,
+					p.defcons ?? null,
+					p.chancescreated ?? null,
+					p.own_goals ?? null,
+					p.late ?? null,
+					p.team_id ?? null,
+					match_id,
+					p.player_id,
+				],
+			);
+		}
+		await client.query("COMMIT");
+		res.status(200).json({ message: "Stats updated successfully." });
+	} catch (error) {
+		await client.query("ROLLBACK");
+		console.error("Error batch updating match players:", error);
+		res.status(500).json({ error: "Failed to update stats." });
+	} finally {
+		client.release();
+	}
+};
 module.exports = {
 	addPlayerToMatch,
 	removePlayerFromMatch,
 	getPlayersInMatch,
 	updateMatchPlayer,
+	batchUpdateMatchPlayers,
 	getLates,
 	getPlayerAttributesInMatch,
 	updateTeamAssignments,

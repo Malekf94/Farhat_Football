@@ -15,6 +15,11 @@ router.put(
 	checkJwt,
 	controller.updateTeamAssignments,
 );
+router.put(
+	"/batch-stats/:match_id",
+	checkJwt,
+	controller.batchUpdateMatchPlayers,
+);
 router.put("/:match_id/:player_id", checkJwt, controller.updateMatchPlayer);
 router.get("/:match_id", controller.getPlayersInMatch);
 

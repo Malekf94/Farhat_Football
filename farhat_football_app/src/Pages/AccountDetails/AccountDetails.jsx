@@ -1,39 +1,18 @@
 import { useState, useEffect } from "react";
-// import axios from "axios";
 import { useAuth0 } from "@auth0/auth0-react";
 import "./AccountDetails.css";
 import { privateApi } from "../../api";
+import { useCurrentPlayer } from "../../hooks/useCurrentPlayer";
 
 function AccountDetails() {
-	const { user, isAuthenticated, isLoading } = useAuth0(); // Auth0 hook to access logged-in user details
-	const [playerId, setPlayerId] = useState(null);
+	const { isLoading: authLoading } = useAuth0();
+	const { playerId, isLoading: playerLoading } = useCurrentPlayer();
 	const [userDetails, setUserDetails] = useState(null);
 	const [playerStats, setPlayerStats] = useState([]);
 	const [attributes, setAttributes] = useState({});
-	const [showAttributes, setShowAttributes] = useState(false); // Toggle to show attributes
+	const [showAttributes, setShowAttributes] = useState(false);
 	const [showEditForm, setShowEditForm] = useState(false);
 	const [paymentHistory, setPaymentHistory] = useState([]);
-
-	useEffect(() => {
-		const fetchPlayerId = async () => {
-			if (isAuthenticated && user) {
-				try {
-					const response = await privateApi.get(
-						`/api/v1/players/check?email=${user.email}`,
-					);
-					if (response.data.exists) {
-						setPlayerId(response.data.player_id);
-					} else {
-						console.error("Player not found in the database.");
-					}
-				} catch (error) {
-					console.error("Error fetching player ID:", error);
-				}
-			}
-		};
-
-		fetchPlayerId();
-	}, [isAuthenticated, user]);
 
 	// Fetch player details, stats, and attributes when playerId is available
 	useEffect(() => {
@@ -99,7 +78,7 @@ function AccountDetails() {
 		window.open(monzoLink, "_blank");
 	};
 
-	if (isLoading) {
+	if (authLoading || playerLoading) {
 		return <p>Loading...</p>;
 	}
 

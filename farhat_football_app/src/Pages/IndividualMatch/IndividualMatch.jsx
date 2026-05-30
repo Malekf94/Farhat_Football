@@ -1,22 +1,18 @@
 import { useEffect, useState, useCallback } from "react";
-import PropTypes from "prop-types"; // Added prop-types
+import PropTypes from "prop-types";
 import "./IndividualMatch.css";
-import { useAuth0 } from "@auth0/auth0-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { parseISO, differenceInHours } from "date-fns";
-// import { response } from "express";
-// import { randomiser } from "../../../../randomisermk2";
 import { randomiserMk3 } from "../../../../randomisermk3";
 import { privateApi } from "../../api";
+import { useCurrentPlayer } from "../../hooks/useCurrentPlayer";
 
 function IndividualMatch() {
-	const { user, isAuthenticated } = useAuth0(); // Use Auth0 to get user info
+	const { playerId, isAdmin } = useCurrentPlayer();
 	const [match, setMatch] = useState(null);
 	const [pitch, setPitch] = useState(null);
 	const [playersInMatch, setPlayersInMatch] = useState([]);
 	const { match_id } = useParams();
-	const [playerId, setPlayerId] = useState(null); // Store player_id dynamically
-	const [isAdmin, setIsAdmin] = useState(false); // Track admin access
 	const [team1Goals, setTeam1Goals] = useState(0);
 	const [team2Goals, setTeam2Goals] = useState(0);
 	const [manOfTheMatch, setManOfTheMatch] = useState(null);
@@ -40,30 +36,6 @@ function IndividualMatch() {
 	const team1 = playersInMatch.filter((player) => player.team_id === 1);
 	const team2 = playersInMatch.filter((player) => player.team_id === 2);
 	const reserves = playersInMatch.filter((player) => player.team_id === 0);
-
-	// Fetch player_id from backend
-	useEffect(() => {
-		const fetchPlayerId = async () => {
-			if (isAuthenticated && user) {
-				try {
-					const response = await privateApi.get(
-						`/api/v1/players/check?email=${user.email}`,
-					);
-
-					if (response.data.exists) {
-						setPlayerId(response.data.player_id); // Set player_id
-						setIsAdmin(response.data.is_admin); // Set player_id
-					} else {
-						console.error("Player not found in database");
-					}
-				} catch (error) {
-					console.error("Error fetching player ID:", error);
-				}
-			}
-		};
-
-		fetchPlayerId();
-	}, [isAuthenticated, user]);
 
 	const fetchMatchDetails = useCallback(async () => {
 		if (!playerId) return;
@@ -89,30 +61,30 @@ function IndividualMatch() {
 		}
 	}, [match_id, playerId]);
 
-	useEffect(() => {
-		// Fetch match details
-		if (!playerId) return;
-		privateApi
-			.get(`/api/v1/matches/${match_id}`)
-			.then((response) => {
-				const matchData = response.data[0];
-				setMatch(matchData);
-				setEditMatchFields({
-					match_status: matchData.match_status,
-					match_time: matchData.match_time,
-					number_of_players: matchData.number_of_players,
-					price: matchData.price,
-					youtube_links: matchData.youtube_links || "",
-				});
-				return privateApi.get(`/api/v1/pitches/${matchData.pitch_id}`);
-			})
-			.then((response) => {
-				setPitch(response.data[0]);
-			})
-			.catch((error) => {
-				console.error("Error fetching match or pitch:", error);
-			});
-	}, [match_id, playerId]);
+	// useEffect(() => {
+	// 	// Fetch match details
+	// 	if (!playerId) return;
+	// 	privateApi
+	// 		.get(`/api/v1/matches/${match_id}`)
+	// 		.then((response) => {
+	// 			const matchData = response.data[0];
+	// 			setMatch(matchData);
+	// 			setEditMatchFields({
+	// 				match_status: matchData.match_status,
+	// 				match_time: matchData.match_time,
+	// 				number_of_players: matchData.number_of_players,
+	// 				price: matchData.price,
+	// 				youtube_links: matchData.youtube_links || "",
+	// 			});
+	// 			return privateApi.get(`/api/v1/pitches/${matchData.pitch_id}`);
+	// 		})
+	// 		.then((response) => {
+	// 			setPitch(response.data[0]);
+	// 		})
+	// 		.catch((error) => {
+	// 			console.error("Error fetching match or pitch:", error);
+	// 		});
+	// }, [match_id, playerId]);
 
 	const fetchPlayersInMatch = useCallback(() => {
 		if (!playerId) return;
@@ -198,30 +170,27 @@ function IndividualMatch() {
 	};
 
 	const handleSavePlayerStats = async () => {
-		const updatePromises = Object.entries(editedPlayerStats).map(
-			([
-				player_id,
-				{ goals, assists, defcons, chancescreated, own_goals, late, team_id },
-			]) =>
-				privateApi.put(`/api/v1/matchPlayer/${match_id}/${player_id}`, {
-					goals: parseInt(goals, 10),
-					assists: parseInt(assists, 10),
-					defcons: parseInt(defcons, 10),
-					chancescreated: parseInt(chancescreated, 10),
-					own_goals: parseInt(own_goals, 10),
-					late: late,
-					team_id: team_id ? parseInt(team_id, 10) : null,
-				}),
+		const players = Object.entries(editedPlayerStats).map(
+			([player_id, stats]) => ({
+				player_id: parseInt(player_id, 10),
+				goals: parseInt(stats.goals, 10),
+				assists: parseInt(stats.assists, 10),
+				defcons: parseInt(stats.defcons, 10),
+				chancescreated: parseInt(stats.chancescreated, 10),
+				own_goals: parseInt(stats.own_goals, 10),
+				late: stats.late,
+				team_id: stats.team_id ? parseInt(stats.team_id, 10) : null,
+			}),
 		);
 
 		try {
-			await Promise.all(updatePromises);
+			await privateApi.put(`/api/v1/matchPlayer/batch-stats/${match_id}`, {
+				players,
+			});
 			setIsEditingStats(false);
 			fetchPlayersInMatch();
-			alert("Player stats updated successfully.");
 		} catch (error) {
 			console.error("Error updating player stats:", error);
-			alert("Failed to update player stats.");
 		}
 	};
 
