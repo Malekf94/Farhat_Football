@@ -1,18 +1,15 @@
 const pool = require("../../db.cjs");
 const matchQueries = require("./queries.cjs");
 const matchPlayerQueries = require("../match_players/queries.cjs");
-const sgMail = require("@sendgrid/mail");
-const {
-	TransactionalEmailsApi,
-	TransactionalEmailsApiApiKeys,
-} = require("@getbrevo/brevo");
+// const {
+// 	TransactionalEmailsApi,
+// 	TransactionalEmailsApiApiKeys,
+// } = require("@getbrevo/brevo");
 
-// Initialize Brevo API client
-const apiInstance = new TransactionalEmailsApi();
-apiInstance.setApiKey(
-	TransactionalEmailsApiApiKeys.apiKey,
-	process.env.BREVO_API_KEY,
-);
+const sgMail = require("@sendgrid/mail");
+const { BrevoClient } = require("@getbrevo/brevo");
+
+const brevo = new BrevoClient({ apiKey: process.env.BREVO_API_KEY });
 
 const getMatches = async (req, res) => {
 	try {
@@ -310,52 +307,9 @@ const deleteMatch = async (req, res) => {
 	}
 };
 
-// try {
-// 	// 1. Fetch player emails from database
-// 	const result = await pool.query(matchQueries.getEmailsByMatch, [match_id]);
-
-// 	// Map to Brevo's recipient format: [{ email: 'one@example.com' }, { email: 'two@example.com' }]
-// 	const recipients = result.rows
-// 		.filter((row) => row.email)
-// 		.map((row) => ({ email: row.email }));
-
-// 	if (recipients.length === 0) {
-// 		return res
-// 			.status(404)
-// 			.json({ error: "No player emails found for this match." });
-// 	}
-
-// 	// 2. Construct the Brevo message
-// 	const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
-
-// 	sendSmtpEmail.subject = "Match Day! ⚽";
-// 	sendSmtpEmail.htmlContent = `<html><body><strong>Reminder that you have joined tonight's game. Go to www.farhatfootball.co.uk/${match_id} to confirm details, teams may be subject to change</body></html>`;
-// 	sendSmtpEmail.textContent = `Reminder that you have joined tonight's game. Go to www.farhatfootball.co.uk/${match_id} to confirm details, teams may be subject to change`;
-// 	sendSmtpEmail.sender = {
-// 		email: process.env.BREVO_FROM_EMAIL,
-// 		name: "Match Notifier",
-// 	};
-
-// 	// By putting multiple recipients in the 'to' array, Brevo sends
-// 	// individual emails to each (they won't see each other's addresses).
-// 	sendSmtpEmail.to = recipients;
-
-// 	// 3. Send via Brevo
-// 	await apiInstance.sendTransacEmail(sendSmtpEmail);
-
-// 	res
-// 		.status(200)
-// 		.json({ message: "Emails sent successfully to all players via Brevo." });
-// } catch (error) {
-// 	console.error("Brevo Error:", error.response?.body || error.message);
-// 	res
-// 		.status(500)
-// 		.json({ error: "An error occurred while notifying players." });
-// }
-// email players
 const notifyPlayers = async (req, res) => {
 	const { match_id } = req.params;
-	const { message } = req.body; // 👈 pull in the message
+	const { message } = req.body;
 
 	if (!message || message.trim() === "") {
 		return res.status(400).json({ error: "A message is required." });
@@ -376,26 +330,22 @@ const notifyPlayers = async (req, res) => {
 
 		for (const { email } of recipients) {
 			try {
-				const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
-
-				sendSmtpEmail.subject = "Match Day! ⚽";
-				sendSmtpEmail.htmlContent = `
-                    <html>
-                        <body>
-                            <strong>${message}</strong>
-                        </body>
-                    </html>
-                `;
-				sendSmtpEmail.textContent = message; // 👈 used directly
-
-				sendSmtpEmail.sender = {
-					email: process.env.BREVO_FROM_EMAIL,
-					name: "Match Notifier",
-				};
-
-				sendSmtpEmail.to = [{ email }];
-
-				await apiInstance.sendTransacEmail(sendSmtpEmail);
+				await brevo.transactionalEmails.sendTransacEmail({
+					subject: "Match Day! ⚽",
+					htmlContent: `
+                        <html>
+                            <body>
+                                <strong>${message}</strong>
+                            </body>
+                        </html>
+                    `,
+					textContent: message,
+					sender: {
+						email: process.env.BREVO_FROM_EMAIL,
+						name: "Match Notifier",
+					},
+					to: [{ email }],
+				});
 			} catch (err) {
 				console.error(`Failed to send to ${email}`, err);
 			}
@@ -411,7 +361,6 @@ const notifyPlayers = async (req, res) => {
 //email all players
 const notifyAllPlayers = async (req, res) => {
 	try {
-		// Get players for the match
 		const result = await pool.query(`SELECT email FROM players`);
 
 		const recipients = result.rows
@@ -425,30 +374,27 @@ const notifyAllPlayers = async (req, res) => {
 		}
 
 		await Promise.all(
-			recipients.map(({ email }) => {
-				const emailObj = new SibApiV3Sdk.SendSmtpEmail();
-
-				emailObj.subject = "Thursday games return! ⚽";
-				emailObj.htmlContent = `
-          <html><body>
-            <strong>
-              Thursday night football is back.<br/>
-              Go to www.farhatfootball.co.uk/matches to see what games we currently have available.
-            </strong>
-          </body></html>
-        `;
-				emailObj.textContent =
-					`Thursday night football is back. ` +
-					`Go to www.farhatfootball.co.uk/matches to see what games we currently have available.`;
-				emailObj.sender = {
-					email: process.env.BREVO_FROM_EMAIL,
-					name: "Return of FFC Thursday",
-				};
-
-				emailObj.to = [{ email }];
-
-				return apiInstance.sendTransacEmail(emailObj);
-			}),
+			recipients.map(({ email }) =>
+				brevo.transactionalEmails.sendTransacEmail({
+					subject: "Thursday games return! ⚽",
+					htmlContent: `
+                        <html><body>
+                            <strong>
+                                Thursday night football is back.<br/>
+                                Go to www.farhatfootball.co.uk/matches to see what games we currently have available.
+                            </strong>
+                        </body></html>
+                    `,
+					textContent:
+						`Thursday night football is back. ` +
+						`Go to www.farhatfootball.co.uk/matches to see what games we currently have available.`,
+					sender: {
+						email: process.env.BREVO_FROM_EMAIL,
+						name: "Return of FFC Thursday",
+					},
+					to: [{ email }],
+				}),
+			),
 		);
 
 		return res.json({ message: "Emails sent individually." });
