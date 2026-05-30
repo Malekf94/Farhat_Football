@@ -21,6 +21,7 @@
 		"dotenv": "^16.4.7",
 		"dotenv-vault": "^1.26.2",
 		"express": "^4.21.1",
+		"express-oauth2-jwt-bearer": "^1.9.0",
 		"helmet": "^8.0.0",
 		"nodemon": "^3.1.7",
 		"pg": "^8.13.1",
