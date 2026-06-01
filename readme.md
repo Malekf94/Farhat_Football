@@ -196,16 +196,7 @@ Managing football sessions manually became difficult as the community grew. Farh
 
 # Screenshots
 
-_Add screenshots of your app here_
-
-Example:
-
-- Dashboard
-- Match page
-- Team balancing screen
-- Player statistics page
-
----
+TBC
 
 # Contributing
 
