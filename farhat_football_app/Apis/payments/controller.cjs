@@ -76,18 +76,18 @@ const paymentDashboard = async (req, res) => {
 };
 
 const leavingPayment = async (req, res) => {
-	const { playerId } = req.params;
+	const { player_id } = req.params;
 	const { matchData } = req.body;
 
 	// Basic validation
-	if (!matchData || !matchData.id || !matchData.price) {
+	if (!matchData || !matchData.match_id || !matchData.price) {
 		return res
 			.status(400)
 			.json({ error: "Missing required matchData (id and price)" });
 	}
 
 	try {
-		const transactionId = await recordPlayerLeave(playerId, matchData);
+		const transactionId = await recordPlayerLeave(player_id, matchData);
 
 		if (transactionId) {
 			return res.status(201).json({

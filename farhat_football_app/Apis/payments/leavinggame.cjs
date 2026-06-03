@@ -8,13 +8,13 @@
  */
 const pool = require("../../db.cjs");
 
-async function recordPlayerLeave(playerId, matchData) {
+async function recordPlayerLeave(player_id, matchData) {
 	const paymentDate = new Date();
 	const amount = -matchData.price; // Negative amount for deduction
 
 	// 1. Generate a unique ID using the timestamp to allow multiple leaves over time
 	const timestamp = paymentDate.getTime();
-	const transactionId = `match_exit_${matchData.match_id}_${playerId}_${timestamp}`;
+	const transactionId = `match_exit_${matchData.match_id}_${player_id}_${timestamp}`;
 
 	// 2. Format a user-friendly description
 	const formattedDate = paymentDate.toLocaleString("en-US", {
@@ -37,7 +37,7 @@ async function recordPlayerLeave(playerId, matchData) {
 			paymentDate,
 			amount,
 			description,
-			playerId,
+			player_id,
 		]);
 
 		return result.rows.length > 0 ? result.rows[0].transaction_id : null;
