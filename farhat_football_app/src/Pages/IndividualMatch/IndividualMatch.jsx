@@ -231,7 +231,7 @@ function IndividualMatch() {
 					if (timeDifference < 5) {
 						await privateApi.put(`/api/v1/payments/leave/${playerId}`, {
 							matchData: {
-								id: matchData.id,
+								id: matchData.match_id,
 								price: matchData.price,
 							},
 							// amount: -matchData.price,
