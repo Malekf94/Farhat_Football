@@ -6,6 +6,7 @@ import { parseISO, differenceInHours } from "date-fns";
 import { randomiserMk3 } from "../../../../randomisermk3";
 import { privateApi } from "../../api";
 import { useCurrentPlayer } from "../../hooks/useCurrentPlayer";
+import ConfirmModal from "../../components/ConfirmModal";
 
 function IndividualMatch() {
 	const { playerId, isAdmin } = useCurrentPlayer();
@@ -17,6 +18,7 @@ function IndividualMatch() {
 	const [team2Goals, setTeam2Goals] = useState(0);
 	const [manOfTheMatch, setManOfTheMatch] = useState(null);
 	const [manOfTheMatchName, setManOfTheMatchName] = useState(null);
+	const [modal, setModal] = useState(null); // { message, onConfirm }
 	const navigate = useNavigate();
 
 	// Toggle edit modes
@@ -60,31 +62,6 @@ function IndividualMatch() {
 			console.error("Error fetching match or pitch details:", error);
 		}
 	}, [match_id, playerId]);
-
-	// useEffect(() => {
-	// 	// Fetch match details
-	// 	if (!playerId) return;
-	// 	privateApi
-	// 		.get(`/api/v1/matches/${match_id}`)
-	// 		.then((response) => {
-	// 			const matchData = response.data[0];
-	// 			setMatch(matchData);
-	// 			setEditMatchFields({
-	// 				match_status: matchData.match_status,
-	// 				match_time: matchData.match_time,
-	// 				number_of_players: matchData.number_of_players,
-	// 				price: matchData.price,
-	// 				youtube_links: matchData.youtube_links || "",
-	// 			});
-	// 			return privateApi.get(`/api/v1/pitches/${matchData.pitch_id}`);
-	// 		})
-	// 		.then((response) => {
-	// 			setPitch(response.data[0]);
-	// 		})
-	// 		.catch((error) => {
-	// 			console.error("Error fetching match or pitch:", error);
-	// 		});
-	// }, [match_id, playerId]);
 
 	const fetchPlayersInMatch = useCallback(() => {
 		if (!playerId) return;
@@ -235,66 +212,45 @@ function IndividualMatch() {
 	};
 
 	const handleLeaveMatch = async () => {
-		try {
-			// Fetch match details to get match start time
-			const matchResponse = await privateApi.get(`/api/v1/matches/${match_id}`);
-			const matchData = matchResponse.data[0];
-			const matchStartTime = parseISO(
-				`${matchData.match_date.substring(0, 10)}T${matchData.match_time}`,
-			);
-			const currentTime = new Date();
+		const matchResponse = await privateApi.get(`/api/v1/matches/${match_id}`);
+		const matchData = matchResponse.data[0];
+		const matchStartTime = parseISO(
+			`${matchData.match_date.substring(0, 10)}T${matchData.match_time}`,
+		);
+		const timeDifference = differenceInHours(matchStartTime, new Date());
 
-			// Calculate time difference in hours
-			const timeDifference = differenceInHours(matchStartTime, currentTime);
+		const message =
+			timeDifference < 5
+				? `You are leaving less than 5 hours before kick-off. £${matchData.price} will be deducted from your balance. Are you sure?`
+				: `Are you sure you want to leave this match?`;
 
-			if (timeDifference < 5) {
-				console.log("The match starts in less than 5 hours.");
-			}
-
-			if (timeDifference < 5) {
-				// Notify the user and deduct the match price
-				alert(
-					`You are leaving less than 5 hours before the match starts. The match price of £${matchData.price} will be deducted from your balance.`,
-				);
-				const confirmDelete = window.confirm(
-					"Are you sure you want to leave this match?",
-				);
-
-				if (!confirmDelete) {
-					return; // Exit if the user cancels
+		setModal({
+			message,
+			onConfirm: async () => {
+				try {
+					if (timeDifference < 5) {
+						await privateApi.put(`/api/v1/payments/leave/${playerId}`, {
+							matchData: {
+								id: matchData.id,
+								price: matchData.price,
+							},
+							// amount: -matchData.price,
+							// player_id: playerId,
+						});
+						// await privateApi.put(`/api/v1/players/balance/${playerId}`, {
+						// 	amount: -matchData.price,
+						// 	player_id: playerId,
+						// });
+					}
+					await privateApi.delete("/api/v1/matchPlayer", {
+						data: { match_id: parseInt(match_id, 10), player_id: playerId },
+					});
+					fetchPlayersInMatch();
+				} catch (error) {
+					console.error("Error leaving match:", error);
 				}
-
-				// Deduct the match price from the player's balance
-				await privateApi.put(`/api/v1/players/balance/${playerId}`, {
-					amount: -matchData.price,
-					player_id: playerId,
-				});
-			} else if (timeDifference > 5) {
-				// Notify the user and deduct the match price
-				alert(`You are attempting to leave this match.`);
-				const confirmDelete = window.confirm(
-					"Are you sure you want to leave this match?",
-				);
-
-				if (!confirmDelete) {
-					return; // Exit if the user cancels
-				}
-			}
-
-			// Proceed with leaving the match
-			await privateApi.delete("/api/v1/matchPlayer", {
-				data: {
-					match_id: parseInt(match_id, 10),
-					player_id: playerId,
-				},
-			});
-
-			fetchPlayersInMatch();
-			alert("You have left the match!");
-		} catch (error) {
-			console.error("Error leaving match:", error);
-			alert("Failed to leave the match. Please try again.");
-		}
+			},
+		});
 	};
 
 	const calculateTeamScore = (team, opponentOwnGoals) =>
@@ -306,20 +262,6 @@ function IndividualMatch() {
 		if (!team1 || !team2) return;
 		setTeam1Goals(calculateTeamScore(team1, team2));
 		setTeam2Goals(calculateTeamScore(team2, team1));
-
-		// Fetch Man of the Match if already selected
-		// privateApi
-		// 	.get(`/api/v1/matches/${match_id}/manOfTheMatch`)
-		// 	.then((response) => {
-		// 		setManOfTheMatch(response.data.player_id || null);
-		// 		const matchPlayer = playersInMatch.find(
-		// 			(player) => player.player_id === response.data.player_id,
-		// 		);
-		// 		setManOfTheMatchName(matchPlayer?.preferred_name || null);
-		// 	})
-		// 	.catch((error) =>
-		// 		console.error("Error fetching man of the match:", error),
-		// 	);
 	}, [team1, team2, match_id, playersInMatch]);
 
 	if (!match || !pitch || playerId === null) {
@@ -441,7 +383,7 @@ function IndividualMatch() {
 				alert("Unable to remove players.");
 			}
 		};
-		if (isAdmin && playerId == 1) {
+		if (isAdmin) {
 			const confirmDelete = window.confirm(
 				"Are you sure you want to delete this match? This action cannot be undone.",
 			);
@@ -469,6 +411,7 @@ function IndividualMatch() {
 			}
 		}
 	};
+
 	return (
 		<div className="page-content individual-match table-wrapper">
 			<h1>{match.match_name}</h1>
@@ -562,6 +505,16 @@ function IndividualMatch() {
 				setEditedPlayerStats={setEditedPlayerStats}
 				handleSavePlayerStats={handleSavePlayerStats}
 			/>
+			{modal && (
+				<ConfirmModal
+					message={modal.message}
+					onConfirm={() => {
+						modal.onConfirm();
+						setModal(null);
+					}}
+					onCancel={() => setModal(null)}
+				/>
+			)}
 		</div>
 	);
 }

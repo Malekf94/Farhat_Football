@@ -13,5 +13,6 @@ router.get("/", checkJwt, controller.paymentDashboard);
 router.get("/check", checkJwt, controller.runCheckPaymentsScript);
 router.get("/sync", checkJwt, controller.runSyncPaymentsScript);
 router.get("/run", checkJwt, controller.runPayments);
+router.post("/leave/:player_id", checkJwt, controller.leavingPayment);
 
 module.exports = router;

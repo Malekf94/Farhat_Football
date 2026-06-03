@@ -1,6 +1,7 @@
 const { exec } = require("child_process");
 const { runFullPaymentSync } = require("./runFullPaymentSync.cjs");
 const pool = require("../../db.cjs");
+const { recordPlayerLeave } = require("./leavinggame.cjs");
 
 // Run Check Payments Script
 const runCheckPaymentsScript = (req, res) => {
@@ -74,9 +75,43 @@ const paymentDashboard = async (req, res) => {
 	}
 };
 
+const leavingPayment = async (req, res) => {
+	const { playerId } = req.params;
+	const { matchData } = req.body;
+
+	// Basic validation
+	if (!matchData || !matchData.id || !matchData.price) {
+		return res
+			.status(400)
+			.json({ error: "Missing required matchData (id and price)" });
+	}
+
+	try {
+		const transactionId = await recordPlayerLeave(playerId, matchData);
+
+		if (transactionId) {
+			return res.status(201).json({
+				success: true,
+				message: "Leave processed and payment recorded.",
+				transactionId: transactionId,
+			});
+		} else {
+			return res.status(200).json({
+				success: true,
+				message: "Transaction was skipped (duplicate detected).",
+			});
+		}
+	} catch (error) {
+		return res.status(500).json({
+			error: "Internal server error processing player exit.",
+		});
+	}
+};
+
 module.exports = {
 	runCheckPaymentsScript,
 	runSyncPaymentsScript,
 	runPayments,
 	paymentDashboard,
+	leavingPayment,
 };
