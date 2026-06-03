@@ -3,14 +3,18 @@
  * @param {string|number} playerId - The ID of the player.
  * @param {object} matchData - The match details containing id and price.
  * @returns {Promise<string|null>} The transaction ID if inserted, or null if ignored.
+ *
+ *
  */
+const pool = require("../../db.cjs");
+
 async function recordPlayerLeave(playerId, matchData) {
 	const paymentDate = new Date();
 	const amount = -matchData.price; // Negative amount for deduction
 
 	// 1. Generate a unique ID using the timestamp to allow multiple leaves over time
 	const timestamp = paymentDate.getTime();
-	const transactionId = `match_exit_${matchData.id}_${playerId}_${timestamp}`;
+	const transactionId = `match_exit_${matchData.match_id}_${playerId}_${timestamp}`;
 
 	// 2. Format a user-friendly description
 	const formattedDate = paymentDate.toLocaleString("en-US", {
@@ -28,7 +32,7 @@ async function recordPlayerLeave(playerId, matchData) {
 
 	try {
 		// Assuming 'db' is your database connection pool
-		const result = await db.query(queryText, [
+		const result = await pool.query(queryText, [
 			transactionId,
 			paymentDate,
 			amount,
