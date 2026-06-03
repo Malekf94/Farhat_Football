@@ -229,7 +229,7 @@ function IndividualMatch() {
 			onConfirm: async () => {
 				try {
 					if (timeDifference < 5) {
-						await privateApi.put(`/api/v1/payments/leave/${playerId}`, {
+						await privateApi.post(`/api/v1/payments/leave/${playerId}`, {
 							matchData: {
 								id: matchData.match_id,
 								price: matchData.price,
