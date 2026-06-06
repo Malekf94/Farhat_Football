@@ -17,15 +17,14 @@ function IndividualMatch() {
 	const [team1Goals, setTeam1Goals] = useState(0);
 	const [team2Goals, setTeam2Goals] = useState(0);
 	const [manOfTheMatch, setManOfTheMatch] = useState(null);
-	const [manOfTheMatchName, setManOfTheMatchName] = useState(null);
-	const [modal, setModal] = useState(null); // { message, onConfirm }
+	const [modal, setModal] = useState(null);
+	const [toast, setToast] = useState(null);
+	const [emailModal, setEmailModal] = useState(false);
 	const navigate = useNavigate();
 
-	// Toggle edit modes
 	const [isEditingMatch, setIsEditingMatch] = useState(false);
 	const [isEditingStats, setIsEditingStats] = useState(false);
 
-	// Edited data states
 	const [editMatchFields, setEditMatchFields] = useState({
 		match_status: "",
 		match_time: "",
@@ -39,12 +38,20 @@ function IndividualMatch() {
 	const team2 = playersInMatch.filter((player) => player.team_id === 2);
 	const reserves = playersInMatch.filter((player) => player.team_id === 0);
 
+	const showToast = (message, type = "success") => {
+		setToast({ message, type });
+		setTimeout(() => setToast(null), 3000);
+	};
+
+	const motmPlayer = playersInMatch.find((p) => p.player_id === manOfTheMatch);
+
 	const fetchMatchDetails = useCallback(async () => {
 		if (!playerId) return;
 		try {
 			const matchResponse = await privateApi.get(`/api/v1/matches/${match_id}`);
 			const matchData = matchResponse.data[0];
 			setMatch(matchData);
+			setManOfTheMatch(matchData.man_of_the_match || null);
 
 			const pitchResponse = await privateApi.get(
 				`/api/v1/pitches/${matchData.pitch_id}`,
@@ -106,22 +113,13 @@ function IndividualMatch() {
 	}, [playerId]);
 
 	const handleSaveMatch = async () => {
-		const {
-			match_status,
-			match_time,
-			number_of_players,
-			price,
-			youtube_links,
-		} = editMatchFields;
+		const { match_status, match_time, number_of_players, price, youtube_links } =
+			editMatchFields;
 
 		try {
-			// Update match details
 			let winningTeam = null;
-			if (team1Goals > team2Goals) {
-				winningTeam = 1;
-			} else if (team2Goals > team1Goals) {
-				winningTeam = 2;
-			} // else it's a draw, winningTeam remains null
+			if (team1Goals > team2Goals) winningTeam = 1;
+			else if (team2Goals > team1Goals) winningTeam = 2;
 
 			const response = await privateApi.put(`/api/v1/matches/${match_id}`, {
 				match_status,
@@ -132,17 +130,13 @@ function IndividualMatch() {
 				winning_team: winningTeam,
 			});
 
-			// Update match state from the response
 			setMatch(response.data[0]);
-
-			// Refetch match and pitch details
 			await fetchMatchDetails();
-
 			setIsEditingMatch(false);
-			alert("Match details updated successfully.");
+			showToast("Match details updated.");
 		} catch (error) {
 			console.error("Error updating match details:", error);
-			alert("Failed to update match details. Please try again.");
+			showToast("Failed to update match details.", "error");
 		}
 	};
 
@@ -166,8 +160,10 @@ function IndividualMatch() {
 			});
 			setIsEditingStats(false);
 			fetchPlayersInMatch();
+			showToast("Stats saved.");
 		} catch (error) {
 			console.error("Error updating player stats:", error);
+			showToast("Failed to save stats.", "error");
 		}
 	};
 
@@ -177,37 +173,32 @@ function IndividualMatch() {
 
 	const handleJoinMatch = async () => {
 		try {
-			// Fetch player stats to get balance and match count
 			const playerStatsResponse = await privateApi.get(
 				`/api/v1/players/${playerId}/stats`,
 			);
 			const { account_balance } = playerStatsResponse.data;
 
-			// Check conditions
 			if (account_balance < match.price) {
-				alert(
-					`You need a balance of at least £${match.price} to join this match.`,
+				showToast(
+					`You need at least £${match.price} balance to join.`,
+					"error",
 				);
 				window.location.href = "/your-account";
 				return;
 			}
 
-			// Post join request with timestamp
 			await privateApi.post("/api/v1/matchPlayer", {
 				match_id: parseInt(match_id, 10),
 				player_id: playerId,
 				price: match.price,
-				joined_at: new Date().toISOString(), // Add the current timestamp
+				joined_at: new Date().toISOString(),
 			});
 
-			// Refresh the players in the match
 			fetchPlayersInMatch();
-			alert("Successfully joined the match!");
+			showToast("You've joined the match!");
 		} catch (error) {
 			console.error("Error joining match:", error);
-			alert(
-				"Failed to join the match. Please check your balance or try again.",
-			);
+			showToast("Failed to join the match. Please check your balance.", "error");
 		}
 	};
 
@@ -234,13 +225,7 @@ function IndividualMatch() {
 								match_id: matchData.match_id,
 								price: matchData.price,
 							},
-							// amount: -matchData.price,
-							// player_id: playerId,
 						});
-						// await privateApi.put(`/api/v1/players/balance/${playerId}`, {
-						// 	amount: -matchData.price,
-						// 	player_id: playerId,
-						// });
 					}
 					await privateApi.delete("/api/v1/matchPlayer", {
 						data: { match_id: parseInt(match_id, 10), player_id: playerId },
@@ -258,30 +243,25 @@ function IndividualMatch() {
 		opponentOwnGoals.reduce((sum, player) => sum + player.own_goals, 0);
 
 	useEffect(() => {
-		// Calculate Team Scores
 		if (!team1 || !team2) return;
 		setTeam1Goals(calculateTeamScore(team1, team2));
 		setTeam2Goals(calculateTeamScore(team2, team1));
 	}, [team1, team2, match_id, playersInMatch]);
 
 	if (!match || !pitch || playerId === null) {
-		return <p>Loading match details...</p>;
+		return <div className="spinner" />;
 	}
 
-	const handleManOfTheMatchChange = async (playerId) => {
+	const handleManOfTheMatchChange = async (selectedPlayerId) => {
 		try {
 			await privateApi.put(`/api/v1/matches/${match_id}/manOfTheMatch`, {
-				player_id: playerId,
+				player_id: selectedPlayerId,
 			});
-			const matchPlayer = playersInMatch.find(
-				(player) => player.player_id === playerId,
-			);
-			setManOfTheMatch(playerId);
-			setManOfTheMatchName(matchPlayer?.preferred_name || null);
-			alert("Man of the match updated successfully!");
+			setManOfTheMatch(parseInt(selectedPlayerId, 10));
+			showToast("Man of the match updated.");
 		} catch (error) {
 			console.error("Error updating man of the match:", error);
-			alert("Failed to update man of the match. Please try again.");
+			showToast("Failed to update man of the match.", "error");
 		}
 	};
 
@@ -291,12 +271,7 @@ function IndividualMatch() {
 				`/api/v1/matchPlayer/attributes/${match_id}`,
 			);
 			const playersAttributes = response.data;
-
-			// 🔀 Run the randomiser function
-			// const { team1, team2 } = randomiser(playersAttributes);
 			const { team1, team2 } = randomiserMk3(playersAttributes);
-
-			// Extract the player IDs from the two teams
 			const team1Ids = team1.map((player) => player.player_id);
 			const team2Ids = team2.map((player) => player.player_id);
 
@@ -308,122 +283,71 @@ function IndividualMatch() {
 			await fetchPlayersInMatch();
 		} catch (error) {
 			console.error("Error updating teams", error);
-			alert("Failed to update teams. Please try again.");
+			showToast("Failed to balance teams.", "error");
 		}
 	};
 
-	const handleEmailPlayers = async () => {
-		const messageOptions = [
-			"Reminder that you have joined tonight's game. Go to www.farhatfootball.co.uk/matches/" +
-				match_id +
-				" to confirm details. Teams may be subject to change.",
-			"Tonight's game has been CANCELLED. Sorry for any inconvenience.",
-			"Kick-off time has changed — check www.farhatfootball.co.uk/matches/" +
-				match_id +
-				" for the latest details.",
-		];
-
-		const customMessage = window.prompt(
-			"Choose a message number or type your own:\n\n" +
-				messageOptions.map((msg, i) => `${i + 1}. ${msg}`).join("\n\n"),
-		);
-
-		if (!customMessage) return; // User cancelled
-
-		// Check if they picked a number, otherwise use their typed message
-		const choiceIndex = parseInt(customMessage) - 1;
-		const finalMessage =
-			choiceIndex >= 0 && choiceIndex < messageOptions.length
-				? messageOptions[choiceIndex]
-				: customMessage;
-
-		try {
-			await privateApi.post(`/api/v1/matches/${match_id}/notify-players`, {
-				message: finalMessage,
-			});
-			alert("Emails sent successfully!");
-		} catch (error) {
-			console.error("Error sending emails:", error);
-			alert("Failed to send emails. Check console for details.");
-		}
+	const handleDeleteMatch = () => {
+		if (!isAdmin) return;
+		setModal({
+			message:
+				"Are you sure you want to delete this match? This cannot be undone.",
+			confirmText: "Delete",
+			onConfirm: async () => {
+				try {
+					await Promise.all(
+						playersInMatch.map((player) =>
+							privateApi.delete("/api/v1/matchPlayer", {
+								data: {
+									match_id: parseInt(match_id, 10),
+									player_id: player.player_id,
+								},
+							}),
+						),
+					);
+					await privateApi.delete(`/api/v1/matches/${match_id}`, {
+						data: { player_id: playerId },
+					});
+					navigate("/");
+				} catch (error) {
+					console.error("Error deleting match:", error);
+					showToast("Failed to delete match.", "error");
+				}
+			},
+		});
 	};
 
-	const handleEmailAllPlayers = async () => {
-		const confirmSend = window.confirm(
-			"Are you sure you want to email all players for this match?",
-		);
-		if (!confirmSend) return;
-
-		try {
-			// We only send the match_id; the backend will look up the emails for security
-			await privateApi.post(`/api/v1/matches/notify-all-players`);
-			alert("Emails sent successfully!");
-		} catch (error) {
-			console.error("Error sending emails:", error);
-			alert("Failed to send emails. Check console for details.");
-		}
-	};
-
-	const handleDeleteMatch = async () => {
-		const handleRemovePlayers = async () => {
-			try {
-				await Promise.all(
-					playersInMatch.map((player) =>
-						privateApi.delete("/api/v1/matchPlayer", {
-							data: {
-								match_id: parseInt(match_id, 10),
-								player_id: player.player_id,
-							},
-						}),
-					),
-				);
-				alert("All players removed successfully.");
-			} catch (error) {
-				console.error("Error removing players:", error);
-				alert("Unable to remove players.");
-			}
-		};
-		if (isAdmin) {
-			const confirmDelete = window.confirm(
-				"Are you sure you want to delete this match? This action cannot be undone.",
-			);
-
-			if (!confirmDelete) {
-				return; // Exit if the user cancels
-			}
-			try {
-				// First, remove all players
-				await handleRemovePlayers();
-
-				// Then, delete the match
-				await privateApi.delete(`/api/v1/matches/${match_id}`, {
-					data: {
-						player_id: playerId,
-					},
-				});
-				alert("Match deleted successfully.");
-
-				// Navigate to the home page
-				navigate("/");
-			} catch (error) {
-				console.error("Error deleting match:", error);
-				alert("Unable to delete match.");
-			}
-		}
+	const handleEmailAllPlayers = () => {
+		setModal({
+			message: "Send an email to all registered players?",
+			confirmText: "Send",
+			onConfirm: async () => {
+				try {
+					await privateApi.post(`/api/v1/matches/notify-all-players`);
+					showToast("Emails sent successfully!");
+				} catch (error) {
+					console.error("Error sending emails:", error);
+					showToast("Failed to send emails.", "error");
+				}
+			},
+		});
 	};
 
 	return (
 		<div className="page-content individual-match table-wrapper">
 			<h1>{match.match_name}</h1>
+
 			<div>
 				{isAdmin && <button onClick={handleDeleteMatch}>Delete Match</button>}
 				{isAdmin && <button onClick={handleBalanceTeams}>Balance Teams</button>}
-				{isAdmin && <button onClick={handleEmailPlayers}>Email Players</button>}
+				{isAdmin && (
+					<button onClick={() => setEmailModal(true)}>Email Players</button>
+				)}
 			</div>
 			{isAdmin && (
 				<button onClick={handleEmailAllPlayers}>Email All Players</button>
 			)}
-			<div></div>
+
 			<div className="match-details">
 				{isAdmin && isEditingMatch ? (
 					<EditMatchForm
@@ -448,17 +372,24 @@ function IndividualMatch() {
 				)}
 			</div>
 
-			{/* Team Scores and Man of the Match */}
 			<div className="team-scores">
 				<h2>
 					Team 1 ({team1Goals}) - ({team2Goals}) Team 2
 				</h2>
 			</div>
+
+			{/* Man of the Match */}
 			<div className="man-of-the-match">
 				<h3>Man of the Match</h3>
-				{isAdmin ? (
+				{motmPlayer && (
+					<div className="motm-card">
+						<span className="motm-trophy">⭐</span>
+						<span className="motm-name">{motmPlayer.preferred_name}</span>
+					</div>
+				)}
+				{isAdmin && (
 					<select
-						value={manOfTheMatch}
+						value={manOfTheMatch || ""}
 						onChange={(e) => handleManOfTheMatchChange(e.target.value)}
 					>
 						<option value="">Select Man of the Match</option>
@@ -468,9 +399,8 @@ function IndividualMatch() {
 							</option>
 						))}
 					</select>
-				) : (
-					<p>{manOfTheMatchName || "No man of the match selected yet."}</p>
 				)}
+				{!isAdmin && !motmPlayer && <p>Not yet selected.</p>}
 			</div>
 
 			<h2>Team 1</h2>
@@ -505,9 +435,11 @@ function IndividualMatch() {
 				setEditedPlayerStats={setEditedPlayerStats}
 				handleSavePlayerStats={handleSavePlayerStats}
 			/>
+
 			{modal && (
 				<ConfirmModal
 					message={modal.message}
+					confirmText={modal.confirmText || "Confirm"}
 					onConfirm={() => {
 						modal.onConfirm();
 						setModal(null);
@@ -515,6 +447,80 @@ function IndividualMatch() {
 					onCancel={() => setModal(null)}
 				/>
 			)}
+
+			{emailModal && (
+				<EmailModal
+					matchId={match_id}
+					showToast={showToast}
+					onClose={() => setEmailModal(false)}
+				/>
+			)}
+
+			{toast && (
+				<div className={`toast toast--${toast.type}`}>{toast.message}</div>
+			)}
+		</div>
+	);
+}
+
+function EmailModal({ matchId, showToast, onClose }) {
+	const [message, setMessage] = useState("");
+	const [sending, setSending] = useState(false);
+
+	const templates = [
+		`Reminder that you have joined tonight's game. Go to www.farhatfootball.co.uk/matches/${matchId} to confirm details. Teams may be subject to change.`,
+		"Tonight's game has been CANCELLED. Sorry for any inconvenience.",
+		`Kick-off time has changed — check www.farhatfootball.co.uk/matches/${matchId} for the latest details.`,
+	];
+
+	const handleSend = async () => {
+		if (!message.trim()) return;
+		setSending(true);
+		try {
+			await privateApi.post(`/api/v1/matches/${matchId}/notify-players`, {
+				message,
+			});
+			showToast("Emails sent successfully!");
+			onClose();
+		} catch (error) {
+			console.error("Error sending emails:", error);
+			showToast("Failed to send emails.", "error");
+		} finally {
+			setSending(false);
+		}
+	};
+
+	return (
+		<div className="modal-overlay">
+			<div className="modal-box email-modal">
+				<h3>Email Players</h3>
+				<div className="email-templates">
+					{templates.map((t, i) => (
+						<button key={i} className="template-btn" onClick={() => setMessage(t)}>
+							Template {i + 1}
+						</button>
+					))}
+				</div>
+				<textarea
+					className="email-textarea"
+					value={message}
+					onChange={(e) => setMessage(e.target.value)}
+					placeholder="Type your message or select a template above..."
+					rows={5}
+				/>
+				<div className="modal-actions">
+					<button
+						className="modal-btn modal-btn--confirm"
+						onClick={handleSend}
+						disabled={sending || !message.trim()}
+					>
+						{sending ? "Sending..." : "Send"}
+					</button>
+					<button className="modal-btn modal-btn--cancel" onClick={onClose}>
+						Cancel
+					</button>
+				</div>
+			</div>
 		</div>
 	);
 }
@@ -554,11 +560,7 @@ function MatchDetails({
 			{match.youtube_links && (
 				<div className="youtube-links">
 					<h2>YouTube Link</h2>
-					<a
-						href={match.youtube_links}
-						target="_blank"
-						rel="noopener noreferrer"
-					>
+					<a href={match.youtube_links} target="_blank" rel="noopener noreferrer">
 						{match.youtube_links}
 					</a>
 				</div>
@@ -642,10 +644,7 @@ function EditMatchForm({
 					name="price"
 					value={editMatchFields.price}
 					onChange={(e) =>
-						setEditMatchFields({
-							...editMatchFields,
-							price: e.target.value,
-						})
+						setEditMatchFields({ ...editMatchFields, price: e.target.value })
 					}
 				/>
 			</label>
@@ -687,156 +686,156 @@ function PlayerTable({
 			)}
 
 			<div className="table-scroll">
-		<table className="playerTable">
-				<thead>
-					<tr>
-						<th>Name</th>
-						<th>Goals</th>
-						<th>Assists</th>
-						<th>Defcons</th>
-						<th>Key Passes</th>
-						<th>Own Goals</th>
-						<th>Late</th>
-						{isEditingStats && <th>Team</th>}
-					</tr>
-				</thead>
-				<tbody>
-					{players.map((player) => {
-						const editData = editedPlayerStats[player.player_id] || {};
-						const isEditing = isEditingStats && isAdmin;
+				<table className="playerTable">
+					<thead>
+						<tr>
+							<th>Name</th>
+							<th>Goals</th>
+							<th>Assists</th>
+							<th>Defcons</th>
+							<th>Key Passes</th>
+							<th>Own Goals</th>
+							<th>Late</th>
+							{isEditingStats && <th>Team</th>}
+						</tr>
+					</thead>
+					<tbody>
+						{players.map((player) => {
+							const editData = editedPlayerStats[player.player_id] || {};
+							const isEditing = isEditingStats && isAdmin;
 
-						return (
-							<tr key={player.player_id}>
-								<td>{player.preferred_name}</td>
-								{isEditing ? (
-									<>
-										<td>
-											<input
-												type="number"
-												value={editData.goals}
-												onChange={(e) =>
-													setEditedPlayerStats((prev) => ({
-														...prev,
-														[player.player_id]: {
-															...prev[player.player_id],
-															goals: e.target.value,
-														},
-													}))
-												}
-											/>
-										</td>
-										<td>
-											<input
-												type="number"
-												value={editData.assists}
-												onChange={(e) =>
-													setEditedPlayerStats((prev) => ({
-														...prev,
-														[player.player_id]: {
-															...prev[player.player_id],
-															assists: e.target.value,
-														},
-													}))
-												}
-											/>
-										</td>
-										<td>
-											<input
-												type="number"
-												value={editData.defcons}
-												onChange={(e) =>
-													setEditedPlayerStats((prev) => ({
-														...prev,
-														[player.player_id]: {
-															...prev[player.player_id],
-															defcons: e.target.value,
-														},
-													}))
-												}
-											/>
-										</td>
-										<td>
-											<input
-												type="number"
-												value={editData.chancescreated}
-												onChange={(e) =>
-													setEditedPlayerStats((prev) => ({
-														...prev,
-														[player.player_id]: {
-															...prev[player.player_id],
-															chancescreated: e.target.value,
-														},
-													}))
-												}
-											/>
-										</td>
-										<td>
-											<input
-												type="number"
-												value={editData.own_goals}
-												onChange={(e) =>
-													setEditedPlayerStats((prev) => ({
-														...prev,
-														[player.player_id]: {
-															...prev[player.player_id],
-															own_goals: e.target.value,
-														},
-													}))
-												}
-											/>
-										</td>
-										<td>
-											<select
-												value={editData.late}
-												onChange={(e) =>
-													setEditedPlayerStats((prev) => ({
-														...prev,
-														[player.player_id]: {
-															...prev[player.player_id],
-															late: e.target.value === "true",
-														},
-													}))
-												}
-											>
-												<option value="false">No</option>
-												<option value="true">Yes</option>
-											</select>
-										</td>
-										<td>
-											<select
-												value={editData.team_id || ""}
-												onChange={(e) =>
-													setEditedPlayerStats((prev) => ({
-														...prev,
-														[player.player_id]: {
-															...prev[player.player_id],
-															team_id: e.target.value || null,
-														},
-													}))
-												}
-											>
-												<option value="0">reserves</option>
-												<option value="1">1</option>
-												<option value="2">2</option>
-											</select>
-										</td>
-									</>
-								) : (
-									<>
-										<td>{player.goals}</td>
-										<td>{player.assists}</td>
-										<td>{player.defcons}</td>
-										<td>{player.chancescreated}</td>
-										<td>{player.own_goals}</td>
-										<td>{player.late ? "Yes" : "No"}</td>
-									</>
-								)}
-							</tr>
-						);
-					})}
-				</tbody>
-			</table>
-		</div>
+							return (
+								<tr key={player.player_id}>
+									<td>{player.preferred_name}</td>
+									{isEditing ? (
+										<>
+											<td>
+												<input
+													type="number"
+													value={editData.goals}
+													onChange={(e) =>
+														setEditedPlayerStats((prev) => ({
+															...prev,
+															[player.player_id]: {
+																...prev[player.player_id],
+																goals: e.target.value,
+															},
+														}))
+													}
+												/>
+											</td>
+											<td>
+												<input
+													type="number"
+													value={editData.assists}
+													onChange={(e) =>
+														setEditedPlayerStats((prev) => ({
+															...prev,
+															[player.player_id]: {
+																...prev[player.player_id],
+																assists: e.target.value,
+															},
+														}))
+													}
+												/>
+											</td>
+											<td>
+												<input
+													type="number"
+													value={editData.defcons}
+													onChange={(e) =>
+														setEditedPlayerStats((prev) => ({
+															...prev,
+															[player.player_id]: {
+																...prev[player.player_id],
+																defcons: e.target.value,
+															},
+														}))
+													}
+												/>
+											</td>
+											<td>
+												<input
+													type="number"
+													value={editData.chancescreated}
+													onChange={(e) =>
+														setEditedPlayerStats((prev) => ({
+															...prev,
+															[player.player_id]: {
+																...prev[player.player_id],
+																chancescreated: e.target.value,
+															},
+														}))
+													}
+												/>
+											</td>
+											<td>
+												<input
+													type="number"
+													value={editData.own_goals}
+													onChange={(e) =>
+														setEditedPlayerStats((prev) => ({
+															...prev,
+															[player.player_id]: {
+																...prev[player.player_id],
+																own_goals: e.target.value,
+															},
+														}))
+													}
+												/>
+											</td>
+											<td>
+												<select
+													value={editData.late}
+													onChange={(e) =>
+														setEditedPlayerStats((prev) => ({
+															...prev,
+															[player.player_id]: {
+																...prev[player.player_id],
+																late: e.target.value === "true",
+															},
+														}))
+													}
+												>
+													<option value="false">No</option>
+													<option value="true">Yes</option>
+												</select>
+											</td>
+											<td>
+												<select
+													value={editData.team_id || ""}
+													onChange={(e) =>
+														setEditedPlayerStats((prev) => ({
+															...prev,
+															[player.player_id]: {
+																...prev[player.player_id],
+																team_id: e.target.value || null,
+															},
+														}))
+													}
+												>
+													<option value="0">Reserves</option>
+													<option value="1">1</option>
+													<option value="2">2</option>
+												</select>
+											</td>
+										</>
+									) : (
+										<>
+											<td>{player.goals}</td>
+											<td>{player.assists}</td>
+											<td>{player.defcons}</td>
+											<td>{player.chancescreated}</td>
+											<td>{player.own_goals}</td>
+											<td>{player.late ? "Yes" : "No"}</td>
+										</>
+									)}
+								</tr>
+							);
+						})}
+					</tbody>
+				</table>
+			</div>
 		</div>
 	);
 }
@@ -848,7 +847,7 @@ MatchDetails.propTypes = {
 		match_time: PropTypes.string.isRequired,
 		price: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
 		match_status: PropTypes.string.isRequired,
-		youtube_links: PropTypes.string, // Expect an array of strings
+		youtube_links: PropTypes.string,
 	}).isRequired,
 	pitch: PropTypes.shape({
 		pitch_name: PropTypes.string.isRequired,
@@ -863,7 +862,7 @@ MatchDetails.propTypes = {
 		number_of_players: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
 			.isRequired,
 		price: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
-		youtube_links: PropTypes.string, // In edit mode, this is expected as a string
+		youtube_links: PropTypes.string,
 	}).isRequired,
 	setEditMatchFields: PropTypes.func.isRequired,
 	handleSaveMatch: PropTypes.func.isRequired,
@@ -886,6 +885,12 @@ EditMatchForm.propTypes = {
 	}),
 	setEditMatchFields: PropTypes.func.isRequired,
 	handleSaveMatch: PropTypes.func.isRequired,
+};
+
+EmailModal.propTypes = {
+	matchId: PropTypes.string.isRequired,
+	showToast: PropTypes.func.isRequired,
+	onClose: PropTypes.func.isRequired,
 };
 
 PlayerTable.propTypes = {

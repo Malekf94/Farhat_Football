@@ -18,46 +18,46 @@ const getMatches = async (req, res) => {
 		const pageNum = parseInt(page);
 		const limitNum = parseInt(limit);
 
-		let baseQuery = `FROM matches WHERE 1=1`;
+		let whereClause = `WHERE 1=1`;
 		const values = [];
 		let index = 1;
 
 		if (status) {
-			baseQuery += ` AND match_status = $${index}`;
+			whereClause += ` AND m.match_status = $${index}`;
 			values.push(status);
 			index++;
 		}
 
 		if (year) {
-			baseQuery += ` AND EXTRACT(YEAR FROM match_date) = $${index}`;
+			whereClause += ` AND EXTRACT(YEAR FROM m.match_date) = $${index}`;
 			values.push(year);
 			index++;
 		}
 
 		if (month) {
-			baseQuery += ` AND EXTRACT(MONTH FROM match_date) = $${index}`;
+			whereClause += ` AND EXTRACT(MONTH FROM m.match_date) = $${index}`;
 			values.push(month);
 			index++;
 		}
 
 		if (pitch_id) {
-			baseQuery += ` AND pitch_id = $${index}`;
+			whereClause += ` AND m.pitch_id = $${index}`;
 			values.push(pitch_id);
 			index++;
 		}
 
-		// 🔹 Get total count
-		const countQuery = `SELECT COUNT(*) ${baseQuery}`;
+		const countQuery = `SELECT COUNT(DISTINCT m.match_id) FROM matches m ${whereClause}`;
 		const countResult = await pool.query(countQuery, values);
 		const total = parseInt(countResult.rows[0].count);
 
-		// 🔹 Get paginated data
 		const offset = (pageNum - 1) * limitNum;
-
 		const dataQuery = `
-      SELECT *
-      ${baseQuery}
-      ORDER BY match_date DESC
+      SELECT m.*, COUNT(mp.player_id) AS player_count
+      FROM matches m
+      LEFT JOIN match_players mp ON m.match_id = mp.match_id
+      ${whereClause}
+      GROUP BY m.match_id
+      ORDER BY m.match_date DESC
       LIMIT $${index} OFFSET $${index + 1}
     `;
 

@@ -49,31 +49,59 @@
 
 /* Tables for Player Stats */
 .playerTable {
+	display: table; /* override global mobile display:block — scroll handled by .table-scroll */
+	min-width: 520px; /* wide enough to trigger scroll on mobile */
 	width: 100%;
 	border-collapse: collapse;
 	margin-top: 20px;
-	background-color: rgba(0, 0, 0, 0.8); /* Matches the theme */
+	background-color: rgba(0, 0, 0, 0.8);
 }
 .playerTable th,
 .playerTable td {
 	border: 1px solid #ffcc00;
 	text-align: center;
 	padding: 12px;
+	white-space: nowrap;
+}
+.playerTable th:first-child,
+.playerTable td:first-child {
+	min-width: 90px;
+	white-space: normal;
+	word-break: break-word;
+	text-align: left;
 }
 .playerTable th {
-	background-color: #333333; /* Darker header */
+	background-color: #333333;
 	font-weight: bold;
 	color: #ffcc00;
 }
 .playerTable tr:nth-child(even) {
-	background-color: rgba(50, 50, 50, 0.8); /* Slight variation */
+	background-color: rgba(50, 50, 50, 0.8);
 }
 .playerTable tr:hover {
-	background-color: rgba(80, 80, 80, 0.9); /* Highlight row on hover */
+	background-color: rgba(80, 80, 80, 0.9);
 }
 .playerTable td {
 	color: #f9f9f9;
 	font-size: 1rem;
+}
+.playerTable input[type="number"] {
+	width: 48px;
+	padding: 4px;
+	background: #222;
+	color: white;
+	border: 1px solid #ffcc00;
+	border-radius: 4px;
+	font-size: 0.9rem;
+	text-align: center;
+}
+.playerTable select {
+	padding: 4px;
+	background: #222;
+	color: white;
+	border: 1px solid #ffcc00;
+	border-radius: 4px;
+	font-size: 0.9rem;
 } /* Buttons */
 button {
 	padding: 10px 20px;
@@ -131,7 +159,142 @@ h2 {
 }
 .indiMatchesP {
 	color: white;
-} /* Responsive Design */
+}
+
+/* Man of the match card */
+.man-of-the-match {
+	margin: 8px 0;
+}
+
+.man-of-the-match h3 {
+	color: #ffcc00;
+	margin-bottom: 8px;
+}
+
+.man-of-the-match select {
+	margin-top: 10px;
+	padding: 8px 12px;
+	background: #222;
+	color: white;
+	border: 1px solid #ffcc00;
+	border-radius: 6px;
+	font-size: 0.95rem;
+}
+
+.motm-card {
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+	background: rgba(255, 204, 0, 0.12);
+	border: 1px solid rgba(255, 204, 0, 0.5);
+	border-radius: 10px;
+	padding: 10px 20px;
+}
+
+.motm-trophy {
+	font-size: 1.4rem;
+}
+
+.motm-name {
+	font-size: 1.15rem;
+	font-weight: 700;
+	color: #ffcc00;
+}
+
+/* Toast notification */
+.toast {
+	position: fixed;
+	bottom: 24px;
+	left: 50%;
+	transform: translateX(-50%);
+	padding: 12px 24px;
+	border-radius: 8px;
+	font-size: 0.95rem;
+	font-weight: 600;
+	z-index: 2000;
+	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+	white-space: nowrap;
+	animation: fadeInUp 0.25s ease;
+}
+
+.toast--success {
+	background: #2d6a4f;
+	color: white;
+	border: 1px solid #40916c;
+}
+
+.toast--error {
+	background: #9b1b1b;
+	color: white;
+	border: 1px solid #e63946;
+}
+
+@keyframes fadeInUp {
+	from {
+		opacity: 0;
+		transform: translateX(-50%) translateY(10px);
+	}
+	to {
+		opacity: 1;
+		transform: translateX(-50%) translateY(0);
+	}
+}
+
+/* Email modal */
+.email-modal {
+	max-width: 500px !important;
+	text-align: left;
+}
+
+.email-modal h3 {
+	color: #ffcc00;
+	margin: 0 0 14px;
+	font-size: 1.1rem;
+}
+
+.email-templates {
+	display: flex;
+	gap: 8px;
+	flex-wrap: wrap;
+	margin-bottom: 12px;
+}
+
+.template-btn {
+	padding: 6px 14px;
+	font-size: 0.85rem;
+	background: #333;
+	color: #ffcc00;
+	border: 1px solid #ffcc00;
+	border-radius: 6px;
+	cursor: pointer;
+	margin: 0;
+	min-height: unset;
+}
+
+.template-btn:hover {
+	background: rgba(255, 204, 0, 0.15);
+}
+
+.email-textarea {
+	width: 100%;
+	padding: 10px;
+	background: #1a1a2e;
+	color: white;
+	border: 1px solid #444;
+	border-radius: 6px;
+	font-size: 0.9rem;
+	resize: vertical;
+	margin-bottom: 14px;
+	font-family: inherit;
+	box-sizing: border-box;
+}
+
+.email-textarea:focus {
+	outline: none;
+	border-color: #ffcc00;
+}
+
+/* Responsive Design */
 
 @media (max-width: 768px) {
 	.match-details {
@@ -146,7 +309,6 @@ h2 {
 	.playerTable td {
 		font-size: 0.85rem;
 		padding: 8px 6px;
-		white-space: nowrap;
 	}
 
 	h2 {

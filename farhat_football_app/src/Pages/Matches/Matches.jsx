@@ -138,7 +138,7 @@ function Matches() {
 					In Progress
 				</button>
 			</div>
-			{loading && <p>Loading matches...</p>}
+			{loading && <div className="spinner" />}
 
 			{Object.keys(groupedMatches).map((monthYear) => (
 				<div key={monthYear} className="month-group">
@@ -150,6 +150,9 @@ function Matches() {
 								<Link to={`/matches/${match.match_id}`}>
 									{match.match_name}
 								</Link>
+								<span className="match-player-count">
+									{match.player_count} / {match.number_of_players * 2}
+								</span>
 							</li>
 						))}
 					</ul>

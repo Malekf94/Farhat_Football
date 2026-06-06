@@ -56,6 +56,21 @@
 	margin: 0;
 }
 
+.balance-negative {
+	color: #e63946 !important;
+}
+
+.balance-warning {
+	margin-top: 8px;
+	padding: 10px 16px;
+	background: rgba(230, 57, 70, 0.15);
+	border: 1px solid rgba(230, 57, 70, 0.5);
+	border-radius: 8px;
+	color: #e63946;
+	font-size: 0.9rem;
+	font-weight: 600;
+}
+
 /* Edit Form */
 .edit-form {
 	display: flex;

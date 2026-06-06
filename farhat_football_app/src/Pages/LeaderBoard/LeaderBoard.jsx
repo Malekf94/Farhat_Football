@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import { publicApi } from "../../api";
 import "./LeaderBoard.css";
 
 function LeaderBoard() {
@@ -10,7 +10,7 @@ function LeaderBoard() {
 
 	useEffect(() => {
 		// Fetch leaderboard data whenever year, month, or sortKey changes
-		axios
+		publicApi
 			.get("/api/v1/leaderboard", { params: { year, month } })
 			.then((response) => {
 				const sortedData = sortData(response.data, sortKey);

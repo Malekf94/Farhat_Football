@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import { publicApi } from "../../api";
 import "./StatLeaderBoard.css";
 
 function StatLeaderBoard() {
@@ -9,7 +9,7 @@ function StatLeaderBoard() {
 
 	// Fetch list of attributes for dropdown
 	useEffect(() => {
-		axios
+		publicApi
 			.get("/api/v1/attributes/")
 			.then((res) => {
 				setAttributes([...res.data, "total_stats"]); // add virtual option
@@ -21,7 +21,7 @@ function StatLeaderBoard() {
 
 	// Fetch leaderboard whenever sortKey changes
 	useEffect(() => {
-		axios
+		publicApi
 			.get(`/api/v1/attributes/leaderboard/${sortKey}`)
 			.then((res) => {
 				setLeaderboardData(res.data);

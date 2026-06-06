@@ -117,12 +117,8 @@ function AccountDetails() {
 		.filter((m) => m.match_status === "completed")
 		.slice(0, 5);
 
-	if (authLoading || playerLoading) {
-		return <p>Loading...</p>;
-	}
-
-	if (!playerId || !userDetails) {
-		return <p>Loading your account details...</p>;
+	if (authLoading || playerLoading || !playerId || !userDetails) {
+		return <div className="spinner" />;
 	}
 
 	return (
@@ -131,7 +127,14 @@ function AccountDetails() {
 
 			{/* Balance */}
 			<div className="balance-section">
-				<h2>Balance: £{Number(userDetails.account_balance).toFixed(2)}</h2>
+				<h2 className={Number(userDetails.account_balance) < 0 ? "balance-negative" : ""}>
+					Balance: £{Number(userDetails.account_balance).toFixed(2)}
+				</h2>
+				{Number(userDetails.account_balance) < 0 && (
+					<div className="balance-warning">
+						Your balance is negative. Please top up before your next match.
+					</div>
+				)}
 			</div>
 
 			{/* Action buttons */}
