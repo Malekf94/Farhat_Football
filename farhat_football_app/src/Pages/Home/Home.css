@@ -29,7 +29,9 @@
 	border: none;
 	cursor: pointer;
 	text-align: center;
-	width: 200px; /* Consistent button width */
+	width: 100%;
+	max-width: 280px;
+	min-height: 44px;
 }
 
 .btn-group .btn:hover {

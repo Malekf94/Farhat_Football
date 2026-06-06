@@ -128,36 +128,40 @@ h2 {
 
 @media (max-width: 768px) {
 	.match-details {
-		padding: 15px;
+		padding: 12px;
 	}
+
+	.match-details p {
+		font-size: 1rem;
+	}
+
 	.playerTable {
+		display: block;
+		overflow-x: auto;
+		-webkit-overflow-scrolling: touch;
 		width: 100%;
-		max-width: 100%;
-		table-layout: fixed; /* 🔑 forces fit */
 	}
 
 	.playerTable th,
 	.playerTable td {
-		white-space: normal; /* allow wrapping */
-		word-break: break-word;
-		font-size: 0.75rem;
-		padding: 6px;
-	}
-
-	.match-details {
-		padding: 15px;
-	}
-
-	h1 {
-		font-size: 2.5rem;
+		font-size: 0.85rem;
+		padding: 8px 6px;
+		white-space: nowrap;
 	}
 
 	h2 {
-		font-size: 1.8rem;
+		font-size: 1.4rem;
 	}
 
 	button {
 		font-size: 0.9rem;
-		padding: 8px 15px;
+		padding: 10px 15px;
+		min-height: 44px;
+	}
+
+	.edit-form input,
+	.edit-form select {
+		font-size: 1rem;
+		min-height: 44px;
 	}
 }
