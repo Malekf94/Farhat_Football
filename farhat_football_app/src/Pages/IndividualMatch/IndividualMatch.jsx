@@ -686,7 +686,8 @@ function PlayerTable({
 				<button onClick={handleSavePlayerStats}>Save Stats</button>
 			)}
 
-			<table className="playerTable">
+			<div className="table-scroll">
+		<table className="playerTable">
 				<thead>
 					<tr>
 						<th>Name</th>
@@ -835,6 +836,7 @@ function PlayerTable({
 					})}
 				</tbody>
 			</table>
+		</div>
 		</div>
 	);
 }

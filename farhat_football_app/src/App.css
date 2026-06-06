@@ -92,7 +92,6 @@ td {
 
 	.page-content {
 		padding: 12px;
-		overflow-x: hidden;
 		z-index: 1;
 	}
 
@@ -107,7 +106,6 @@ td {
 		display: block;
 		overflow-x: auto;
 		-webkit-overflow-scrolling: touch;
-		width: 100%;
 	}
 
 	td,

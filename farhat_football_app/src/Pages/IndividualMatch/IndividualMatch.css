@@ -40,7 +40,14 @@
 .youtube-links a:hover {
 	text-decoration: underline;
 	color: #fff; /* Hover effect for contrast */
-} /* Tables for Player Stats */
+} /* Scroll wrapper for wide tables on mobile */
+.table-scroll {
+	overflow-x: auto;
+	-webkit-overflow-scrolling: touch;
+	width: 100%;
+}
+
+/* Tables for Player Stats */
 .playerTable {
 	width: 100%;
 	border-collapse: collapse;
@@ -133,13 +140,6 @@ h2 {
 
 	.match-details p {
 		font-size: 1rem;
-	}
-
-	.playerTable {
-		display: block;
-		overflow-x: auto;
-		-webkit-overflow-scrolling: touch;
-		width: 100%;
 	}
 
 	.playerTable th,
