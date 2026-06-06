@@ -49,8 +49,9 @@
 
 /* Tables for Player Stats */
 .playerTable {
-	display: table; /* override global mobile display:block — scroll handled by .table-scroll */
-	min-width: 520px; /* wide enough to trigger scroll on mobile */
+	display: table !important; /* must override global mobile table{display:block} */
+	overflow-x: visible !important; /* prevent double scroll container — .table-scroll handles it */
+	min-width: 560px;
 	width: 100%;
 	border-collapse: collapse;
 	margin-top: 20px;
