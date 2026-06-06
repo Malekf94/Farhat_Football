@@ -677,7 +677,7 @@ function PlayerTable({
 	handleSavePlayerStats,
 }) {
 	return (
-		<div>
+		<div style={{ width: "100%" }}>
 			{isAdmin && !isEditingStats && (
 				<button onClick={() => setIsEditingStats(true)}>Edit Stats</button>
 			)}
