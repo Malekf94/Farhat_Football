@@ -36,7 +36,7 @@ function LeaderBoard() {
 	return (
 		<div className="page-content leaderboard">
 			<h1>Leaderboard</h1>
-			<div className="filters">
+			<div className="lb-filters">
 				<label>
 					Year:
 					<input

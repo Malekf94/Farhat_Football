@@ -1,4 +1,4 @@
-.filters {
+.lb-filters {
 	display: flex;
 	flex-wrap: wrap;
 	justify-content: center;
@@ -6,7 +6,7 @@
 	margin: 12px 0 20px;
 }
 
-.filters label {
+.lb-filters label {
 	display: flex;
 	flex-direction: column;
 	align-items: flex-start;
@@ -18,8 +18,8 @@
 	color: #ffcc00;
 }
 
-.filters input,
-.filters select {
+.lb-filters input,
+.lb-filters select {
 	padding: 8px 10px;
 	border: 1px solid rgba(255, 204, 0, 0.5);
 	border-radius: 6px;
@@ -29,13 +29,13 @@
 	min-height: 40px;
 }
 
-.filters input:focus,
-.filters select:focus {
+.lb-filters input:focus,
+.lb-filters select:focus {
 	outline: none;
 	border-color: #ffcc00;
 }
 
-.filters input[type="number"] {
+.lb-filters input[type="number"] {
 	width: 90px;
 }
 
@@ -45,7 +45,7 @@
 }
 
 @media (max-width: 768px) {
-	.filters {
+	.lb-filters {
 		flex-direction: column;
 		align-items: stretch;
 		gap: 10px;
@@ -53,19 +53,19 @@
 		max-width: 320px;
 	}
 
-	.filters label {
+	.lb-filters label {
 		flex-direction: row;
 		justify-content: space-between;
 		align-items: center;
 	}
 
-	.filters input,
-	.filters select {
+	.lb-filters input,
+	.lb-filters select {
 		flex: 1;
 		min-height: 44px;
 	}
 
-	.filters input[type="number"] {
+	.lb-filters input[type="number"] {
 		width: auto;
 	}
 }
