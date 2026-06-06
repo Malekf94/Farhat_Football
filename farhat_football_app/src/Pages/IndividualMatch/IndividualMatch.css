@@ -66,26 +66,15 @@
 }
 .playerTable th:first-child,
 .playerTable td:first-child {
-	position: sticky;
-	left: 0;
-	z-index: 1;
 	min-width: 90px;
 	white-space: normal;
 	word-break: break-word;
 	text-align: left;
-	background: #111;
 }
 .playerTable th {
 	background-color: #333333;
 	font-weight: bold;
 	color: #ffcc00;
-}
-.playerTable thead th:first-child {
-	background: #333333;
-	z-index: 2;
-}
-.playerTable tr:nth-child(even) td:first-child {
-	background: #222;
 }
 .playerTable tr:nth-child(even) {
 	background-color: rgba(50, 50, 50, 0.8);
