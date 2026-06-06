@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
+import { useNavigate } from "react-router-dom";
 import "./AccountDetails.css";
 import { privateApi } from "../../api";
 import { useCurrentPlayer } from "../../hooks/useCurrentPlayer";
@@ -7,45 +8,59 @@ import { useCurrentPlayer } from "../../hooks/useCurrentPlayer";
 function AccountDetails() {
 	const { isLoading: authLoading } = useAuth0();
 	const { playerId, isLoading: playerLoading } = useCurrentPlayer();
+	const navigate = useNavigate();
+
 	const [userDetails, setUserDetails] = useState(null);
 	const [playerStats, setPlayerStats] = useState([]);
 	const [attributes, setAttributes] = useState({});
 	const [showAttributes, setShowAttributes] = useState(false);
 	const [showEditForm, setShowEditForm] = useState(false);
 	const [paymentHistory, setPaymentHistory] = useState([]);
+	const [playerMatches, setPlayerMatches] = useState([]);
+	const [careerStats, setCareerStats] = useState(null);
 
-	// Fetch player details, stats, and attributes when playerId is available
 	useEffect(() => {
 		if (!playerId) return;
 
-		// Fetch player details
 		privateApi
 			.get(`/api/v1/players/owndetails/${playerId}`)
 			.then((response) => setUserDetails(response.data[0]))
 			.catch((error) => console.error("Error fetching user details:", error));
 
-		// Fetch player stats
 		privateApi
 			.get(`/api/v1/players/${playerId}/monthlystats`)
 			.then((response) => setPlayerStats(response.data))
 			.catch((error) => console.error("Error fetching player stats:", error));
 
-		// Fetch player attributes
 		privateApi
 			.get(`/api/v1/attributes/${playerId}`)
 			.then((response) => setAttributes(response.data))
 			.catch((error) =>
 				console.error("Error fetching player attributes:", error),
 			);
+
 		privateApi
 			.get(`/api/v1/players/${playerId}/payments`)
 			.then((response) => setPaymentHistory(response.data))
 			.catch((error) =>
 				console.error("Error fetching payment history:", error),
 			);
+
+		privateApi
+			.get(`/api/v1/players/${playerId}/matches`)
+			.then((response) => setPlayerMatches(response.data))
+			.catch((error) =>
+				console.error("Error fetching player matches:", error),
+			);
+
+		privateApi
+			.get(`/api/v1/players/${playerId}/career`)
+			.then((response) => setCareerStats(response.data))
+			.catch((error) =>
+				console.error("Error fetching career stats:", error),
+			);
 	}, [playerId]);
 
-	// Edit Handlers
 	const handleChange = (e) => {
 		const { name, value } = e.target;
 		setUserDetails((prevDetails) => ({
@@ -72,11 +87,35 @@ function AccountDetails() {
 			alert("Player ID is missing.");
 			return;
 		}
-
-		// Open Monzo payment link
 		const monzoLink = `https://monzo.me/malekfarhat/4.5?d=ffc${playerId}`;
 		window.open(monzoLink, "_blank");
 	};
+
+	const formatDate = (dateStr) =>
+		new Date(dateStr).toLocaleDateString("en-GB", {
+			weekday: "short",
+			day: "numeric",
+			month: "short",
+			year: "numeric",
+		});
+
+	const formatTime = (timeStr) => {
+		if (!timeStr) return "";
+		const [hours, minutes] = timeStr.split(":");
+		const h = parseInt(hours);
+		return `${h % 12 || 12}:${minutes} ${h >= 12 ? "PM" : "AM"}`;
+	};
+
+	const today = new Date();
+	today.setHours(0, 0, 0, 0);
+
+	const upcomingMatch = playerMatches.find(
+		(m) => new Date(m.match_date) >= today && m.match_status !== "completed",
+	);
+
+	const recentMatches = playerMatches
+		.filter((m) => m.match_status === "completed")
+		.slice(0, 5);
 
 	if (authLoading || playerLoading) {
 		return <p>Loading...</p>;
@@ -90,18 +129,20 @@ function AccountDetails() {
 		<div className="page-content AccountDetails">
 			<h1>Hello {userDetails.preferred_name}</h1>
 
-			{/* Update Details Form */}
-			<button onClick={handlePayment}>Update Balance</button>
-
-			<button
-				className="toggle-edit-btn"
-				onClick={() => setShowEditForm(!showEditForm)}
-			>
-				{showEditForm ? "Cancel Update" : "Update Details"}
-			</button>
-
+			{/* Balance */}
 			<div className="balance-section">
 				<h2>Balance: £{Number(userDetails.account_balance).toFixed(2)}</h2>
+			</div>
+
+			{/* Action buttons */}
+			<div className="action-buttons">
+				<button onClick={handlePayment}>Top Up Balance</button>
+				<button
+					className="toggle-edit-btn"
+					onClick={() => setShowEditForm(!showEditForm)}
+				>
+					{showEditForm ? "Cancel" : "Update Details"}
+				</button>
 			</div>
 
 			{showEditForm && (
@@ -129,9 +170,90 @@ function AccountDetails() {
 				</div>
 			)}
 
-			{/* Stats Section */}
+			{/* Career stat cards */}
+			{careerStats && (
+				<div className="career-stats-grid">
+					<div className="stat-card">
+						<span className="stat-value">{careerStats.total_matches}</span>
+						<span className="stat-label">Games</span>
+					</div>
+					<div className="stat-card">
+						<span className="stat-value">{careerStats.total_goals}</span>
+						<span className="stat-label">Goals</span>
+					</div>
+					<div className="stat-card">
+						<span className="stat-value">{careerStats.total_assists}</span>
+						<span className="stat-label">Assists</span>
+					</div>
+					<div className="stat-card">
+						<span className="stat-value">{careerStats.total_defcons}</span>
+						<span className="stat-label">Defcons</span>
+					</div>
+				</div>
+			)}
+
+			{/* Upcoming match */}
+			{upcomingMatch ? (
+				<div className="upcoming-match-card">
+					<h2>Your Next Match</h2>
+					<p className="upcoming-date">{formatDate(upcomingMatch.match_date)}</p>
+					{upcomingMatch.match_time && (
+						<p className="upcoming-detail">
+							{formatTime(upcomingMatch.match_time)}
+						</p>
+					)}
+					{upcomingMatch.pitch_name && (
+						<p className="upcoming-detail">{upcomingMatch.pitch_name}</p>
+					)}
+					{upcomingMatch.price && (
+						<p className="upcoming-detail">£{upcomingMatch.price} per player</p>
+					)}
+					<button onClick={() => navigate(`/matches/${upcomingMatch.match_id}`)}>
+						View Match
+					</button>
+				</div>
+			) : (
+				<div className="upcoming-match-card upcoming-match-empty">
+					<p>No upcoming matches scheduled yet.</p>
+				</div>
+			)}
+
+			{/* Recent matches */}
+			{recentMatches.length > 0 && (
+				<div className="stats-section">
+					<h2>Recent Matches</h2>
+					<table className="stats-table">
+						<thead>
+							<tr>
+								<th>Date</th>
+								<th>Venue</th>
+								<th>G</th>
+								<th>A</th>
+								<th>DC</th>
+							</tr>
+						</thead>
+						<tbody>
+							{recentMatches.map((match) => (
+								<tr
+									key={match.match_id}
+									className="clickable-row"
+									onClick={() => navigate(`/matches/${match.match_id}`)}
+								>
+									<td>{formatDate(match.match_date)}</td>
+									<td>{match.pitch_name || "—"}</td>
+									<td>{match.goals}</td>
+									<td>{match.assists}</td>
+									<td>{match.defcons}</td>
+								</tr>
+							))}
+						</tbody>
+					</table>
+				</div>
+			)}
+
+			{/* Monthly performance */}
 			<div className="stats-section">
-				<h2>Your Performance</h2>
+				<h2>Monthly Performance</h2>
 				<table className="stats-table">
 					<thead>
 						<tr>
@@ -140,8 +262,8 @@ function AccountDetails() {
 							<th>Goals</th>
 							<th>Assists</th>
 							<th>Defcons</th>
-							<th>Chances Created</th>
-							<th>Own Goals</th>
+							<th>Chances</th>
+							<th>OGs</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -166,9 +288,9 @@ function AccountDetails() {
 				</table>
 			</div>
 
-			{/* Payment History Section */}
+			{/* Payment history */}
 			<div className="payments-section">
-				<h2>Your Payment History</h2>
+				<h2>Payment History</h2>
 				<table className="payments-table">
 					<thead>
 						<tr>
@@ -188,14 +310,14 @@ function AccountDetails() {
 							))
 						) : (
 							<tr>
-								<td colSpan="2">No payment history available</td>
+								<td colSpan="3">No payment history available</td>
 							</tr>
 						)}
 					</tbody>
 				</table>
 			</div>
 
-			{/* Attributes Toggle */}
+			{/* Attributes */}
 			<div className="attributes-section">
 				<button
 					className="toggle-attributes-btn"

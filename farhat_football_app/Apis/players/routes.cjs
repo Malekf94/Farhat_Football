@@ -33,6 +33,9 @@ router.put(
 router.put("/balance/:player_id", checkJwt, controller.updatePlayerBalance);
 router.put("/:player_id", checkJwt, controller.updatePlayer);
 
+router.get("/:player_id/matches", checkJwt, controller.getPlayerMatches);
+router.get("/:player_id/career", checkJwt, controller.getCareerStats);
+
 // 🚨 ALWAYS LAST
 router.get("/:player_id", checkJwt, controller.getPlayer);
 module.exports = router;

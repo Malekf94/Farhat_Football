@@ -138,6 +138,90 @@
 	text-align: center;
 }
 
+/* Career stat cards */
+.career-stats-grid {
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	gap: 12px;
+	width: 100%;
+	max-width: 600px;
+	margin: 8px 0;
+}
+
+.stat-card {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	background: rgba(0, 0, 0, 0.45);
+	border: 1px solid rgba(255, 204, 0, 0.35);
+	border-radius: 10px;
+	padding: 14px 10px;
+	gap: 4px;
+}
+
+.stat-value {
+	font-size: 1.8rem;
+	font-weight: 800;
+	color: #ffcc00;
+	line-height: 1;
+}
+
+.stat-label {
+	font-size: 0.7rem;
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	color: rgba(255, 255, 255, 0.65);
+}
+
+/* Upcoming match card */
+.upcoming-match-card {
+	width: 100%;
+	max-width: 480px;
+	background: rgba(0, 0, 0, 0.5);
+	border: 1px solid rgba(255, 204, 0, 0.4);
+	border-radius: 12px;
+	padding: 20px;
+	text-align: center;
+	margin: 4px 0;
+}
+
+.upcoming-match-card h2 {
+	color: #ffcc00;
+	font-size: 1rem;
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	margin: 0 0 10px;
+}
+
+.upcoming-date {
+	font-size: 1.15rem;
+	font-weight: 700;
+	margin: 0 0 6px;
+}
+
+.upcoming-detail {
+	font-size: 0.9rem;
+	color: rgba(255, 255, 255, 0.75);
+	margin: 0 0 4px;
+}
+
+.upcoming-match-empty {
+	border-style: dashed;
+	opacity: 0.55;
+}
+
+.upcoming-match-empty p {
+	margin: 0;
+	font-size: 0.9rem;
+	color: rgba(255, 255, 255, 0.6);
+}
+
+/* Clickable table rows */
+.clickable-row {
+	cursor: pointer;
+}
+
 /* Mobile */
 @media screen and (max-width: 768px) {
 	.balance-section h2 {
@@ -152,6 +236,19 @@
 	.toggle-edit-btn,
 	.toggle-attributes-btn {
 		font-size: 0.9rem;
-		padding: 9px 16px;
+		padding: 11px 16px;
+		min-height: 44px;
+	}
+
+	.career-stats-grid {
+		grid-template-columns: repeat(2, 1fr);
+	}
+
+	.stat-value {
+		font-size: 1.5rem;
+	}
+
+	.upcoming-match-card {
+		max-width: 100%;
 	}
 }

@@ -91,6 +91,41 @@ const getNegativeBalance = `SELECT
 			WHERE account_balance < 0;
 		`;
 
+const getPlayerMatches = `
+  SELECT
+    m.match_id,
+    m.match_date,
+    m.match_time,
+    m.match_status,
+    m.price,
+    pi.pitch_name,
+    mp.goals,
+    mp.assists,
+    mp.defcons,
+    mp.chancescreated,
+    mp.own_goals,
+    mp.late,
+    mp.team_id
+  FROM match_players mp
+  JOIN matches m ON mp.match_id = m.match_id
+  LEFT JOIN pitches pi ON m.pitch_id = pi.pitch_id
+  WHERE mp.player_id = $1
+  ORDER BY m.match_date DESC;
+`;
+
+const getCareerStats = `
+  SELECT
+    COUNT(mp.match_id) AS total_matches,
+    COALESCE(SUM(mp.goals), 0) AS total_goals,
+    COALESCE(SUM(mp.assists), 0) AS total_assists,
+    COALESCE(SUM(mp.defcons), 0) AS total_defcons,
+    COALESCE(SUM(mp.chancescreated), 0) AS total_chancescreated,
+    COALESCE(SUM(mp.own_goals), 0) AS total_own_goals
+  FROM match_players mp
+  JOIN matches m ON mp.match_id = m.match_id
+  WHERE mp.player_id = $1;
+`;
+
 module.exports = {
 	getPlayers,
 	getOwnPlayer,
@@ -107,4 +142,6 @@ module.exports = {
 	getNegativeBalance,
 	addAuthPlayer,
 	getMonthlyPlayerStats,
+	getPlayerMatches,
+	getCareerStats,
 };

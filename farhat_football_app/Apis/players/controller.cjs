@@ -289,6 +289,28 @@ const checkEmail = async (req, res) => {
 	}
 };
 
+const getPlayerMatches = async (req, res) => {
+	const { player_id } = req.params;
+	try {
+		const result = await pool.query(queries.getPlayerMatches, [player_id]);
+		res.status(200).json(result.rows);
+	} catch (error) {
+		console.error("Error fetching player matches:", error);
+		res.status(500).json({ error: "Failed to fetch player matches." });
+	}
+};
+
+const getCareerStats = async (req, res) => {
+	const { player_id } = req.params;
+	try {
+		const result = await pool.query(queries.getCareerStats, [player_id]);
+		res.status(200).json(result.rows[0]);
+	} catch (error) {
+		console.error("Error fetching career stats:", error);
+		res.status(500).json({ error: "Failed to fetch career stats." });
+	}
+};
+
 module.exports = {
 	getPlayers,
 	addPlayer,
@@ -304,4 +326,6 @@ module.exports = {
 	auth0Signup,
 	checkEmail,
 	getMonthlyPlayerStats,
+	getPlayerMatches,
+	getCareerStats,
 };
