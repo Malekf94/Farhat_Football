@@ -1,6 +1,6 @@
 import "./Players.css";
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { publicApi } from "../../api";
 
 function Players() {
@@ -9,6 +9,7 @@ function Players() {
 	const [searchQuery, setSearchQuery] = useState("");
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState(null);
+	const navigate = useNavigate();
 
 	useEffect(() => {
 		publicApi
@@ -39,7 +40,7 @@ function Players() {
 	if (isLoading)
 		return (
 			<div className="page-content">
-				<p>Loading players...</p>
+				<div className="spinner" />
 			</div>
 		);
 	if (error)
@@ -60,6 +61,9 @@ function Players() {
 					onChange={handleSearch}
 					className="search-input"
 				/>
+				<button className="compare-btn" onClick={() => navigate("/compare")}>
+					Compare
+				</button>
 			</div>
 			<ul className="playerList">
 				{filteredPlayers.length > 0 ? (

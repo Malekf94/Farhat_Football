@@ -109,8 +109,12 @@ button:active {
 /* Search Bar */
 .search-container {
 	margin: 10px 0 30px;
-	text-align: center;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 10px;
 	width: 100%;
+	flex-wrap: wrap;
 }
 
 .search-input {
@@ -131,6 +135,25 @@ button:active {
 }
 
 .search-input:focus {
-	border-color: #4caf50; /* Highlight on focus */
+	border-color: #4caf50;
 	background-color: rgba(0, 0, 0, 0.7);
+}
+
+.compare-btn {
+	padding: 11px 20px;
+	border-radius: 25px;
+	border: 2px solid #ffcc00;
+	background: transparent;
+	color: #ffcc00;
+	font-size: 0.95rem;
+	font-weight: 700;
+	cursor: pointer;
+	transition: background 0.2s;
+	white-space: nowrap;
+}
+
+.compare-btn:hover {
+	background: rgba(255, 204, 0, 0.15);
+	transform: none;
+	box-shadow: none;
 }

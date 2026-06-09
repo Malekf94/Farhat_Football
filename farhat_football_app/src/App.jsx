@@ -26,6 +26,7 @@ import { useAuth0 } from "@auth0/auth0-react";
 import { useEffect } from "react";
 import { setupInterceptors } from "./api.jsx";
 import PaymentsDashboard from "./Pages/PaymentsDashboard/PaymentsDashboard.jsx";
+import PlayerComparison from "./Pages/PlayerComparison/PlayerComparison.jsx";
 
 function App() {
 	const { getAccessTokenSilently } = useAuth0();
@@ -106,6 +107,7 @@ function App() {
 				/>
 				<Route path="/seasonal-leaderboard" element={<SeasonalLeaderBoard />} />
 				<Route path="/attribute-leaderboard" element={<StatLeaderBoard />} />
+				<Route path="/compare" element={<PlayerComparison />} />
 			</Routes>
 		</div>
 	);

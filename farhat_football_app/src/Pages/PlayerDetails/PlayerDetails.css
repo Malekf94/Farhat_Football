@@ -1,43 +1,88 @@
-.player-info {
-	background-color: rgba(0, 0, 0, 0.6);
+.player-details {
+	gap: 16px;
+}
+
+.compare-link {
+	color: #ffcc00;
+	text-decoration: none;
+	font-size: 0.9rem;
+	font-weight: 600;
+	border: 1px solid rgba(255, 204, 0, 0.4);
+	padding: 6px 14px;
+	border-radius: 20px;
+	transition: background 0.2s;
+}
+
+.compare-link:hover {
+	background: rgba(255, 204, 0, 0.12);
+}
+
+/* Radar chart section */
+.radar-section {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 12px;
+	background: rgba(0, 0, 0, 0.45);
+	border: 1px solid rgba(255, 204, 0, 0.25);
+	border-radius: 14px;
 	padding: 20px;
-	border-radius: 10px;
-	margin-bottom: 20px;
 	width: 100%;
-	max-width: 600px;
+	max-width: 360px;
 }
 
-.player-info p {
-	margin: 10px 0;
-	font-size: 1.1em;
+.radar-stat-labels {
+	display: flex;
+	gap: 8px;
+	flex-wrap: wrap;
+	justify-content: center;
 }
 
+.radar-stat-pill {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	background: rgba(255, 204, 0, 0.1);
+	border: 1px solid rgba(255, 204, 0, 0.3);
+	border-radius: 8px;
+	padding: 4px 10px;
+	min-width: 44px;
+}
+
+.radar-stat-key {
+	font-size: 0.65rem;
+	font-weight: 800;
+	text-transform: uppercase;
+	color: rgba(255, 255, 255, 0.6);
+	letter-spacing: 0.05em;
+}
+
+.radar-stat-val {
+	font-size: 1rem;
+	font-weight: 700;
+	color: #ffcc00;
+}
+
+/* Stats table */
 .player-stats {
-	background-color: rgba(0, 0, 0, 0.6);
-	padding: 20px;
-	border-radius: 10px;
 	width: 100%;
 	max-width: 800px;
 }
 
-.stats-table {
+.player-stats h2 {
+	color: #ffcc00;
+	font-size: 1.2rem;
+	margin-bottom: 10px;
+}
+
+.table-scroll {
+	overflow-x: auto;
+	-webkit-overflow-scrolling: touch;
 	width: 100%;
+}
+
+.stats-table {
+	width: max-content;
+	min-width: 100%;
 	border-collapse: collapse;
-	margin-top: 10px;
-}
-
-.stats-table th,
-.stats-table td {
-	border: 1px solid #ddd;
-	padding: 10px;
-	text-align: center;
-}
-
-.stats-table th {
-	background-color: #444;
-	color: #fff;
-}
-
-.stats-table tr:nth-child(even) {
-	background-color: #333;
 }
