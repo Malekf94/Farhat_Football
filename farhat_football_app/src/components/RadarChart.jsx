@@ -18,7 +18,7 @@ export function computeRadarStats(attrs) {
 }
 
 // datasets: [{ label, color, stats: [{label, value}] }]
-function RadarChart({ datasets, size = 240, maxValue = 99 }) {
+function RadarChart({ datasets, size = 240, maxValue = 20 }) {
 	const cx = size / 2;
 	const cy = size / 2;
 	const radius = size * 0.34;
@@ -106,7 +106,7 @@ function RadarChart({ datasets, size = 240, maxValue = 99 }) {
 						key={i}
 						cx={p.x}
 						cy={p.y}
-						r="3"
+						r="5"
 						fill={datasets[0].color}
 					/>
 				);
@@ -149,7 +149,7 @@ RadarChart.propTypes = {
 		}),
 	).isRequired,
 	size: PropTypes.number,
-	maxValue: PropTypes.number,
+	maxValue: PropTypes.number, // defaults to 20 (ratings are out of 20)
 };
 
 export default RadarChart;
