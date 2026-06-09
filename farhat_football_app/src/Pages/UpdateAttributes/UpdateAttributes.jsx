@@ -64,7 +64,6 @@ function UpdateAttributes() {
 
 	// Save updated attributes
 	const handleSave = () => {
-		publicApi.get(`/api/v1/players/owndetails/${selectedPlayerId}`);
 		publicApi
 			.put(`/api/v1/attributes/${selectedPlayerId}`, attributes)
 			.then(() => {
