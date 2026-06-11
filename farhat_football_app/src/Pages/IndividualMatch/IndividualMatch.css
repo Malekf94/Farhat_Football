@@ -50,6 +50,7 @@
 /* Tables for Player Stats */
 .playerTable {
 	width: 100%;
+	max-width: 900px;
 	border-collapse: collapse;
 	margin-top: 20px;
 	background-color: rgba(0, 0, 0, 0.8);

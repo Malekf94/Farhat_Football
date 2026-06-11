@@ -144,7 +144,7 @@ function Matches() {
 				<div key={monthYear} className="month-group">
 					<h3>{monthYear}</h3>
 
-					<ul className="playerList">
+					<ul className="match-list">
 						{groupedMatches[monthYear].map((match) => (
 							<li key={match.match_id}>
 								<Link to={`/matches/${match.match_id}`}>

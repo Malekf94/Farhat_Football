@@ -1,4 +1,4 @@
-.playerList {
+.match-list {
 	list-style: none;
 	padding: 0;
 	margin: 20px auto;
@@ -10,7 +10,7 @@
 	box-sizing: border-box;
 }
 
-.playerList li {
+.match-list li {
 	background: rgba(255, 255, 255, 0.95);
 	border-radius: 12px;
 	padding: 16px 20px;
@@ -26,12 +26,12 @@
 	min-width: 0;
 }
 
-.playerList li:hover {
+.match-list li:hover {
 	transform: translateY(-2px);
 	box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
 }
 
-.playerList a {
+.match-list a {
 	text-decoration: none;
 	color: #1b3c1b;
 	font-weight: 600;
@@ -143,12 +143,12 @@
 		box-sizing: border-box;
 	}
 
-	.playerList {
+	.match-list {
 		width: 100%;
 		margin: 12px auto;
 	}
 
-	.playerList li {
+	.match-list li {
 		padding: 12px 14px;
 		font-size: 0.95rem;
 	}
