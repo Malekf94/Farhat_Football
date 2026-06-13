@@ -103,15 +103,28 @@ app.post("/monzo-webhook", async (req, res) => {
 		const transactionId = tx.id;
 		const created = tx.created;
 
-		await pool.query(
-			`INSERT INTO payments 
+		const insertResult = await pool.query(
+			`INSERT INTO payments
 				(transaction_id, payment_date, amount, description, user_id, processed)
 			 VALUES ($1, $2, $3, $4, $5, FALSE)
-			 ON CONFLICT (transaction_id) DO NOTHING;`,
+			 ON CONFLICT (transaction_id) DO NOTHING
+			 RETURNING payment_id;`,
 			[transactionId, created, amount, notes, playerId],
 		);
 
-		console.log(`💰 Payment logged: Player ${playerId} - £${amount}`);
+		if (insertResult.rowCount > 0) {
+			await pool.query(
+				`UPDATE players SET account_balance = COALESCE(account_balance, 0) + $1 WHERE player_id = $2`,
+				[amount, playerId],
+			);
+			await pool.query(
+				`UPDATE payments SET processed = TRUE WHERE transaction_id = $1`,
+				[transactionId],
+			);
+			console.log(`✅ Payment processed: Player ${playerId} + £${amount}`);
+		} else {
+			console.log(`ℹ️ Duplicate transaction ignored: ${transactionId}`);
+		}
 	} catch (err) {
 		console.error("❌ Webhook error:", err);
 	}
