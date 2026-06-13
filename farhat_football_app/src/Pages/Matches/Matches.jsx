@@ -147,9 +147,14 @@ function Matches() {
 					<ul className="match-list">
 						{groupedMatches[monthYear].map((match) => (
 							<li key={match.match_id}>
-								<Link to={`/matches/${match.match_id}`}>
-									{match.match_name}
-								</Link>
+								<div className="match-info">
+									<Link to={`/matches/${match.match_id}`}>
+										{match.match_name}
+									</Link>
+									<span className="match-day">
+										{new Date(match.match_date).toLocaleDateString("en-GB", { weekday: "long" })}
+									</span>
+								</div>
 								<span className="match-player-count">
 									{match.player_count} / {match.number_of_players * 2}
 								</span>

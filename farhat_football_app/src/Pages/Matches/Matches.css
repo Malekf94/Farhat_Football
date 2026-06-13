@@ -35,9 +35,22 @@
 	text-decoration: none;
 	color: #1b3c1b;
 	font-weight: 600;
-	flex: 1;
 	text-align: left;
 	word-break: break-word;
+}
+
+.match-info {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	flex: 1;
+	min-width: 0;
+}
+
+.match-day {
+	font-size: 0.78rem;
+	color: #888;
+	font-weight: 500;
 }
 
 .match-player-count {

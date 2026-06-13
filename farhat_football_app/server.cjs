@@ -155,6 +155,10 @@ app.get("*", (req, res) => {
 
 // Error Handling Middleware
 app.use((err, req, res, next) => {
+	if (err.status === 401) {
+		console.warn(`[Auth] 401 ${req.method} ${req.path}`);
+		return res.status(401).json({ message: "Unauthorized" });
+	}
 	console.error(err.stack);
 	res.status(500).send({ message: "Internal Server Error" });
 });
