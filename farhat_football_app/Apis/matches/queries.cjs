@@ -44,8 +44,10 @@ const createMatch = `
 `;
 
 const logPayment = `
-        INSERT INTO payments (user_id, amount, payment_date, transaction_id, description)
-        VALUES ($1, $2, NOW(), gen_random_uuid(), $3)
+        INSERT INTO payments (user_id, amount, payment_date, transaction_id, description, processed)
+        VALUES ($1, $2, NOW(), $3, $4, TRUE)
+        ON CONFLICT (transaction_id) DO NOTHING
+        RETURNING payment_id;
     `;
 
 const getCurrentStatus = `

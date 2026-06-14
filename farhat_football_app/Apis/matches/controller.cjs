@@ -196,29 +196,43 @@ const updateMatch = async (req, res) => {
 		);
 		const currentStatus = currentStatusResult.rows[0].match_status;
 
-		// Remove reserves and charge players if transitioning to in_progress
-		if (currentStatus === "pending" && match_status === "in_progress") {
-			// Remove players with team_id = 0
-			await pool.query(matchQueries.removeReserves, [match_id]);
+		// Charge players when match is finalised (completed or friendly)
+		const finishedStatuses = ["completed", "friendly"];
+		if (!finishedStatuses.includes(currentStatus) && finishedStatuses.includes(match_status)) {
+			await pool.query("BEGIN");
+			try {
+				// Remove reserves
+				await pool.query(matchQueries.removeReserves, [match_id]);
 
-			// Get players in the match
-			const playersResult = await pool.query(matchQueries.getPlayersInMatch, [
-				match_id,
-			]);
-			const players = playersResult.rows;
+				// Get confirmed players
+				const playersResult = await pool.query(matchQueries.getPlayersInMatch, [match_id]);
+				const players = playersResult.rows;
 
-			// Charge each player
-			for (const player of players) {
-				const amount = player.late
-					? parseFloat(player.price) + 1
-					: parseFloat(player.price);
-				// Log the payment
-				const description = `Match fee deduction for match ${match_id}`;
-				await pool.query(matchQueries.logPayment, [
-					player.player_id,
-					-amount,
-					description,
-				]);
+				for (const player of players) {
+					const amount = player.late
+						? parseFloat(player.price) + 1
+						: parseFloat(player.price);
+					const transactionId = `match_charge_${match_id}_${player.player_id}`;
+					const description = `Match fee for match ${match_id}`;
+
+					// Idempotent insert — skips silently if already charged
+					const inserted = await pool.query(matchQueries.logPayment, [
+						player.player_id,
+						-amount,
+						transactionId,
+						description,
+					]);
+
+					// Only deduct balance if this payment was newly inserted
+					if (inserted.rowCount > 0) {
+						await pool.query(matchQueries.deductPlayerBalance, [amount, player.player_id]);
+					}
+				}
+
+				await pool.query("COMMIT");
+			} catch (err) {
+				await pool.query("ROLLBACK");
+				throw err;
 			}
 		}
 
