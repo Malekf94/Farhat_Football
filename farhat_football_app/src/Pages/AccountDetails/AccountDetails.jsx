@@ -110,7 +110,7 @@ function AccountDetails() {
 	today.setHours(0, 0, 0, 0);
 
 	const upcomingMatch = playerMatches
-		.filter((m) => new Date(m.match_date) >= today && m.match_status !== "completed")
+		.filter((m) => new Date(m.match_date) >= today && m.match_status === "pending")
 		.sort((a, b) => new Date(a.match_date) - new Date(b.match_date))[0];
 
 	const recentMatches = playerMatches

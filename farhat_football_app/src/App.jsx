@@ -11,7 +11,6 @@ import IndividualMatch from "./Pages/IndividualMatch/IndividualMatch.jsx";
 import CreateAccount from "./Pages/CreateAccount/CreateAccount.jsx";
 import CreateMatch from "./Pages/CreateMatch/CreateMatch.jsx";
 import Lates from "./Pages/Lates/Lates.jsx";
-import Feedback from "./Pages/Feedback/Feedback.jsx";
 import LeaderBoard from "./Pages/LeaderBoard/LeaderBoard.jsx";
 import SeasonalLeaderBoard from "./Pages/SeasonalLeaderBoard/SeasonalLeaderBoard.jsx";
 import LoginPage from "./Pages/LoginPage/LoginPage.jsx";
@@ -86,14 +85,6 @@ function App() {
 					element={
 						<ProtectedRoute>
 							<UpdateAttributes />
-						</ProtectedRoute>
-					}
-				/>
-				<Route
-					path="/feedback"
-					element={
-						<ProtectedRoute>
-							<Feedback />
 						</ProtectedRoute>
 					}
 				/>

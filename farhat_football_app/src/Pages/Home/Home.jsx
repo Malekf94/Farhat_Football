@@ -31,13 +31,6 @@ function Home() {
 
 			<div className="buttons">
 				<div className="btn-group">
-					<h2>Core Features</h2>
-					<button className="btn" onClick={() => navigate("/feedback")}>
-						Feedback
-					</button>
-				</div>
-
-				<div className="btn-group">
 					<h2>Leaderboards</h2>
 					<button className="btn" onClick={() => navigate("/leaderboard")}>
 						Monthly Leaderboard
