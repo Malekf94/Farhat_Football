@@ -72,39 +72,42 @@ const listAttributes = async (req, res) => {
 const getLeadingAttributes = async (req, res) => {
 	const { attribute } = req.params;
 
+	const limit = 10;
+	const page = Math.max(1, parseInt(req.query.page) || 1);
+	const offset = (page - 1) * limit;
+
 	try {
 		const validAttributes = await loadAttributes(pool);
 
+		// Determine the stat expression and the column to exclude zeros on
+		let statExpr;
 		if (attribute === "total_stats") {
-			// Build SUM of all attributes
-			const sumExpr = validAttributes.map((attr) => `a.${attr}`).join(" + ");
-
-			const leaderboardQuery = `
-        SELECT a.player_id, p.preferred_name, (${sumExpr}) AS stat
-        FROM attributes a
-        JOIN players p ON a.player_id = p.player_id
-        ORDER BY stat DESC
-        LIMIT 30;
-      `;
-			const { rows } = await pool.query(leaderboardQuery);
-			return res.json(rows);
-		}
-
-		// normal single attribute leaderboard
-		if (!validAttributes.includes(attribute)) {
+			statExpr = validAttributes.map((attr) => `a.${attr}`).join(" + ");
+		} else if (validAttributes.includes(attribute)) {
+			statExpr = `a.${attribute}`;
+		} else {
 			return res.status(400).json({ error: "Invalid attribute" });
 		}
 
+		const whereClause = `WHERE (${statExpr}) > 0`;
+
+		const countQuery = `
+			SELECT COUNT(*) FROM attributes a ${whereClause}
+		`;
+		const countResult = await pool.query(countQuery);
+		const total = parseInt(countResult.rows[0].count);
+
 		const leaderboardQuery = `
-      SELECT a.player_id, p.preferred_name, a.${attribute} AS stat
-      FROM attributes a
-      JOIN players p ON a.player_id = p.player_id
-      ORDER BY a.${attribute} DESC
-      LIMIT 30;
-    `;
+			SELECT a.player_id, p.preferred_name, (${statExpr}) AS stat
+			FROM attributes a
+			JOIN players p ON a.player_id = p.player_id
+			${whereClause}
+			ORDER BY stat DESC
+			LIMIT ${limit} OFFSET ${offset}
+		`;
 		const { rows } = await pool.query(leaderboardQuery);
 
-		res.json(rows);
+		res.json({ data: rows, total, page, limit });
 	} catch (err) {
 		console.error(err);
 		res.status(500).json({ error: "Database error" });
