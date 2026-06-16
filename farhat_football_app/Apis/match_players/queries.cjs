@@ -63,23 +63,22 @@ const removeAllPlayerFromMatch =
 	"DELETE FROM match_players WHERE match_id = $1";
 
 const getPlayerAttributesInMatch = `
-SELECT 
+SELECT
     p.player_id,
     p.first_name,
     p.last_name,
     p.preferred_name,
     mp.team_id,
     a.*
-FROM 
+FROM
     match_players mp
-JOIN 
+JOIN
     players p ON mp.player_id = p.player_id
-JOIN 
+LEFT JOIN
     attributes a ON p.player_id = a.player_id
-WHERE 
+WHERE
     mp.match_id = $1
     AND mp.team_id IN (1, 2);
-
 `;
 
 const updateTeamAssignments = `

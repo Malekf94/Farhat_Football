@@ -272,14 +272,13 @@ function IndividualMatch() {
 			);
 			const playersAttributes = response.data;
 
-			// Warn about players whose attributes are all zero
-			const SKIP_KEYS = new Set(["player_id", "team_id"]);
-			const unrated = playersAttributes.filter((p) => {
-				const total = Object.entries(p)
-					.filter(([k, v]) => typeof v === "number" && !SKIP_KEYS.has(k))
-					.reduce((sum, [, v]) => sum + v, 0);
-				return total === 0;
-			});
+			// Warn about players whose attributes are all zero or missing.
+			// Skip ID columns and team_id — anything else numeric is an attribute.
+			const unrated = playersAttributes.filter((p) =>
+				Object.entries(p)
+					.filter(([k, v]) => typeof v === "number" && !k.endsWith("_id") && k !== "team_id")
+					.every(([, v]) => !v || Number(v) === 0),
+			);
 			if (unrated.length > 0) {
 				const names = unrated.map((p) => p.preferred_name || `${p.first_name} ${p.last_name}`).join(", ");
 				showToast(`Unrated players — fix their attributes: ${names}`, "error");

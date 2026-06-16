@@ -120,7 +120,7 @@
  * but with enough randomness that teams aren't identical every week.
  */
 
-const SOFT_STATS = new Set(["player_id", "team_id"]);
+const SOFT_STATS = new Set(["team_id"]); // _id-suffixed keys are also skipped in getStats
 const SOFT_ONLY = new Set(["mental", "goalkeeping", "teamwork"]);
 
 // Weights for each objective — tweak these to change what matters most
@@ -136,6 +136,7 @@ function getStats(player) {
 	for (const [key, val] of Object.entries(player)) {
 		if (
 			typeof val === "number" &&
+			!key.endsWith("_id") &&
 			!SOFT_STATS.has(key) &&
 			!SOFT_ONLY.has(key)
 		) {
@@ -205,7 +206,7 @@ export const randomiserMk3 = (playersAttributes) => {
 
 	if (rated.length > 0 && rated.length < players.length) {
 		const sampleKeys = Object.keys(rated[0]).filter(
-			(k) => typeof rated[0][k] === "number" && k !== "player_id" && k !== "team_id",
+			(k) => typeof rated[0][k] === "number" && !k.endsWith("_id") && k !== "team_id",
 		);
 		const avgAttrs = {};
 		for (const key of sampleKeys) {
