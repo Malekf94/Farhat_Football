@@ -197,8 +197,29 @@ export const randomiserMk3 = (playersAttributes) => {
 	const n = players.length;
 	const half = Math.floor(n / 2);
 
+	// Players with zero outfield total haven't been rated yet.
+	// Substitute the per-attribute average from rated players so they
+	// are treated as neutral unknowns and distributed evenly.
+	const rated = players.filter((p) => getStats(p).outfield > 0);
+	let effective = players;
+
+	if (rated.length > 0 && rated.length < players.length) {
+		const sampleKeys = Object.keys(rated[0]).filter(
+			(k) => typeof rated[0][k] === "number" && k !== "player_id" && k !== "team_id",
+		);
+		const avgAttrs = {};
+		for (const key of sampleKeys) {
+			avgAttrs[key] = Math.round(
+				rated.reduce((sum, p) => sum + Number(p[key] || 0), 0) / rated.length,
+			);
+		}
+		effective = players.map((p) =>
+			getStats(p).outfield === 0 ? { ...p, ...avgAttrs } : p,
+		);
+	}
+
 	// --- Seed with a greedy snake draft ---
-	let [team1, team2] = snakeDraft(players);
+	let [team1, team2] = snakeDraft(effective);
 	let bestPenalty = penalty(team1, team2);
 	let bestTeams = [team1.map((p) => ({ ...p })), team2.map((p) => ({ ...p }))];
 

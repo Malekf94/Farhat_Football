@@ -271,6 +271,20 @@ function IndividualMatch() {
 				`/api/v1/matchPlayer/attributes/${match_id}`,
 			);
 			const playersAttributes = response.data;
+
+			// Warn about players whose attributes are all zero
+			const SKIP_KEYS = new Set(["player_id", "team_id"]);
+			const unrated = playersAttributes.filter((p) => {
+				const total = Object.entries(p)
+					.filter(([k, v]) => typeof v === "number" && !SKIP_KEYS.has(k))
+					.reduce((sum, [, v]) => sum + v, 0);
+				return total === 0;
+			});
+			if (unrated.length > 0) {
+				const names = unrated.map((p) => p.preferred_name || `${p.first_name} ${p.last_name}`).join(", ");
+				showToast(`Unrated players — fix their attributes: ${names}`, "error");
+			}
+
 			const { team1, team2 } = randomiserMk3(playersAttributes);
 			const team1Ids = team1.map((player) => player.player_id);
 			const team2Ids = team2.map((player) => player.player_id);
