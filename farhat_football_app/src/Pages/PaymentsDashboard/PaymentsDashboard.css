@@ -1,0 +1,146 @@
+.payments-dashboard h1 {
+	color: #ffcc00;
+	margin-bottom: 24px;
+}
+
+.pd-summary {
+	display: flex;
+	gap: 16px;
+	flex-wrap: wrap;
+	margin-bottom: 24px;
+}
+
+.pd-stat {
+	flex: 1;
+	min-width: 120px;
+	background: rgba(0, 0, 0, 0.7);
+	border: 1px solid #ffcc00;
+	border-radius: 10px;
+	padding: 16px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 4px;
+}
+
+.pd-stat-value {
+	font-size: 1.6rem;
+	font-weight: 700;
+	color: #ffcc00;
+}
+
+.pd-stat-label {
+	font-size: 0.8rem;
+	color: #ccc;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+}
+
+.pd-actions {
+	margin-bottom: 24px;
+}
+
+/* Refund form */
+.pd-refund {
+	background: rgba(0, 0, 0, 0.6);
+	border: 1px solid #555;
+	border-radius: 10px;
+	padding: 20px;
+	margin-bottom: 28px;
+}
+
+.pd-refund h2 {
+	font-size: 1.1rem;
+	color: #ffcc00;
+	margin: 0 0 14px;
+	text-align: left;
+}
+
+.pd-refund-form {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	align-items: center;
+}
+
+.pd-refund-form select,
+.pd-refund-form input {
+	padding: 8px 12px;
+	background: #222;
+	color: white;
+	border: 1px solid #555;
+	border-radius: 6px;
+	font-size: 0.9rem;
+}
+
+.pd-refund-form select:focus,
+.pd-refund-form input:focus {
+	outline: none;
+	border-color: #ffcc00;
+}
+
+.pd-refund-form select {
+	min-width: 180px;
+}
+
+.pd-refund-form input[type="number"] {
+	width: 110px;
+}
+
+.pd-refund-form input[type="text"] {
+	flex: 1;
+	min-width: 160px;
+}
+
+.pd-refund-msg {
+	margin-top: 10px;
+	font-size: 0.9rem;
+	font-weight: 600;
+}
+
+.pd-refund-msg--success { color: #4caf50; }
+.pd-refund-msg--error   { color: #e63946; }
+
+/* Table */
+.pd-table-wrap {
+	overflow-x: auto;
+	border-radius: 10px;
+}
+
+.pd-table {
+	width: 100%;
+	border-collapse: collapse;
+	background: rgba(0, 0, 0, 0.7);
+}
+
+.pd-table th {
+	background: #333;
+	color: #ffcc00;
+	padding: 12px 14px;
+	text-align: left;
+	font-size: 0.85rem;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+}
+
+.pd-table td {
+	padding: 10px 14px;
+	border-bottom: 1px solid #333;
+	font-size: 0.9rem;
+	color: #f0f0f0;
+}
+
+.pd-row--debit td { color: #ff6b6b; }
+.pd-row--credit td:nth-child(2) { color: #4caf50; }
+
+@media (max-width: 768px) {
+	.pd-refund-form {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.pd-refund-form select,
+	.pd-refund-form input {
+		width: 100%;
+	}
+}
