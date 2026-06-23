@@ -199,13 +199,18 @@ const updateMatch = async (req, res) => {
 		// Charge players when match is finalised (completed or friendly)
 		const finishedStatuses = ["completed", "friendly"];
 		if (!finishedStatuses.includes(currentStatus) && finishedStatuses.includes(match_status)) {
-			await pool.query("BEGIN");
+			// Use a dedicated client so BEGIN/INSERT/UPDATE/COMMIT all run on
+			// the SAME connection — pool.query() can otherwise spread them
+			// across different connections and break the transaction.
+			const client = await pool.connect();
 			try {
+				await client.query("BEGIN");
+
 				// Remove reserves
-				await pool.query(matchQueries.removeReserves, [match_id]);
+				await client.query(matchQueries.removeReserves, [match_id]);
 
 				// Get confirmed players
-				const playersResult = await pool.query(matchQueries.getPlayersInMatch, [match_id]);
+				const playersResult = await client.query(matchQueries.getPlayersInMatch, [match_id]);
 				const players = playersResult.rows;
 
 				for (const player of players) {
@@ -216,7 +221,7 @@ const updateMatch = async (req, res) => {
 					const description = `Match fee for match ${match_id}`;
 
 					// Idempotent insert — skips silently if already charged
-					const inserted = await pool.query(matchQueries.logPayment, [
+					const inserted = await client.query(matchQueries.logPayment, [
 						player.player_id,
 						-amount,
 						transactionId,
@@ -225,14 +230,16 @@ const updateMatch = async (req, res) => {
 
 					// Only deduct balance if this payment was newly inserted
 					if (inserted.rowCount > 0) {
-						await pool.query(matchQueries.deductPlayerBalance, [amount, player.player_id]);
+						await client.query(matchQueries.deductPlayerBalance, [amount, player.player_id]);
 					}
 				}
 
-				await pool.query("COMMIT");
+				await client.query("COMMIT");
 			} catch (err) {
-				await pool.query("ROLLBACK");
+				await client.query("ROLLBACK");
 				throw err;
+			} finally {
+				client.release();
 			}
 		}
 
