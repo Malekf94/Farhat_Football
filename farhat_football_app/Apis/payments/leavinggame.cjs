@@ -23,9 +23,10 @@ async function recordPlayerLeave(player_id, matchData) {
 	});
 	const description = `You left at ${formattedDate}`;
 
+	// Insert only — the DB trigger deducts the balance on insert.
 	const queryText = `
         INSERT INTO payments (transaction_id, payment_date, amount, description, user_id, processed)
-        VALUES ($1, $2, $3, $4, $5, FALSE)
+        VALUES ($1, $2, $3, $4, $5, TRUE)
         ON CONFLICT (transaction_id) DO NOTHING
         RETURNING transaction_id;
     `;
@@ -42,7 +43,7 @@ async function recordPlayerLeave(player_id, matchData) {
 
 		return result.rows.length > 0 ? result.rows[0].transaction_id : null;
 	} catch (error) {
-		console.error(`Failed to record leave for player ${playerId}:`, error);
+		console.error(`Failed to record leave for player ${player_id}:`, error);
 		throw error;
 	}
 }

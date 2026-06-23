@@ -1,5 +1,5 @@
 const { exec } = require("child_process");
-const { runFullPaymentSync, syncPayments } = require("./runFullPaymentSync.cjs");
+const { runFullPaymentSync } = require("./runFullPaymentSync.cjs");
 const pool = require("../../db.cjs");
 const { recordPlayerLeave } = require("./leavinggame.cjs");
 
@@ -15,16 +15,18 @@ const runCheckPaymentsScript = (req, res) => {
 	});
 };
 
+// Polls Monzo for any payments the webhook missed; the DB trigger applies
+// balances on insert. (Balances are no longer "synced" from a flag.)
 const runSyncOnly = async (req, res) => {
 	try {
-		const result = await syncPayments();
+		const result = await runFullPaymentSync();
 		res.json({
-			message: `Sync complete. ${result.processedPayments} payment(s) applied to ${result.updatedPlayers} player(s).`,
+			message: `Checked Monzo. ${result.insertedPayments} new payment(s) recorded.`,
 			...result,
 		});
 	} catch (error) {
-		console.error("Sync error:", error);
-		res.status(500).json({ error: "Sync failed" });
+		console.error("Monzo poll error:", error);
+		res.status(500).json({ error: "Monzo check failed" });
 	}
 };
 
@@ -44,26 +46,18 @@ const issueRefund = async (req, res) => {
 	}
 
 	try {
-		await pool.query("BEGIN");
-
 		const transactionId = `refund_${player_id}_${Date.now()}`;
 		const desc = description || "Manual refund";
 
+		// Insert only — the DB trigger credits the player's balance.
 		await pool.query(
 			`INSERT INTO payments (user_id, amount, payment_date, transaction_id, description, processed)
 			 VALUES ($1, $2, NOW(), $3, $4, TRUE)`,
 			[player_id, Number(amount), transactionId, desc],
 		);
 
-		await pool.query(
-			`UPDATE players SET account_balance = account_balance + $1 WHERE player_id = $2`,
-			[Number(amount), player_id],
-		);
-
-		await pool.query("COMMIT");
 		res.json({ message: `Refund of £${Number(amount).toFixed(2)} issued successfully.` });
 	} catch (error) {
-		await pool.query("ROLLBACK");
 		console.error("Refund error:", error);
 		res.status(500).json({ error: "Failed to issue refund" });
 	}

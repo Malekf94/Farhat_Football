@@ -40,9 +40,12 @@ const checkPayments = async () => {
 			const match = lowerNotes.match(/ffc(\d+)/);
 			const playerId = match ? parseInt(match[1], 10) : null;
 
+			// Insert only — the DB trigger credits the balance. ON CONFLICT
+			// means anything the webhook already recorded is skipped (and so
+			// does not fire the trigger), preventing double-credit.
 			const result = await pool.query(
 				`INSERT INTO payments (transaction_id, payment_date, amount, description, user_id, processed)
-                 VALUES ($1, $2, $3, $4, $5, FALSE)
+                 VALUES ($1, $2, $3, $4, $5, TRUE)
                  ON CONFLICT (transaction_id) DO NOTHING
                  RETURNING transaction_id;`,
 				[id, created, Math.abs(amount) / 100, lowerNotes, playerId],
@@ -59,56 +62,19 @@ const checkPayments = async () => {
 	return insertedCount;
 };
 
-// 2️⃣ Sync balances
-const syncPayments = async () => {
-	console.log("🔄 Syncing balances...");
-
-	const updateResult = await pool.query(`
-        UPDATE players p
-        SET account_balance = COALESCE(p.account_balance, 0) + COALESCE(sub.total_paid, 0)
-        FROM (
-            SELECT user_id, SUM(amount) AS total_paid
-            FROM payments
-            WHERE processed = FALSE
-            GROUP BY user_id
-        ) AS sub
-        WHERE p.player_id = sub.user_id
-        RETURNING p.player_id;
-    `);
-
-	const processedResult = await pool.query(`
-        UPDATE payments
-        SET processed = TRUE
-        WHERE processed = FALSE
-        RETURNING payment_id;
-    `);
-
-	console.log("✅ Sync complete");
-
-	return {
-		updatedPlayers: updateResult.rowCount,
-		processedPayments: processedResult.rowCount,
-	};
-};
-
-// 3️⃣ Combined function
+// Poll Monzo for any payments the webhook missed. Balances are applied by
+// the DB trigger on insert, so there is no separate balance-sync step.
 const runFullPaymentSync = async () => {
 	try {
 		const inserted = await checkPayments();
-		const syncResult = await syncPayments();
-
-		return {
-			insertedPayments: inserted,
-			...syncResult,
-		};
+		return { insertedPayments: inserted };
 	} catch (error) {
-		console.error("❌ Full payment sync failed:", error);
+		console.error("❌ Monzo poll failed:", error);
 		throw error;
 	}
 };
 
 module.exports = {
 	checkPayments,
-	syncPayments,
 	runFullPaymentSync,
 };

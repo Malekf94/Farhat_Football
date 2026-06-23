@@ -64,10 +64,6 @@ JOIN matches m ON mp.match_id = m.match_id
 WHERE mp.match_id = $1 AND mp.team_id IN (0, 1, 2)
 `;
 
-const deductPlayerBalance = `
-UPDATE players SET account_balance = account_balance - $1 WHERE player_id = $2
-`;
-
 const getManOfTheMatch = `SELECT man_of_the_match FROM matches WHERE match_id = $1`;
 
 const updateManOfTheMatch = `UPDATE matches SET man_of_the_match = $1 WHERE match_id = $2`;
@@ -95,7 +91,6 @@ module.exports = {
 	getCurrentStatus,
 	removeReserves,
 	getPlayersInMatch,
-	deductPlayerBalance,
 	getManOfTheMatch,
 	updateManOfTheMatch,
 	deleteMatch,

@@ -25,12 +25,6 @@ router.get(
 router.get("/:player_id/payments", checkJwt, controller.getPayments);
 router.get("/:player_id/balance", checkJwt, controller.getAccountBalance);
 
-router.put(
-	"/:player_id/process-payments",
-	checkJwt,
-	controller.processPlayerPayments,
-);
-router.put("/balance/:player_id", checkJwt, controller.updatePlayerBalance);
 router.put("/:player_id", checkJwt, controller.updatePlayer);
 
 router.get("/:player_id/matches", checkJwt, controller.getPlayerMatches);

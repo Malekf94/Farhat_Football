@@ -42,7 +42,7 @@ const checkMonzoPayments = async () => {
 				// Insert payment into database with the correct player ID
 				await pool.query(
 					`INSERT INTO payments (transaction_id, payment_date, amount, description, user_id, processed)
-                     VALUES ($1, $2, $3, $4, $5, FALSE)
+                     VALUES ($1, $2, $3, $4, $5, TRUE)
                      ON CONFLICT (transaction_id) DO NOTHING;`,
 					[id, created, Math.abs(amount) / 100, lowerNotes, playerId],
 				);

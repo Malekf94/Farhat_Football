@@ -123,32 +123,6 @@ const updatePlayer = async (req, res) => {
 	}
 };
 
-const updatePlayerBalance = async (req, res) => {
-	// const { player_id } = req.params;
-	const { amount, player_id } = req.body;
-
-	try {
-		const result = await pool.query(queries.updatePlayerBalance, [
-			amount,
-			player_id,
-		]);
-
-		if (result.rowCount === 0) {
-			return res.status(404).json({ error: "Player not found." });
-		}
-
-		res.status(200).json({
-			message: "Amount subtracted successfully.",
-			new_balance: result.rows[0].account_balance,
-		});
-	} catch (error) {
-		console.error("Error subtracting from account balance:", error);
-		res.status(500).json({
-			error: "An error occurred while subtracting from the account balance.",
-		});
-	}
-};
-
 const getPayments = async (req, res) => {
 	const { player_id } = req.params;
 
@@ -170,26 +144,6 @@ const getAccountBalance = async (req, res) => {
 	} catch (error) {
 		console.error("Error fetching balance:", error.message);
 		res.status(500).json({ error: "Failed to fetch balance." });
-	}
-};
-
-const processPlayerPayments = async (req, res) => {
-	const { player_id } = req.params;
-
-	try {
-		const result = await pool.query(queries.processPlayerPayments, [player_id]);
-
-		if (result.rowCount === 0) {
-			return res.status(404).json({ error: "Player not found." });
-		}
-
-		res.status(200).json({
-			message: "Player balance updated successfully.",
-			new_balance: result.rows[0].account_balance,
-		});
-	} catch (error) {
-		console.error("Error processing payments:", error.message);
-		res.status(500).json({ error: "Internal server error." });
 	}
 };
 
@@ -318,10 +272,8 @@ module.exports = {
 	getOwnPlayer,
 	getPlayerStats,
 	updatePlayer,
-	updatePlayerBalance,
 	getAccountBalance,
 	getPayments,
-	processPlayerPayments,
 	getNegativeBalance,
 	auth0Signup,
 	checkEmail,

@@ -31,13 +31,7 @@ const getMatchPlayers = `
   WHERE match_id = $1
 `;
 
-const updatePlayerBalance = `
-  UPDATE players
-  SET account_balance = account_balance + $1
-  WHERE player_id = $2
-  RETURNING *;
-`;
-const getLates = `SELECT 
+const getLates = `SELECT
   mp.match_id,
   m.match_date,
   CONCAT(p.first_name, ' ', p.last_name) AS full_name
@@ -97,7 +91,6 @@ module.exports = {
 	removePlayerFromMatch,
 	updateMatchPlayer,
 	getMatchPlayers,
-	updatePlayerBalance,
 	getLates,
 	removeAllPlayerFromMatch,
 	getPlayerAttributesInMatch,

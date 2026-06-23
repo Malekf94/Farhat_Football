@@ -63,27 +63,13 @@ const updatePlayer = `
   RETURNING *;
 `;
 
-const updatePlayerBalance = `
-  UPDATE players
-  SET account_balance = account_balance + $1
-  WHERE player_id = $2
-  RETURNING account_balance;
-`;
-
 const playerBalance = `SELECT account_balance FROM players WHERE player_id=$1`;
 
 const getPayments = `SELECT * FROM payments WHERE user_id = $1 ORDER BY payment_date DESC;`;
 
 const getAccountBalance = `SELECT account_balance FROM players WHERE player_id = $1;`;
 
-const processPlayerPayments = `UPDATE players
-             SET account_balance = account_balance + (
-                 SELECT COALESCE(SUM(amount), 0) FROM payments WHERE player_id = $1
-             )
-             WHERE player_id = $1
-             RETURNING account_balance;`;
-
-const getNegativeBalance = `SELECT 
+const getNegativeBalance = `SELECT
 				player_id, 
 				preferred_name AS full_name, 
 				account_balance 
@@ -134,11 +120,9 @@ module.exports = {
 	getPlayer,
 	getPlayerStats,
 	updatePlayer,
-	updatePlayerBalance,
 	playerBalance,
 	getPayments,
 	getAccountBalance,
-	processPlayerPayments,
 	getNegativeBalance,
 	addAuthPlayer,
 	getMonthlyPlayerStats,

@@ -220,18 +220,14 @@ const updateMatch = async (req, res) => {
 					const transactionId = `match_charge_${match_id}_${player.player_id}`;
 					const description = `Match fee for match ${match_id}`;
 
-					// Idempotent insert — skips silently if already charged
-					const inserted = await client.query(matchQueries.logPayment, [
+					// Idempotent insert — skips silently if already charged.
+					// The DB trigger deducts the balance automatically.
+					await client.query(matchQueries.logPayment, [
 						player.player_id,
 						-amount,
 						transactionId,
 						description,
 					]);
-
-					// Only deduct balance if this payment was newly inserted
-					if (inserted.rowCount > 0) {
-						await client.query(matchQueries.deductPlayerBalance, [amount, player.player_id]);
-					}
 				}
 
 				await client.query("COMMIT");

@@ -103,25 +103,20 @@ app.post("/monzo-webhook", async (req, res) => {
 		const transactionId = tx.id;
 		const created = tx.created;
 
+		// Insert only — the DB trigger applies the amount to the player's
+		// balance automatically. ON CONFLICT means duplicate webhook
+		// deliveries insert nothing and don't fire the trigger.
 		const insertResult = await pool.query(
 			`INSERT INTO payments
 				(transaction_id, payment_date, amount, description, user_id, processed)
-			 VALUES ($1, $2, $3, $4, $5, FALSE)
+			 VALUES ($1, $2, $3, $4, $5, TRUE)
 			 ON CONFLICT (transaction_id) DO NOTHING
 			 RETURNING payment_id;`,
 			[transactionId, created, amount, notes, playerId],
 		);
 
 		if (insertResult.rowCount > 0) {
-			await pool.query(
-				`UPDATE players SET account_balance = COALESCE(account_balance, 0) + $1 WHERE player_id = $2`,
-				[amount, playerId],
-			);
-			await pool.query(
-				`UPDATE payments SET processed = TRUE WHERE transaction_id = $1`,
-				[transactionId],
-			);
-			console.log(`✅ Payment processed: Player ${playerId} + £${amount}`);
+			console.log(`✅ Payment recorded: Player ${playerId} + £${amount}`);
 		} else {
 			console.log(`ℹ️ Duplicate transaction ignored: ${transactionId}`);
 		}
