@@ -43,6 +43,12 @@ function Home() {
 					</button>
 					<button
 						className="btn"
+						onClick={() => navigate("/eleven-aside-leaderboard")}
+					>
+						11-a-side Leaderboard
+					</button>
+					<button
+						className="btn"
 						onClick={() => navigate("/attribute-leaderboard")}
 					>
 						Attribute Leaderboard

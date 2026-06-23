@@ -8,6 +8,7 @@ const pitchRoutes = require("./Apis/pitches/routes.cjs");
 const matchPlayerRoutes = require("./Apis/match_players/routes.cjs");
 const leaderboardRoutes = require("./Apis/leaderboard/leaderboard.cjs");
 const seasonalleaderRoutes = require("./Apis/leaderboard/seasonal-leaderboard.cjs");
+const elevenAsideRoutes = require("./Apis/leaderboard/eleven-aside-leaderboard.cjs");
 const attributesRoutes = require("./Apis/attributes/routes.cjs");
 const paymentRoutes = require("./Apis/payments/routes.cjs");
 const authRoutes = require("./Apis/auth/routes.cjs");
@@ -141,6 +142,7 @@ app.use(`/api/v1/pitches`, pitchRoutes);
 app.use(`/api/v1/matchPlayer`, matchPlayerRoutes);
 app.use("/api/v1/leaderboard", leaderboardRoutes);
 app.use("/api/v1/seasonal-leaderboard", seasonalleaderRoutes);
+app.use("/api/v1/eleven-aside-leaderboard", elevenAsideRoutes);
 app.use("/api/v1/payments", checkJwt, paymentRoutes);
 
 // Serve static files from React frontend

@@ -24,6 +24,7 @@ JOIN matches ON match_players.match_id = matches.match_id
 WHERE EXTRACT(YEAR FROM matches.match_date) = $1
   AND EXTRACT(MONTH FROM matches.match_date) BETWEEN $2 AND $3
   AND matches.match_status = 'completed'
+  AND matches.number_of_players <> 11
 GROUP BY players.preferred_name
 ORDER BY total_goals DESC, total_assists DESC, total_defcons DESC, total_chancescreated DESC, man_of_the_match_count DESC;
 		    `;

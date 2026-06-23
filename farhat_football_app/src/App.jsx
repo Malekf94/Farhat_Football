@@ -13,6 +13,7 @@ import CreateMatch from "./Pages/CreateMatch/CreateMatch.jsx";
 import Lates from "./Pages/Lates/Lates.jsx";
 import LeaderBoard from "./Pages/LeaderBoard/LeaderBoard.jsx";
 import SeasonalLeaderBoard from "./Pages/SeasonalLeaderBoard/SeasonalLeaderBoard.jsx";
+import ElevenLeaderBoard from "./Pages/ElevenLeaderBoard/ElevenLeaderBoard.jsx";
 import LoginPage from "./Pages/LoginPage/LoginPage.jsx";
 import ProtectedRoute from "./ProtectedRoute.jsx";
 import AccountDetails from "./Pages/AccountDetails/AccountDetails.jsx";
@@ -97,6 +98,7 @@ function App() {
 					}
 				/>
 				<Route path="/seasonal-leaderboard" element={<SeasonalLeaderBoard />} />
+				<Route path="/eleven-aside-leaderboard" element={<ElevenLeaderBoard />} />
 				<Route path="/attribute-leaderboard" element={<StatLeaderBoard />} />
 				<Route path="/compare" element={<PlayerComparison />} />
 			</Routes>
