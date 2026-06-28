@@ -318,9 +318,7 @@ function IndividualMatch() {
 							}),
 						),
 					);
-					await privateApi.delete(`/api/v1/matches/${match_id}`, {
-						data: { player_id: playerId },
-					});
+					await privateApi.delete(`/api/v1/matches/${match_id}`);
 					navigate("/");
 				} catch (error) {
 					console.error("Error deleting match:", error);

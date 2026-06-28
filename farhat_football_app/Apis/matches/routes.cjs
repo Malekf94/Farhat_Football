@@ -1,6 +1,7 @@
 const { Router } = require("express");
 const controller = require("./controller.cjs");
 const checkJwt = require("../auth/checkJwt.cjs");
+const requireAdmin = require("../auth/requireAdmin.cjs");
 
 const router = Router();
 
@@ -25,5 +26,10 @@ router.put(
 // base id routes LAST
 router.get("/:match_id", controller.getMatchById);
 router.put("/:match_id", checkJwt, controller.updateMatch);
-router.delete("/:match_id", checkJwt, controller.deleteMatch);
+router.delete(
+	"/:match_id",
+	checkJwt,
+	requireAdmin({ superadmin: true }),
+	controller.deleteMatch,
+);
 module.exports = router;

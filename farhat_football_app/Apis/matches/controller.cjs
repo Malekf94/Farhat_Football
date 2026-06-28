@@ -292,17 +292,8 @@ const updateManOfTheMatch = async (req, res) => {
 
 const deleteMatch = async (req, res) => {
 	const { match_id } = req.params;
-	// Verify the requesting user is a superadmin
-	const { player_id } = req.body;
-	const playerResult = await pool.query(
-		"SELECT is_superadmin FROM players WHERE player_id = $1",
-		[player_id],
-	);
-	if (!playerResult.rows[0]?.is_superadmin) {
-		return res
-			.status(403)
-			.json({ error: "Only superadmins can delete matches." });
-	}
+	// Superadmin identity is verified by requireAdmin({ superadmin: true })
+	// middleware (req.player) — not trusted from the request body.
 	try {
 		// Start a transaction to delete players and the match
 		await pool.query("BEGIN");

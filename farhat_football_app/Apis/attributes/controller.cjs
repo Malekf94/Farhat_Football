@@ -24,17 +24,35 @@ const updateAttributes = async (req, res) => {
 	const { player_id } = req.params;
 	const attributes = req.body;
 
-	const keys = Object.keys(attributes);
-	const values = Object.values(attributes);
-	values.push(player_id);
+	try {
+		// Whitelist: only allow real attribute columns. This prevents both
+		// SQL injection via column names and mass-assignment of other columns.
+		const validColumns = new Set(await loadAttributes(pool));
 
-	const query = `
+		const keys = Object.keys(attributes).filter((k) => validColumns.has(k));
+		if (keys.length === 0) {
+			return res.status(400).json({ error: "No valid attributes provided." });
+		}
+
+		// Reject anything that isn't a known attribute column.
+		const unknown = Object.keys(attributes).filter(
+			(k) => !validColumns.has(k) && k !== "player_id",
+		);
+		if (unknown.length > 0) {
+			return res
+				.status(400)
+				.json({ error: `Unknown attribute(s): ${unknown.join(", ")}` });
+		}
+
+		const values = keys.map((k) => attributes[k]);
+		values.push(player_id);
+
+		const query = `
         UPDATE attributes
         SET ${keys.map((key, index) => `${key} = $${index + 1}`).join(", ")}
         WHERE player_id = $${keys.length + 1}
     `;
 
-	try {
 		await pool.query(query, values);
 		res.json({ message: "Attributes updated successfully." });
 	} catch (error) {

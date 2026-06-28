@@ -4,7 +4,7 @@ import { useCurrentPlayer } from "../../hooks/useCurrentPlayer";
 import "./PaymentsDashboard.css";
 
 export default function PaymentsDashboard() {
-	const { playerId, isAdmin } = useCurrentPlayer();
+	const { isAdmin } = useCurrentPlayer();
 	const [payments, setPayments] = useState([]);
 	const [summary, setSummary] = useState({});
 	const [players, setPlayers] = useState([]);
@@ -48,7 +48,6 @@ export default function PaymentsDashboard() {
 		try {
 			setLoading(true);
 			const res = await privateApi.post("/api/v1/payments/refund", {
-				admin_id: playerId,
 				player_id: Number(refund.player_id),
 				amount: Number(refund.amount),
 				description: refund.description || undefined,

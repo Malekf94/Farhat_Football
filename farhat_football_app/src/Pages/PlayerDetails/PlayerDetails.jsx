@@ -10,19 +10,18 @@ function PlayerDetails() {
 	const [stats, setStats] = useState([]);
 	const [attributes, setAttributes] = useState(null);
 	const { player_id } = useParams();
-	const { getAccessTokenSilently, isAuthenticated, isLoading } = useAuth0();
+	const { isAuthenticated, isLoading } = useAuth0();
 
 	useEffect(() => {
 		if (isLoading || !isAuthenticated) return;
 
 		const fetchData = async () => {
 			try {
-				const token = await getAccessTokenSilently();
-				const headers = { Authorization: `Bearer ${token}` };
-
+				// privateApi attaches the Auth0 token automatically (see api.jsx
+				// interceptor), so no manual token fetch is needed here.
 				const [playerRes, statsRes, attrsRes] = await Promise.all([
-					privateApi.get(`/api/v1/players/${player_id}`, { headers }),
-					privateApi.get(`/api/v1/players/${player_id}/monthlystats`, { headers }),
+					privateApi.get(`/api/v1/players/${player_id}`),
+					privateApi.get(`/api/v1/players/${player_id}/monthlystats`),
 					publicApi.get(`/api/v1/attributes/${player_id}`),
 				]);
 
@@ -35,7 +34,7 @@ function PlayerDetails() {
 		};
 
 		fetchData();
-	}, [player_id, getAccessTokenSilently, isAuthenticated, isLoading]);
+	}, [player_id, isAuthenticated, isLoading]);
 
 	if (!player) {
 		return <div className="spinner" />;

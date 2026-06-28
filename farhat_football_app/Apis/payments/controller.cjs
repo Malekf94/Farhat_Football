@@ -31,18 +31,12 @@ const runSyncOnly = async (req, res) => {
 };
 
 const issueRefund = async (req, res) => {
-	const { admin_id, player_id, amount, description } = req.body;
+	// Admin identity is verified by requireAdmin middleware (req.player),
+	// not trusted from the request body.
+	const { player_id, amount, description } = req.body;
 
 	if (!player_id || !amount || Number(amount) <= 0) {
 		return res.status(400).json({ error: "player_id and a positive amount are required" });
-	}
-
-	const adminCheck = await pool.query(
-		"SELECT is_admin FROM players WHERE player_id = $1",
-		[admin_id],
-	);
-	if (!adminCheck.rows[0]?.is_admin) {
-		return res.status(403).json({ error: "Admin access required" });
 	}
 
 	try {
