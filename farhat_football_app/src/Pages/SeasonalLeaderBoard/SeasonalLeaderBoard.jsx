@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import { publicApi } from "../../api";
 import "./SeasonalLeaderBoard.css";
 
 function SeasonalLeaderBoard() {
@@ -15,7 +15,7 @@ function SeasonalLeaderBoard() {
 		if (season == 4) {
 			startMonth = 1;
 			endMonth = 12;
-			axios
+			publicApi
 				.get("/api/v1/seasonal-leaderboard", {
 					params: { year, startMonth, endMonth },
 				})
@@ -27,7 +27,7 @@ function SeasonalLeaderBoard() {
 					console.error("Error fetching seasonal leaderboard:", error);
 				});
 		} else {
-			axios
+			publicApi
 				.get("/api/v1/seasonal-leaderboard", {
 					params: { year, startMonth, endMonth },
 				})

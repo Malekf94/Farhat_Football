@@ -69,8 +69,14 @@ const runFullPaymentSync = async () => {
 		const inserted = await checkPayments();
 		return { insertedPayments: inserted };
 	} catch (error) {
-		console.error("❌ Monzo poll failed:", error);
-		throw error;
+		// Log only safe fields. The full axios error object contains the
+		// request config, including the Monzo Bearer token — never log it.
+		const status = error.response?.status;
+		const detail = error.response?.data || error.message;
+		console.error(`❌ Monzo poll failed (status ${status ?? "n/a"}):`, detail);
+		throw new Error(
+			`Monzo poll failed${status ? ` (status ${status})` : ""}`,
+		);
 	}
 };
 

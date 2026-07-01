@@ -110,17 +110,20 @@ const getMatchesByStatus = async (req, res) => {
 	}
 };
 
-const getMatchById = (req, res) => {
+const getMatchById = async (req, res) => {
 	const match_id = parseInt(req.params.match_id);
 
 	if (isNaN(match_id)) {
 		return res.status(400).json({ error: "Invalid match ID" });
 	}
 
-	pool.query(matchQueries.getMatchById, [match_id], (error, results) => {
-		if (error) throw error;
+	try {
+		const results = await pool.query(matchQueries.getMatchById, [match_id]);
 		res.status(200).json(results.rows);
-	});
+	} catch (error) {
+		console.error("Error fetching match:", error);
+		res.status(500).json({ error: "Failed to fetch match." });
+	}
 };
 
 const createMatch = async (req, res) => {
