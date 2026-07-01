@@ -11,6 +11,7 @@ export default function PaymentsDashboard() {
 	const [loading, setLoading] = useState(false);
 	const [refund, setRefund] = useState({ player_id: "", amount: "", description: "" });
 	const [refundMsg, setRefundMsg] = useState(null);
+	const [audit, setAudit] = useState([]);
 
 	const fetchPayments = async () => {
 		try {
@@ -25,10 +26,35 @@ export default function PaymentsDashboard() {
 		}
 	};
 
+	const fetchAudit = async () => {
+		try {
+			const res = await privateApi.get("/api/v1/payments/audit");
+			setAudit(res.data.rows);
+		} catch (err) {
+			console.error("Audit fetch failed", err);
+		}
+	};
+
 	useEffect(() => {
 		fetchPayments();
 		publicApi.get("/api/v1/players").then((res) => setPlayers(res.data));
 	}, []);
+
+	useEffect(() => {
+		if (isAdmin) fetchAudit();
+	}, [isAdmin]);
+
+	const handleReconcile = async (playerId) => {
+		try {
+			setLoading(true);
+			await privateApi.post(`/api/v1/payments/reconcile/${playerId}`);
+			await Promise.all([fetchAudit(), fetchPayments()]);
+		} catch (err) {
+			alert("Reconcile failed");
+		} finally {
+			setLoading(false);
+		}
+	};
 
 	const runSync = async () => {
 		try {
@@ -132,6 +158,63 @@ export default function PaymentsDashboard() {
 					</p>
 				)}
 			</div>}
+
+			{/* Balance audit — admin only */}
+			{isAdmin && (
+				<div className="pd-audit">
+					<h2>Balance Audit</h2>
+					{audit.length === 0 ? (
+						<p className="pd-audit-clean">
+							✅ All balances match their payment history.
+						</p>
+					) : (
+						<>
+							<p className="pd-audit-note">
+								These players&apos; balances don&apos;t match the sum of their
+								payments. A positive drift usually means a recorded charge was
+								never applied. Reconcile sets the balance to the payments total —
+								double-check anyone with a legacy manual (non-payment) credit
+								first.
+							</p>
+							<div className="pd-table-wrap">
+								<table className="pd-table">
+									<thead>
+										<tr>
+											<th>Player</th>
+											<th>Current</th>
+											<th>Expected</th>
+											<th>Drift</th>
+											<th></th>
+										</tr>
+									</thead>
+									<tbody>
+										{audit.map((a) => (
+											<tr key={a.player_id}>
+												<td>{a.preferred_name}</td>
+												<td>£{Number(a.current_balance).toFixed(2)}</td>
+												<td>£{Number(a.expected_balance).toFixed(2)}</td>
+												<td className={Number(a.drift) > 0 ? "pd-drift-pos" : "pd-drift-neg"}>
+													{Number(a.drift) > 0 ? "+" : ""}
+													£{Number(a.drift).toFixed(2)}
+												</td>
+												<td>
+													<button
+														className="pd-reconcile-btn"
+														onClick={() => handleReconcile(a.player_id)}
+														disabled={loading}
+													>
+														Reconcile
+													</button>
+												</td>
+											</tr>
+										))}
+									</tbody>
+								</table>
+							</div>
+						</>
+					)}
+				</div>
+			)}
 
 			{/* Payments table */}
 			<div className="pd-table-wrap">

@@ -101,6 +101,66 @@
 .pd-refund-msg--success { color: #4caf50; }
 .pd-refund-msg--error   { color: #e63946; }
 
+/* Balance audit */
+.pd-audit {
+	background: rgba(0, 0, 0, 0.6);
+	border: 1px solid #555;
+	border-radius: 10px;
+	padding: 20px;
+	margin-bottom: 28px;
+}
+
+.pd-audit h2 {
+	font-size: 1.1rem;
+	color: #ffcc00;
+	margin: 0 0 14px;
+	text-align: left;
+}
+
+.pd-audit-clean {
+	color: #4caf50;
+	font-weight: 600;
+	margin: 0;
+}
+
+.pd-audit-note {
+	color: #ccc;
+	font-size: 0.85rem;
+	line-height: 1.5;
+	margin: 0 0 14px;
+}
+
+.pd-drift-pos {
+	color: #ff6b6b;
+	font-weight: 700;
+}
+
+.pd-drift-neg {
+	color: #ffa94d;
+	font-weight: 700;
+}
+
+.pd-reconcile-btn {
+	padding: 6px 14px;
+	font-size: 0.85rem;
+	background: #333;
+	color: #ffcc00;
+	border: 1px solid #ffcc00;
+	border-radius: 6px;
+	cursor: pointer;
+	margin: 0;
+	min-height: unset;
+}
+
+.pd-reconcile-btn:hover {
+	background: rgba(255, 204, 0, 0.15);
+}
+
+.pd-reconcile-btn:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
 /* Table */
 .pd-table-wrap {
 	overflow-x: auto;

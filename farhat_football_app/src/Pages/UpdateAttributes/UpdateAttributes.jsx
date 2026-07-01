@@ -2,7 +2,7 @@ import "./UpdateAttributes.css";
 // import axios from "axios";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { publicApi } from "../../api";
+import { publicApi, privateApi } from "../../api";
 
 function UpdateAttributes() {
 	const [players, setPlayers] = useState([]); // List of players
@@ -64,7 +64,7 @@ function UpdateAttributes() {
 
 	// Save updated attributes
 	const handleSave = () => {
-		publicApi
+		privateApi
 			.put(`/api/v1/attributes/${selectedPlayerId}`, attributes)
 			.then(() => {
 				alert("Attributes updated successfully!");

@@ -138,6 +138,60 @@ const leavingPayment = async (req, res) => {
 	}
 };
 
+// Lists every player whose account_balance disagrees with the sum of their
+// payment rows. Since every balance change now flows through a payment,
+// balance should equal SUM(payments); any drift is worth investigating.
+const balanceAudit = async (req, res) => {
+	try {
+		const result = await pool.query(`
+			SELECT p.player_id,
+			       p.preferred_name,
+			       p.account_balance AS current_balance,
+			       COALESCE(pay.total, 0) AS expected_balance,
+			       p.account_balance - COALESCE(pay.total, 0) AS drift
+			FROM players p
+			LEFT JOIN (
+				SELECT user_id, SUM(amount) AS total
+				FROM payments
+				GROUP BY user_id
+			) pay ON pay.user_id = p.player_id
+			WHERE p.account_balance <> COALESCE(pay.total, 0)
+			ORDER BY ABS(p.account_balance - COALESCE(pay.total, 0)) DESC
+		`);
+		res.json({ rows: result.rows });
+	} catch (err) {
+		console.error("Balance audit error:", err);
+		res.status(500).json({ error: "Failed to run balance audit" });
+	}
+};
+
+// Sets one player's balance to the sum of their payment rows. This is a
+// correction, not a transaction, so it does not create a payment row (and
+// therefore does not fire the balance trigger).
+const reconcilePlayer = async (req, res) => {
+	const { player_id } = req.params;
+	try {
+		const result = await pool.query(
+			`UPDATE players
+			 SET account_balance = COALESCE(
+			     (SELECT SUM(amount) FROM payments WHERE user_id = $1), 0)
+			 WHERE player_id = $1
+			 RETURNING account_balance`,
+			[player_id],
+		);
+		if (result.rowCount === 0) {
+			return res.status(404).json({ error: "Player not found" });
+		}
+		res.json({
+			message: "Balance reconciled.",
+			new_balance: result.rows[0].account_balance,
+		});
+	} catch (err) {
+		console.error("Reconcile error:", err);
+		res.status(500).json({ error: "Failed to reconcile balance" });
+	}
+};
+
 module.exports = {
 	runCheckPaymentsScript,
 	runSyncOnly,
@@ -145,4 +199,6 @@ module.exports = {
 	paymentDashboard,
 	leavingPayment,
 	issueRefund,
+	balanceAudit,
+	reconcilePlayer,
 };
