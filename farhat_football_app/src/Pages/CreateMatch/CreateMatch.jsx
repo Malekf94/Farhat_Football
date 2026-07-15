@@ -13,6 +13,7 @@ function CreateMatch() {
 		match_time: "",
 		number_of_players: "",
 		pitch_id: "",
+		price: "",
 		signin_begin_time: "",
 		match_status: "pending", // default to pending
 	});
@@ -32,6 +33,18 @@ function CreateMatch() {
 	const handleChange = (e) => {
 		const { name, value } = e.target;
 		setFormData((prev) => ({ ...prev, [name]: value }));
+	};
+
+	// Selecting a pitch pre-fills the price with that pitch's set price,
+	// but the price stays editable in case it's different this week.
+	const handlePitchChange = (e) => {
+		const pitchId = e.target.value;
+		const pitch = pitches.find((p) => String(p.pitch_id) === pitchId);
+		setFormData((prev) => ({
+			...prev,
+			pitch_id: pitchId,
+			price: pitch ? pitch.price : "",
+		}));
 	};
 
 	const handleSubmit = (e) => {
@@ -93,7 +106,7 @@ function CreateMatch() {
 					<select
 						name="pitch_id"
 						value={formData.pitch_id}
-						onChange={handleChange}
+						onChange={handlePitchChange}
 						required
 					>
 						<option value="">Select a Pitch</option>
@@ -103,6 +116,20 @@ function CreateMatch() {
 							</option>
 						))}
 					</select>
+				</label>
+
+				<label>
+					Price per player (£):
+					<input
+						type="number"
+						name="price"
+						value={formData.price}
+						onChange={handleChange}
+						step="0.01"
+						min="0"
+						required
+						placeholder="Auto-filled from pitch — edit if different"
+					/>
 				</label>
 				<button type="submit">Create Match</button>
 			</form>

@@ -148,6 +148,7 @@ const createMatch = async (req, res) => {
 		match_status,
 		youtube_links,
 		host_id, // normalised by requireHostAdmin (defaults to the default host)
+		price, // optional override; defaults to the pitch's set price
 	} = req.body;
 
 	if (
@@ -163,7 +164,7 @@ const createMatch = async (req, res) => {
 	}
 
 	try {
-		// 1. Get pitch price_per_person
+		// 1. Get pitch price_per_person (used as the default if none supplied)
 		const pitchResult = await pool.query(matchQueries.getPitchPrice, [
 			pitch_id,
 		]);
@@ -172,11 +173,21 @@ const createMatch = async (req, res) => {
 		}
 		const pitchPrice = pitchResult.rows[0].price;
 
-		// 2. Create match using pitchPrice as the match price
+		// Use the supplied price if valid, otherwise fall back to the pitch price.
+		const matchPrice =
+			price !== undefined && price !== null && price !== ""
+				? parseFloat(price)
+				: pitchPrice;
+
+		if (Number.isNaN(matchPrice) || matchPrice < 0) {
+			return res.status(400).json({ error: "Invalid price." });
+		}
+
+		// 2. Create match
 		const insertResult = await pool.query(matchQueries.createMatch, [
 			match_date,
 			match_time,
-			pitchPrice,
+			matchPrice,
 			number_of_players,
 			pitch_id,
 			match_status,
