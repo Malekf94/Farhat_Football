@@ -1,7 +1,7 @@
 const { Router } = require("express");
 const controller = require("./controller.cjs");
 const checkJwt = require("../auth/checkJwt.cjs");
-const requireAdmin = require("../auth/requireAdmin.cjs");
+const requireHostAdmin = require("../auth/requireHostAdmin.cjs");
 
 const router = Router();
 
@@ -12,23 +12,23 @@ router.post("/", checkJwt, controller.addPlayerToMatch);
 router.get("/lates", controller.getLates);
 router.get("/attributes/:match_id", controller.getPlayerAttributesInMatch);
 
-// Admin-only: managing teams and stats
+// Host-admin only: managing teams and stats (authorised against the match's host)
 router.put(
 	"/update-teams/:match_id",
 	checkJwt,
-	requireAdmin(),
+	requireHostAdmin(),
 	controller.updateTeamAssignments,
 );
 router.put(
 	"/batch-stats/:match_id",
 	checkJwt,
-	requireAdmin(),
+	requireHostAdmin(),
 	controller.batchUpdateMatchPlayers,
 );
 router.put(
 	"/:match_id/:player_id",
 	checkJwt,
-	requireAdmin(),
+	requireHostAdmin(),
 	controller.updateMatchPlayer,
 );
 router.get("/:match_id", controller.getPlayersInMatch);

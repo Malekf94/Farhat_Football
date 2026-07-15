@@ -13,7 +13,8 @@ const brevo = new BrevoClient({ apiKey: process.env.BREVO_API_KEY });
 
 const getMatches = async (req, res) => {
 	try {
-		const { status, year, month, pitch_id, page = 1, limit = 10 } = req.query;
+		const { status, year, month, pitch_id, host_id, page = 1, limit = 10 } =
+			req.query;
 
 		const pageNum = parseInt(page);
 		const limitNum = parseInt(limit);
@@ -21,6 +22,12 @@ const getMatches = async (req, res) => {
 		let whereClause = `WHERE 1=1`;
 		const values = [];
 		let index = 1;
+
+		if (host_id) {
+			whereClause += ` AND m.host_id = $${index}`;
+			values.push(host_id);
+			index++;
+		}
 
 		if (status) {
 			whereClause += ` AND m.match_status = $${index}`;
@@ -76,7 +83,7 @@ const getMatches = async (req, res) => {
 const getMatchesByStatus = async (req, res) => {
 	try {
 		const { status } = req.params; // pending, completed etc
-		const { year, month } = req.query; // optional filters
+		const { year, month, host_id } = req.query; // optional filters
 
 		let query = `
       SELECT *
@@ -86,6 +93,12 @@ const getMatchesByStatus = async (req, res) => {
 
 		const values = [status];
 		let index = 2;
+
+		if (host_id) {
+			query += ` AND host_id = $${index}`;
+			values.push(host_id);
+			index++;
+		}
 
 		if (year) {
 			query += ` AND EXTRACT(YEAR FROM match_date) = $${index}`;
@@ -134,6 +147,7 @@ const createMatch = async (req, res) => {
 		pitch_id,
 		match_status,
 		youtube_links,
+		host_id, // normalised by requireHostAdmin (defaults to the default host)
 	} = req.body;
 
 	if (
@@ -167,6 +181,7 @@ const createMatch = async (req, res) => {
 			pitch_id,
 			match_status,
 			youtube_links || null, // Optional field for YouTube links
+			host_id,
 		]);
 
 		const newMatch = insertResult.rows[0];

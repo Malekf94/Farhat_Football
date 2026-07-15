@@ -40,6 +40,7 @@ JOIN matches m ON mp.match_id = m.match_id
 JOIN players p ON mp.player_id = p.player_id
 WHERE mp.late = true
   AND EXTRACT(YEAR FROM m.match_date) = 2026
+  AND ($1::int IS NULL OR m.host_id = $1)
 ORDER BY m.match_date ASC;
 `;
 // `

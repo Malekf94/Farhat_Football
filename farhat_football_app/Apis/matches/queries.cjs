@@ -38,8 +38,8 @@ const updateMatch = `
 `;
 
 const createMatch = `
-  INSERT INTO matches (match_date, match_time, price, number_of_players, pitch_id, match_status, youtube_links)
-  VALUES ($1, $2, $3, $4, $5, $6, $7)
+  INSERT INTO matches (match_date, match_time, price, number_of_players, pitch_id, match_status, youtube_links, host_id)
+  VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
   RETURNING *;
 `;
 

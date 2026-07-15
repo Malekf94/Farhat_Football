@@ -4,7 +4,7 @@ const router = Router();
 
 // Fetch leaderboard data
 router.get("/", async (req, res) => {
-	const { year, startMonth, endMonth } = req.query;
+	const { year, startMonth, endMonth, host_id } = req.query;
 
 	try {
 		// Query for top scorers, top assisters, and man of the match
@@ -25,11 +25,17 @@ WHERE EXTRACT(YEAR FROM matches.match_date) = $1
   AND EXTRACT(MONTH FROM matches.match_date) BETWEEN $2 AND $3
   AND matches.match_status = 'completed'
   AND matches.number_of_players <> 11
+  AND ($4::int IS NULL OR matches.host_id = $4)
 GROUP BY players.preferred_name
 ORDER BY total_goals DESC, total_assists DESC, total_defcons DESC, total_chancescreated DESC, man_of_the_match_count DESC;
 		    `;
 
-		const result = await pool.query(query, [year, startMonth, endMonth]);
+		const result = await pool.query(query, [
+			year,
+			startMonth,
+			endMonth,
+			host_id || null,
+		]);
 
 		res.json(result.rows);
 	} catch (err) {

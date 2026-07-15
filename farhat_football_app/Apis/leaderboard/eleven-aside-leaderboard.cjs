@@ -6,14 +6,22 @@ const router = Router();
 // Counts only completed games where number_of_players = 11.
 // Optional ?year= filter; omit for all-time.
 router.get("/", async (req, res) => {
-	const { year } = req.query;
+	const { year, host_id } = req.query;
 
 	try {
 		const values = [];
-		let yearFilter = "";
+		const conds = [
+			"m.match_status = 'completed'",
+			"m.number_of_players = 11",
+		];
+
+		if (host_id) {
+			values.push(host_id);
+			conds.push(`m.host_id = $${values.length}`);
+		}
 		if (year) {
 			values.push(year);
-			yearFilter = `AND EXTRACT(YEAR FROM m.match_date) = $1`;
+			conds.push(`EXTRACT(YEAR FROM m.match_date) = $${values.length}`);
 		}
 
 		const query = `
@@ -29,9 +37,7 @@ router.get("/", async (req, res) => {
 			FROM match_players mp
 			JOIN players p ON mp.player_id = p.player_id
 			JOIN matches m ON mp.match_id = m.match_id
-			WHERE m.match_status = 'completed'
-				AND m.number_of_players = 11
-				${yearFilter}
+			WHERE ${conds.join(" AND ")}
 			GROUP BY p.preferred_name
 			ORDER BY total_goals DESC, total_assists DESC, total_defcons DESC, total_chancescreated DESC, man_of_the_match_count DESC;
 		`;
