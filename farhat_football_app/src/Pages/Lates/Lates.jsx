@@ -1,15 +1,18 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import { publicApi } from "../../api";
+import { useHost } from "../../context/HostContext";
 import "./Lates.css";
 
 function Lates() {
+	const { hostId } = useHost();
 	const [lates, setLates] = useState([]);
 	const [negativeBalances, setNegativeBalances] = useState([]);
 
 	useEffect(() => {
-		// Fetch late players
-		axios
-			.get("/api/v1/matchPlayer/lates")
+		if (!hostId) return;
+		// Fetch late players for this portal
+		publicApi
+			.get("/api/v1/matchPlayer/lates", { params: { host_id: hostId } })
 			.then((response) => {
 				setLates(response.data);
 			})
@@ -17,8 +20,8 @@ function Lates() {
 				console.error("Error fetching lates:", error);
 			});
 
-		// Fetch players with negative balances
-		axios
+		// Negative balances are global (shared money)
+		publicApi
 			.get("/api/v1/players/negativeBalances")
 			.then((response) => {
 				setNegativeBalances(response.data);
@@ -26,7 +29,7 @@ function Lates() {
 			.catch((error) => {
 				console.error("Error fetching negative balances:", error);
 			});
-	}, []);
+	}, [hostId]);
 
 	return (
 		<div className="page-content">

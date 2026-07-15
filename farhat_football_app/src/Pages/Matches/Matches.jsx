@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import "./Matches.css";
-// import axios from "axios";
 import { Link } from "react-router-dom";
 import { publicApi } from "../../api";
+import { useHost } from "../../context/HostContext";
 
 function Matches() {
+	const { hostId, hostPath } = useHost();
 	const [matches, setMatches] = useState([]);
 	const [view, setView] = useState("pending"); // "completed", "pending", "friendly", or "in_progress"
 
@@ -16,6 +17,7 @@ function Matches() {
 	const limit = 10;
 
 	useEffect(() => {
+		if (!hostId) return; // wait until the portal's host is resolved
 		setLoading(true);
 
 		publicApi
@@ -26,6 +28,7 @@ function Matches() {
 					month,
 					page,
 					limit,
+					host_id: hostId,
 				},
 			})
 			.then((response) => {
@@ -38,7 +41,7 @@ function Matches() {
 			.finally(() => {
 				setLoading(false);
 			});
-	}, [view, year, month, page]);
+	}, [view, year, month, page, hostId]);
 
 	const groupedMatches = matches.reduce((groups, match) => {
 		const date = new Date(match.match_date);
@@ -148,7 +151,7 @@ function Matches() {
 						{groupedMatches[monthYear].map((match) => (
 							<li key={match.match_id}>
 								<div className="match-info">
-									<Link to={`/matches/${match.match_id}`}>
+									<Link to={hostPath(`/matches/${match.match_id}`)}>
 										{match.match_name}
 									</Link>
 									<span className="match-day">

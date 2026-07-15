@@ -1,44 +1,36 @@
 import { useState, useEffect } from "react";
 import { publicApi } from "../../api";
+import { useHost } from "../../context/HostContext";
 import "./SeasonalLeaderBoard.css";
 
 function SeasonalLeaderBoard() {
+	const { hostId } = useHost();
 	const [year, setYear] = useState(new Date().getFullYear());
 	const [season, setSeason] = useState(4); // Default to Season 1
 	const [leaderboardData, setLeaderboardData] = useState([]);
 	const [sortKey, setSortKey] = useState("goals"); // Default sort by goals
 
 	const fetchSeasonalLeaderboard = () => {
+		if (!hostId) return;
 		let startMonth = (season - 1) * 4 + 1; // Calculate start month based on season
 		let endMonth = startMonth + 3; // End month is start month + 3
 
 		if (season == 4) {
 			startMonth = 1;
 			endMonth = 12;
-			publicApi
-				.get("/api/v1/seasonal-leaderboard", {
-					params: { year, startMonth, endMonth },
-				})
-				.then((response) => {
-					const sortedData = sortData(response.data, sortKey);
-					setLeaderboardData(sortedData);
-				})
-				.catch((error) => {
-					console.error("Error fetching seasonal leaderboard:", error);
-				});
-		} else {
-			publicApi
-				.get("/api/v1/seasonal-leaderboard", {
-					params: { year, startMonth, endMonth },
-				})
-				.then((response) => {
-					const sortedData = sortData(response.data, sortKey);
-					setLeaderboardData(sortedData);
-				})
-				.catch((error) => {
-					console.error("Error fetching seasonal leaderboard:", error);
-				});
 		}
+
+		publicApi
+			.get("/api/v1/seasonal-leaderboard", {
+				params: { year, startMonth, endMonth, host_id: hostId },
+			})
+			.then((response) => {
+				const sortedData = sortData(response.data, sortKey);
+				setLeaderboardData(sortedData);
+			})
+			.catch((error) => {
+				console.error("Error fetching seasonal leaderboard:", error);
+			});
 	};
 
 	// Sort leaderboard data
@@ -48,7 +40,7 @@ function SeasonalLeaderBoard() {
 
 	useEffect(() => {
 		fetchSeasonalLeaderboard();
-	}, [year, season, sortKey]);
+	}, [year, season, sortKey, hostId]);
 
 	const handleSortChange = (e) => {
 		const newSortKey = e.target.value;

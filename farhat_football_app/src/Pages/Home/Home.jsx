@@ -1,49 +1,55 @@
 import { useNavigate } from "react-router-dom";
 import "./Home.css";
 import { useCurrentPlayer } from "../../hooks/useCurrentPlayer";
+import { useMyHosts } from "../../hooks/useMyHosts";
+import { useHost } from "../../context/HostContext";
 import { privateApi } from "../../api";
 
 function Home() {
 	const navigate = useNavigate();
-	const { isAdmin } = useCurrentPlayer();
+	const { isAdmin, isSuperadmin } = useCurrentPlayer();
+	const { canAdminHost } = useMyHosts();
+	const { host, hostId, hostPath, isDefault } = useHost();
+
+	const isHostAdmin = canAdminHost(hostId);
 
 	return (
 		<div className="page-content">
-			<h1>Welcome to Farhat Football</h1>
-			<button className="btn" onClick={() => navigate("/matches")}>
-				Click if you just want to play
-			</button>
-			<p>
-				Familiarise yourself with our group by checking our Rules link at the
-				top of the page. There is also a page for FAQs
-			</p>
-			<p>
-				Once you have created an account, feel free to play in our upcoming
-				games by clicking on Matches in the navigation bar.
-			</p>
-			<p>Games are on a pay before you play basis</p>
-			<p>
-				You can click on the logo in the top left corner to come back to this
-				page
-			</p>
+			<h1>{isDefault ? "Welcome to Farhat Football" : host?.name || "Football"}</h1>
 
-			{/* Dropdown toggle for mobile */}
+			{isDefault && (
+				<>
+					<p>
+						Familiarise yourself with our group by checking our Rules link at the
+						top of the page. There is also a page for FAQs
+					</p>
+					<p>
+						Once you have created an account, feel free to play in our upcoming
+						games by clicking on Matches in the navigation bar.
+					</p>
+					<p>Games are on a pay before you play basis</p>
+				</>
+			)}
+
+			<button className="btn" onClick={() => navigate(hostPath("/matches"))}>
+				View Matches
+			</button>
 
 			<div className="buttons">
 				<div className="btn-group">
 					<h2>Leaderboards</h2>
-					<button className="btn" onClick={() => navigate("/leaderboard")}>
+					<button className="btn" onClick={() => navigate(hostPath("/leaderboard"))}>
 						Monthly Leaderboard
 					</button>
 					<button
 						className="btn"
-						onClick={() => navigate("/seasonal-leaderboard")}
+						onClick={() => navigate(hostPath("/seasonal-leaderboard"))}
 					>
 						Seasonal Leaderboard
 					</button>
 					<button
 						className="btn"
-						onClick={() => navigate("/eleven-aside-leaderboard")}
+						onClick={() => navigate(hostPath("/eleven-aside-leaderboard"))}
 					>
 						11-a-side Leaderboard
 					</button>
@@ -57,25 +63,30 @@ function Home() {
 
 				<div className="btn-group">
 					<h2>Other Features</h2>
-					<button className="btn" onClick={() => navigate("/lates")}>
+					<button className="btn" onClick={() => navigate(hostPath("/lates"))}>
 						Name and Shame the Lame
 					</button>
 				</div>
 
-				{isAdmin && (
+				{/* Host admin — managing this portal's games */}
+				{isHostAdmin && (
 					<div className="btn-group admin-group">
-						<h2>Admin Features</h2>
-						<button className="btn" onClick={() => navigate("/create-match")}>
-							Create Match
-						</button>
-						<button className="btn" onClick={() => navigate("/add-pitch")}>
-							Add Pitch
-						</button>
+						<h2>Host Admin</h2>
 						<button
 							className="btn"
-							onClick={() => navigate("/update-attributes")}
+							onClick={() => navigate(hostPath("/create-match"))}
 						>
-							Update Player Attributes
+							Create Match
+						</button>
+					</div>
+				)}
+
+				{/* Global admin features — only on the default site */}
+				{isDefault && isAdmin && (
+					<div className="btn-group admin-group">
+						<h2>Admin Features</h2>
+						<button className="btn" onClick={() => navigate("/add-pitch")}>
+							Add Pitch
 						</button>
 						<button
 							className="btn"
@@ -97,38 +108,22 @@ function Home() {
 						>
 							Payment Dashboard
 						</button>
-						{/* <button
-							className="btn"
-							onClick={async () => {
-								try {
-									const response = await privateApi.get(
-										"/api/v1/payments/check",
-									);
-									alert(response.data.message);
-								} catch (error) {
-									alert("Failed to check payments. Please try again.");
-									console.error("Error checking payments:", error);
-								}
-							}}
-						>
-							Check Payments
-						</button>
+					</div>
+				)}
+
+				{/* Superadmin — shared resources */}
+				{isDefault && isSuperadmin && (
+					<div className="btn-group admin-group">
+						<h2>Superadmin</h2>
 						<button
 							className="btn"
-							onClick={async () => {
-								try {
-									const response = await privateApi.get(
-										"/api/v1/payments/sync",
-									);
-									alert(response.data.message);
-								} catch (error) {
-									alert("Failed to sync balances. Please try again.");
-									console.error("Error syncing balances:", error);
-								}
-							}}
+							onClick={() => navigate("/update-attributes")}
 						>
-							Sync Balances
-						</button> */}
+							Update Player Attributes
+						</button>
+						<button className="btn" onClick={() => navigate("/manage-hosts")}>
+							Manage Hosts
+						</button>
 					</div>
 				)}
 			</div>

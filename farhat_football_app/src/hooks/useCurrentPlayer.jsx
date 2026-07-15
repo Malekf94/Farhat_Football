@@ -6,6 +6,7 @@ export function useCurrentPlayer() {
 	const { isAuthenticated, isLoading: authLoading, user } = useAuth0();
 	const [playerId, setPlayerId] = useState(null);
 	const [isAdmin, setIsAdmin] = useState(false);
+	const [isSuperadmin, setIsSuperadmin] = useState(false);
 	const [playerExists, setPlayerExists] = useState(false);
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState(null);
@@ -26,6 +27,7 @@ export function useCurrentPlayer() {
 				if (response.data.exists) {
 					setPlayerId(response.data.player_id);
 					setIsAdmin(response.data.is_admin);
+					setIsSuperadmin(response.data.is_superadmin);
 					setPlayerExists(true);
 				} else {
 					setPlayerExists(false);
@@ -41,5 +43,5 @@ export function useCurrentPlayer() {
 		fetchPlayer();
 	}, [isAuthenticated, authLoading, user]);
 
-	return { playerId, isAdmin, playerExists, isLoading, error };
+	return { playerId, isAdmin, isSuperadmin, playerExists, isLoading, error };
 }

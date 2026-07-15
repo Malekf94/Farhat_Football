@@ -232,6 +232,7 @@ const checkEmail = async (req, res) => {
 				exists: true,
 				player_id: result.rows[0].player_id,
 				is_admin: result.rows[0].is_admin,
+				is_superadmin: result.rows[0].is_superadmin,
 			});
 		} else {
 			// User does not exist

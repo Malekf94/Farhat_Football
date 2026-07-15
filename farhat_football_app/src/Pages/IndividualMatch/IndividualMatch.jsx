@@ -6,11 +6,17 @@ import { parseISO, differenceInHours } from "date-fns";
 import { randomiserMk3 } from "../../../../randomisermk3";
 import { privateApi } from "../../api";
 import { useCurrentPlayer } from "../../hooks/useCurrentPlayer";
+import { useMyHosts } from "../../hooks/useMyHosts";
+import { useHost } from "../../context/HostContext";
 import ConfirmModal from "../../components/ConfirmModal";
 
 function IndividualMatch() {
-	const { playerId, isAdmin } = useCurrentPlayer();
+	const { playerId } = useCurrentPlayer();
+	const { canAdminHost } = useMyHosts();
+	const { hostPath } = useHost();
 	const [match, setMatch] = useState(null);
+	// Admin controls key off THIS match's host, not a global admin flag.
+	const isAdmin = match ? canAdminHost(match.host_id) : false;
 	const [pitch, setPitch] = useState(null);
 	const [playersInMatch, setPlayersInMatch] = useState([]);
 	const { match_id } = useParams();
@@ -319,7 +325,7 @@ function IndividualMatch() {
 						),
 					);
 					await privateApi.delete(`/api/v1/matches/${match_id}`);
-					navigate("/");
+					navigate(hostPath("/matches"));
 				} catch (error) {
 					console.error("Error deleting match:", error);
 					showToast("Failed to delete match.", "error");

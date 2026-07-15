@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-// import axios from "axios";
 import "./CreateMatch.css";
 import { privateApi } from "../../api";
+import { useHost } from "../../context/HostContext";
 
 function CreateMatch() {
 	const navigate = useNavigate();
+	const { hostId, hostPath } = useHost();
 	const [pitches, setPitches] = useState([]);
 	const [formData, setFormData] = useState({
 		match_date: "",
@@ -35,12 +36,12 @@ function CreateMatch() {
 
 	const handleSubmit = (e) => {
 		e.preventDefault();
-		// POST request to create match
+		// POST request to create match (tagged to the current portal's host)
 		privateApi
-			.post("/api/v1/matches", formData)
+			.post("/api/v1/matches", { ...formData, host_id: hostId })
 			.then(() => {
 				alert("Match created successfully!");
-				navigate("/matches"); // Redirect to pending matches
+				navigate(hostPath("/matches")); // Redirect to this portal's matches
 			})
 			.catch((error) => {
 				console.error("Error creating match:", error);

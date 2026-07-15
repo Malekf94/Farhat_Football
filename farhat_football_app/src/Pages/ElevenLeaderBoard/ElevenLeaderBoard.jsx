@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import { publicApi } from "../../api";
+import { useHost } from "../../context/HostContext";
 import "../LeaderBoard/LeaderBoard.css";
 
 function ElevenLeaderBoard() {
+	const { hostId } = useHost();
 	const [year, setYear] = useState(""); // "" = all time
 	const [leaderboardData, setLeaderboardData] = useState([]);
 	const [sortKey, setSortKey] = useState("total_goals");
@@ -10,9 +12,10 @@ function ElevenLeaderBoard() {
 	const sortData = (data, key) => [...data].sort((a, b) => b[key] - a[key]);
 
 	useEffect(() => {
+		if (!hostId) return;
 		publicApi
 			.get("/api/v1/eleven-aside-leaderboard", {
-				params: year ? { year } : {},
+				params: { host_id: hostId, ...(year ? { year } : {}) },
 			})
 			.then((response) => {
 				setLeaderboardData(sortData(response.data, sortKey));
@@ -20,7 +23,7 @@ function ElevenLeaderBoard() {
 			.catch((error) => {
 				console.error("Error fetching 11-a-side leaderboard data:", error);
 			});
-	}, [year, sortKey]);
+	}, [year, sortKey, hostId]);
 
 	const handleSortChange = (e) => {
 		const newSortKey = e.target.value;

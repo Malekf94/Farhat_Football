@@ -1,17 +1,20 @@
 import { useState, useEffect } from "react";
 import { publicApi } from "../../api";
+import { useHost } from "../../context/HostContext";
 import "./LeaderBoard.css";
 
 function LeaderBoard() {
+	const { hostId } = useHost();
 	const [year, setYear] = useState(new Date().getFullYear());
 	const [month, setMonth] = useState(new Date().getMonth() + 1); // 1-based month
 	const [leaderboardData, setLeaderboardData] = useState([]);
 	const [sortKey, setSortKey] = useState("goals"); // Default sort by goals
 
 	useEffect(() => {
+		if (!hostId) return;
 		// Fetch leaderboard data whenever year, month, or sortKey changes
 		publicApi
-			.get("/api/v1/leaderboard", { params: { year, month } })
+			.get("/api/v1/leaderboard", { params: { year, month, host_id: hostId } })
 			.then((response) => {
 				const sortedData = sortData(response.data, sortKey);
 				setLeaderboardData(sortedData);
@@ -19,7 +22,7 @@ function LeaderBoard() {
 			.catch((error) => {
 				console.error("Error fetching leaderboard data:", error);
 			});
-	}, [year, month, sortKey]);
+	}, [year, month, sortKey, hostId]);
 
 	// Function to sort data
 	const sortData = (data, key) => {
