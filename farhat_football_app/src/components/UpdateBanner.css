@@ -1,0 +1,41 @@
+.update-banner {
+	position: fixed;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	z-index: 3000;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 14px;
+	flex-wrap: wrap;
+	padding: 12px 16px;
+	background: #ffcc00;
+	color: #111;
+	font-weight: 600;
+	box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.4);
+}
+
+.update-banner button {
+	padding: 8px 18px;
+	background: #111;
+	color: #ffcc00;
+	border: none;
+	border-radius: 6px;
+	font-weight: 700;
+	cursor: pointer;
+	margin: 0;
+	min-height: unset;
+}
+
+.update-banner button:hover {
+	background: #333;
+	color: #ffcc00;
+}
+
+@media (max-width: 768px) {
+	.update-banner {
+		font-size: 0.9rem;
+		text-align: center;
+	}
+}

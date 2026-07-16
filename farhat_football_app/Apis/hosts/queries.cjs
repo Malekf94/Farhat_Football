@@ -35,11 +35,25 @@ const removeHostAdmin = `
   DELETE FROM host_admins WHERE host_id = $1 AND player_id = $2;
 `;
 
-const getMyHosts = `
-  SELECT h.*
-  FROM hosts h
-  JOIN host_admins ha ON ha.host_id = h.host_id
-  WHERE ha.player_id = $1
+// Portals relevant to a player: ones they administer, plus ones they've
+// actually played in. can_admin distinguishes the two (bool_or so an admin who
+// also plays there still comes back as an admin).
+const getMyPortals = `
+  SELECT h.host_id, h.name, h.slug, bool_or(x.can_admin) AS can_admin
+  FROM (
+    SELECT ha.host_id, true AS can_admin
+    FROM host_admins ha
+    WHERE ha.player_id = $1
+
+    UNION ALL
+
+    SELECT m.host_id, false AS can_admin
+    FROM matches m
+    JOIN match_players mp ON mp.match_id = m.match_id
+    WHERE mp.player_id = $1 AND m.host_id IS NOT NULL
+  ) x
+  JOIN hosts h ON h.host_id = x.host_id
+  GROUP BY h.host_id, h.name, h.slug
   ORDER BY h.name;
 `;
 
@@ -52,6 +66,6 @@ module.exports = {
 	getHostAdmins,
 	addHostAdmin,
 	removeHostAdmin,
-	getMyHosts,
+	getMyPortals,
 	getPlayerByEmail,
 };

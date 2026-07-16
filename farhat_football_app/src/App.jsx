@@ -30,6 +30,7 @@ import PaymentsDashboard from "./Pages/PaymentsDashboard/PaymentsDashboard.jsx";
 import PlayerComparison from "./Pages/PlayerComparison/PlayerComparison.jsx";
 import ManageHosts from "./Pages/ManageHosts/ManageHosts.jsx";
 import HostLayout from "./components/HostLayout.jsx";
+import UpdateBanner from "./components/UpdateBanner.jsx";
 
 // Routes that live inside a portal (default host or /h/:slug). Rendered twice
 // below — once for the default site, once nested under /h/:slug.
@@ -72,6 +73,7 @@ function App() {
 	return (
 		<div className="App">
 			<Header />
+			<UpdateBanner />
 			<Routes>
 				{/* Default portal (Farhat Football) */}
 				<Route element={<HostLayout />}>{PortalRoutes()}</Route>

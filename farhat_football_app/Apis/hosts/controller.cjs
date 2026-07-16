@@ -16,7 +16,9 @@ const getHostBySlug = async (req, res) => {
 	}
 };
 
-// Authenticated: hosts the caller can administer (for portal switching).
+// Authenticated: portals relevant to the caller — ones they administer AND
+// ones they've played in. Each carries can_admin so the frontend can show the
+// portal for navigation without granting admin controls.
 const getMyHosts = async (req, res) => {
 	try {
 		const caller = await getCaller(req);
@@ -26,22 +28,26 @@ const getMyHosts = async (req, res) => {
 
 		// Superadmins can administer every host.
 		if (caller.is_superadmin) {
-			const all = await pool.query("SELECT * FROM hosts ORDER BY name");
-			return res.json(all.rows);
+			const all = await pool.query(
+				"SELECT host_id, name, slug FROM hosts ORDER BY name",
+			);
+			return res.json(all.rows.map((h) => ({ ...h, can_admin: true })));
 		}
 
-		const mine = await pool.query(queries.getMyHosts, [caller.player_id]);
-		const hosts = mine.rows;
+		const result = await pool.query(queries.getMyPortals, [caller.player_id]);
+		const hosts = result.rows;
 
 		// Global admins also administer the default host.
 		if (caller.is_admin) {
 			const slug = process.env.DEFAULT_HOST_SLUG || "farhat";
 			const def = await pool.query(queries.getHostBySlug, [slug]);
-			if (
-				def.rows.length > 0 &&
-				!hosts.some((h) => h.host_id === def.rows[0].host_id)
-			) {
-				hosts.push(def.rows[0]);
+			if (def.rows.length > 0) {
+				const existing = hosts.find((h) => h.host_id === def.rows[0].host_id);
+				if (existing) {
+					existing.can_admin = true;
+				} else {
+					hosts.push({ ...def.rows[0], can_admin: true });
+				}
 			}
 		}
 

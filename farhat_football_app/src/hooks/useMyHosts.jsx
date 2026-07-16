@@ -2,9 +2,10 @@ import { useState, useEffect } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import { privateApi } from "../api";
 
-// Returns the hosts the logged-in player can administer.
-// (Backend already folds in the default host for global admins and every host
-// for superadmins.) Used to decide whether to show admin controls in a portal.
+// Returns the portals relevant to the logged-in player: ones they administer
+// AND ones they've played in. Each host carries `can_admin`.
+//   myHosts      -> everything they can navigate to (portal switcher)
+//   canAdminHost -> ONLY the ones they actually administer (admin controls)
 export function useMyHosts() {
 	const { isAuthenticated, isLoading: authLoading } = useAuth0();
 	const [myHosts, setMyHosts] = useState([]);
@@ -24,9 +25,11 @@ export function useMyHosts() {
 			.finally(() => setIsLoading(false));
 	}, [isAuthenticated, authLoading]);
 
-	// Convenience: can the caller admin a given host_id?
+	// Can the caller ADMIN this host? Must check can_admin — the list also
+	// contains portals they've merely played in.
 	const canAdminHost = (hostId) =>
-		hostId != null && myHosts.some((h) => h.host_id === hostId);
+		hostId != null &&
+		myHosts.some((h) => h.host_id === hostId && h.can_admin === true);
 
 	return { myHosts, canAdminHost, isLoading };
 }
