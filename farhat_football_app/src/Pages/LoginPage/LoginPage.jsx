@@ -1,6 +1,6 @@
 import { useAuth0 } from "@auth0/auth0-react";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 
 function LoginPage() {
@@ -8,6 +8,11 @@ function LoginPage() {
 	const [isLoading, setIsLoading] = useState(false);
 	const [errorMessage, setErrorMessage] = useState("");
 	const navigate = useNavigate();
+	const location = useLocation();
+
+	// Where to send the user once they're logged in. ProtectedRoute passes this
+	// when it intercepts a link (e.g. a match on a host portal).
+	const returnTo = location.state?.returnTo || "/your-account";
 
 	// Generate PKCE parameters
 	const generatePKCE = async () => {
@@ -41,8 +46,10 @@ function LoginPage() {
 			const { codeVerifier, codeChallenge } = await generatePKCE();
 			localStorage.setItem("pkce_code_verifier", codeVerifier);
 
-			// Trigger Auth0 login with PKCE
+			// Trigger Auth0 login with PKCE. appState survives the round-trip to
+			// Auth0 and is handed back to onRedirectCallback, which navigates there.
 			await loginWithRedirect({
+				appState: { returnTo },
 				authorizationParams: {
 					response_type: "code", // Get the authorization code
 					code_challenge: codeChallenge,
@@ -99,12 +106,12 @@ function LoginPage() {
 					);
 
 					if (response.data.exists) {
-						// User exists, navigate to their account
-						navigate("/your-account");
+						// User exists — send them where they were originally headed
+						navigate(returnTo, { replace: true });
 					} else {
 						// User does not exist, navigate to CreateAccount page
 						navigate("/create-account", {
-							state: { email: user.email, name: user.name },
+							state: { email: user.email, name: user.name, returnTo },
 						});
 					}
 				} catch (error) {
@@ -117,7 +124,7 @@ function LoginPage() {
 		};
 
 		checkUserInDB();
-	}, [isAuthenticated, user, navigate]);
+	}, [isAuthenticated, user, navigate, returnTo]);
 
 	return (
 		<div className="page-content login-page">

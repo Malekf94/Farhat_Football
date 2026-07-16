@@ -1,10 +1,14 @@
 import { useAuth0 } from "@auth0/auth0-react";
 import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import axios from "axios";
 import "./CreateAccount.css";
 
 function CreateAccount() {
 	const { loginWithRedirect, user, isAuthenticated } = useAuth0(); // Auth0 hook
+	const location = useLocation();
+	// Preserve where the user was originally headed (e.g. a host portal match)
+	const returnTo = location.state?.returnTo || "/your-account";
 	const [formData, setFormData] = useState({
 		email: "",
 		first_name: "",
@@ -39,7 +43,7 @@ function CreateAccount() {
 
 			// Trigger Auth0 signup flow
 			await loginWithRedirect({
-				appState: { returnTo: "/your-account" },
+				appState: { returnTo },
 				authorizationParams: {
 					screen_hint: "signup",
 				},

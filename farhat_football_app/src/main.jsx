@@ -3,24 +3,16 @@ import { createRoot } from "react-dom/client";
 import "./index.css";
 import App from "./App.jsx";
 import { BrowserRouter } from "react-router-dom";
-import { Auth0Provider } from "@auth0/auth0-react";
+import Auth0ProviderWithNavigate from "./Auth0ProviderWithNavigate.jsx";
 
+// BrowserRouter must sit OUTSIDE the Auth0 provider so that the provider's
+// onRedirectCallback can navigate back to the originally requested page.
 createRoot(document.getElementById("root")).render(
 	<StrictMode>
-		<Auth0Provider
-			domain={import.meta.env.VITE_AUTH0_DOMAIN}
-			clientId={import.meta.env.VITE_AUTH0_CLIENT_ID}
-			authorizationParams={{
-				redirect_uri: window.location.origin,
-				audience: import.meta.env.VITE_AUTH0_AUDIENCE, // Use environment variable for flexibility
-				scope: "openid profile email",
-				response_type: "code",
-			}}
-			cacheLocation="localstorage" // Store tokens in localStorage to persist across page reloads
-		>
-			<BrowserRouter>
+		<BrowserRouter>
+			<Auth0ProviderWithNavigate>
 				<App />
-			</BrowserRouter>
-		</Auth0Provider>
-	</StrictMode>
+			</Auth0ProviderWithNavigate>
+		</BrowserRouter>
+	</StrictMode>,
 );
