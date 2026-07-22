@@ -1,191 +1,95 @@
-// import { randomiser } from "./randomisermk2";
-
-// export const randomiserMk3 = (playersAttributes) => {
-// 	let players = [...playersAttributes];
-// 	let numberOfPlayers = players.length;
-
-// 	// const fair = false;
-// 	let count = 0;
-
-// 	while (count < 20) {
-// 		// Splitting the players into two teams
-// 		function shuffle(array) {
-// 			for (let i = array.length - 1; i > 0; i--) {
-// 				const j = Math.floor(Math.random() * (i + 1)); // random index
-// 				[array[i], array[j]] = [array[j], array[i]]; // swap
-// 			}
-// 			return array;
-// 		}
-
-// 		let shuffledPlayers = shuffle(players);
-
-// 		const team1 = shuffledPlayers.slice(0, numberOfPlayers / 2);
-// 		const team2 = shuffledPlayers.slice(numberOfPlayers / 2);
-
-// 		//adding total attributes
-// 		let team1Total = team1.reduce((total, player) => {
-// 			return (
-// 				total +
-// 				Object.entries(player)
-// 					.filter(
-// 						([key, val]) =>
-// 							typeof val === "number" &&
-// 							key !== "player_id" &&
-// 							key !== "mental" &&
-// 							key !== "goalkeeping" &&
-// 							key !== "team_id",
-// 					)
-// 					.reduce((sum, [_, val]) => sum + val, 0)
-// 			);
-// 		}, 0);
-// 		let team2Total = team2.reduce((total, player) => {
-// 			return (
-// 				total +
-// 				Object.entries(player)
-// 					.filter(
-// 						([key, val]) =>
-// 							typeof val === "number" &&
-// 							key !== "player_id" &&
-// 							key !== "mental" &&
-// 							key !== "goalkeeping" &&
-// 							key !== "team_id",
-// 					)
-// 					.reduce((sum, [_, val]) => sum + val, 0)
-// 			);
-// 		}, 0);
-
-// 		// Sum a stat for a given team
-// 		function getTeamStat(players, teamId, stat) {
-// 			return players
-// 				.filter((p) => p.team_id === teamId)
-// 				.reduce((sum, p) => sum + (p[stat] || 0), 0);
-// 		}
-
-// 		let team1Mental = getTeamStat(team1, 1, "mental");
-// 		let team2Mental = getTeamStat(team2, 2, "mental");
-
-// 		let team1Goalkeeping = getTeamStat(team1, 1, "goalkeeping");
-// 		let team2Goalkeeping = getTeamStat(team2, 2, "goalkeeping");
-
-// 		let team1Teamwork = getTeamStat(team1, 1, "teamwork");
-// 		let team2Teamwork = getTeamStat(team2, 2, "teamwork");
-
-// 		//Calculating the difference for mental, goalkeeping and total attributes
-// 		let mentalDifference = Math.abs(team1Mental - team2Mental);
-// 		let goalkeepingDifference = Math.abs(team1Goalkeeping - team2Goalkeeping);
-// 		let teamworkDifference = Math.abs(team1Teamwork - team2Teamwork);
-// 		let totalAttributesDifference = Math.abs(team1Total - team2Total);
-
-// 		console.log(
-// 			mentalDifference,
-// 			goalkeepingDifference,
-// 			teamworkDifference,
-// 			totalAttributesDifference,
-// 		);
-// 		if (
-// 			goalkeepingDifference < 10 &&
-// 			mentalDifference < 15 &&
-// 			teamworkDifference < 10 &&
-// 			totalAttributesDifference < 30
-// 		) {
-// 			return { team1, team2 };
-// 		} else {
-// 			count++;
-// 		}
-// 	}
-
-// 	return randomiser(playersAttributes);
-
-// 	// return { team1, team2 };
-// };
-
 /**
- * randomiserMk3 — multi-objective balanced team splitter.
+ * randomiserMk3 — balanced team splitter.
  *
- * Balances four things simultaneously:
- *   1. Total outfield stats (finishing, passing, shooting, etc.)
- *   2. Teamwork
- *   3. Mental
- *   4. Goalkeeping
+ * Balances two teams across FIVE categories:
+ *   1. Workrate
+ *   2. Concentration + Decision making
+ *   3. Teamwork
+ *   4. Tackling + Positioning + Marking  (defensive)
+ *   5. Mental
  *
  * Strategy: simulated annealing over random swaps.
  * - Start from a greedy snake-draft split (good starting point).
- * - Score the split using a weighted penalty across all four objectives.
- * - Repeatedly try random single-player swaps between teams.
- * - Keep a swap if it improves the score; occasionally keep bad swaps early
- *   on (annealing) to escape local optima.
- * - Return the best split found.
+ * - Score a split by the total absolute difference between the teams across
+ *   the five categories (lower = more balanced).
+ * - Repeatedly try random single-player swaps; keep improvements, and
+ *   occasionally keep a worse swap early on to escape local optima.
+ * - Restart a few times and keep the best; stop early once the difference is
+ *   within TARGET_DIFFERENCE.
  *
- * Deterministic enough to always produce a well-balanced result,
- * but with enough randomness that teams aren't identical every week.
+ * Enough randomness that teams aren't identical every week, but always aims
+ * for a tightly balanced result.
  */
 
-const SOFT_STATS = new Set(["team_id"]); // _id-suffixed keys are also skipped in getStats
-const SOFT_ONLY = new Set(["mental", "goalkeeping", "teamwork"]);
+// How close the two teams' combined-category totals must be. The algorithm
+// keeps trying to get the total difference at or below this; if it can't, it
+// returns the best split it found and logs a warning.
+const TARGET_DIFFERENCE = 20;
+const RESTARTS = 10;
+const ITERATIONS = 800;
 
-// Weights for each objective — tweak these to change what matters most
-const WEIGHTS = {
-	total: 1.0, // outfield stats total
-	teamwork: 2.5, // teamwork difference (higher = punish imbalance more)
-	mental: 2.0, // mental difference
-	goalkeeping: 2.5, // goalkeeping difference
-};
+const n = (player, key) => Number(player[key] || 0);
 
-function getStats(player) {
-	let outfield = 0;
-	for (const [key, val] of Object.entries(player)) {
-		if (
-			typeof val === "number" &&
-			!key.endsWith("_id") &&
-			!SOFT_STATS.has(key) &&
-			!SOFT_ONLY.has(key)
-		) {
-			outfield += val;
-		}
-	}
+// The five category values for a single player.
+function categories(player) {
 	return {
-		outfield,
-		teamwork: player.teamwork ?? 0,
-		mental: player.mental ?? 0,
-		goalkeeping: player.goalkeeping ?? 0,
+		workrate: n(player, "workrate"),
+		concentration: n(player, "concentration") + n(player, "decision_making"),
+		teamwork: n(player, "teamwork"),
+		defensive:
+			n(player, "tackling") + n(player, "positioning") + n(player, "marking"),
+		mental: n(player, "mental"),
 	};
 }
 
-function teamTotals(team) {
-	let outfield = 0,
-		teamwork = 0,
-		mental = 0,
-		goalkeeping = 0;
-	for (const p of team) {
-		const s = getStats(p);
-		outfield += s.outfield;
-		teamwork += s.teamwork;
-		mental += s.mental;
-		goalkeeping += s.goalkeeping;
-	}
-	return { outfield, teamwork, mental, goalkeeping };
+// A player's overall rating (sum of the five categories) — used for the snake
+// draft ordering and to detect unrated players.
+function playerOverall(player) {
+	const c = categories(player);
+	return c.workrate + c.concentration + c.teamwork + c.defensive + c.mental;
 }
 
-function penalty(t1, t2) {
+function teamTotals(team) {
+	const t = { workrate: 0, concentration: 0, teamwork: 0, defensive: 0, mental: 0 };
+	for (const p of team) {
+		const c = categories(p);
+		t.workrate += c.workrate;
+		t.concentration += c.concentration;
+		t.teamwork += c.teamwork;
+		t.defensive += c.defensive;
+		t.mental += c.mental;
+	}
+	return t;
+}
+
+// Total absolute difference between the two teams across the five categories.
+function difference(t1, t2) {
 	const a = teamTotals(t1);
 	const b = teamTotals(t2);
 	return (
-		WEIGHTS.total * Math.abs(a.outfield - b.outfield) +
-		WEIGHTS.teamwork * Math.abs(a.teamwork - b.teamwork) +
-		WEIGHTS.mental * Math.abs(a.mental - b.mental) +
-		WEIGHTS.goalkeeping * Math.abs(a.goalkeeping - b.goalkeeping)
+		Math.abs(a.workrate - b.workrate) +
+		Math.abs(a.concentration - b.concentration) +
+		Math.abs(a.teamwork - b.teamwork) +
+		Math.abs(a.defensive - b.defensive) +
+		Math.abs(a.mental - b.mental)
 	);
 }
 
+function shuffle(array) {
+	const a = [...array];
+	for (let i = a.length - 1; i > 0; i--) {
+		const j = Math.floor(Math.random() * (i + 1));
+		[a[i], a[j]] = [a[j], a[i]];
+	}
+	return a;
+}
+
 function snakeDraft(players) {
-	// Sort best → worst by outfield stats, then snake-draft into two teams
-	const sorted = [...players].sort(
-		(a, b) => getStats(b).outfield - getStats(a).outfield,
-	);
-	const t1 = [],
-		t2 = [];
+	// Sort best → worst by overall, then snake-draft into two teams.
+	const sorted = [...players].sort((a, b) => playerOverall(b) - playerOverall(a));
+	const t1 = [];
+	const t2 = [];
 	sorted.forEach((p, i) => {
-		// Snake pattern: 0→t1, 1→t2, 2→t2, 3→t1, 4→t1, 5→t2 ...
 		const round = Math.floor(i / 2);
 		const pick = i % 2;
 		(round % 2 === 0 ? (pick === 0 ? t1 : t2) : pick === 0 ? t2 : t1).push(p);
@@ -193,20 +97,49 @@ function snakeDraft(players) {
 	return [t1, t2];
 }
 
+// One simulated-annealing run from a given starting split.
+function anneal(seed) {
+	let [team1, team2] = seed;
+	let bestDiff = difference(team1, team2);
+	let bestTeams = [team1.map((p) => ({ ...p })), team2.map((p) => ({ ...p }))];
+
+	for (let iter = 0; iter < ITERATIONS; iter++) {
+		const temperature = 50 * (1 - iter / ITERATIONS); // linear cooling
+
+		const i1 = Math.floor(Math.random() * team1.length);
+		const i2 = Math.floor(Math.random() * team2.length);
+
+		[team1[i1], team2[i2]] = [team2[i2], team1[i1]]; // swap
+
+		const newDiff = difference(team1, team2);
+		const delta = newDiff - bestDiff;
+
+		if (delta < 0) {
+			bestDiff = newDiff;
+			bestTeams = [team1.map((p) => ({ ...p })), team2.map((p) => ({ ...p }))];
+		} else if (temperature > 0 && Math.random() < Math.exp(-delta / temperature)) {
+			// keep exploring from this worse position
+		} else {
+			[team1[i1], team2[i2]] = [team2[i2], team1[i1]]; // revert
+		}
+	}
+
+	return { teams: bestTeams, diff: bestDiff };
+}
+
 export const randomiserMk3 = (playersAttributes) => {
 	const players = [...playersAttributes];
-	const n = players.length;
-	const half = Math.floor(n / 2);
 
-	// Players with zero outfield total haven't been rated yet.
-	// Substitute the per-attribute average from rated players so they
-	// are treated as neutral unknowns and distributed evenly.
-	const rated = players.filter((p) => getStats(p).outfield > 0);
+	// Players with a zero overall haven't been rated yet. Substitute the
+	// per-attribute average from rated players so they're treated as neutral
+	// unknowns and spread evenly rather than dumped on one team.
+	const rated = players.filter((p) => playerOverall(p) > 0);
 	let effective = players;
 
 	if (rated.length > 0 && rated.length < players.length) {
 		const sampleKeys = Object.keys(rated[0]).filter(
-			(k) => typeof rated[0][k] === "number" && !k.endsWith("_id") && k !== "team_id",
+			(k) =>
+				typeof rated[0][k] === "number" && !k.endsWith("_id") && k !== "team_id",
 		);
 		const avgAttrs = {};
 		for (const key of sampleKeys) {
@@ -215,50 +148,34 @@ export const randomiserMk3 = (playersAttributes) => {
 			);
 		}
 		effective = players.map((p) =>
-			getStats(p).outfield === 0 ? { ...p, ...avgAttrs } : p,
+			playerOverall(p) === 0 ? { ...p, ...avgAttrs } : p,
 		);
 	}
 
-	// --- Seed with a greedy snake draft ---
-	let [team1, team2] = snakeDraft(effective);
-	let bestPenalty = penalty(team1, team2);
-	let bestTeams = [team1.map((p) => ({ ...p })), team2.map((p) => ({ ...p }))];
+	// Try several annealing runs and keep the best; stop early once we're
+	// within the target difference. The first run seeds from a snake draft;
+	// later runs seed from shuffled splits for variety.
+	let best = null;
+	for (let r = 0; r < RESTARTS; r++) {
+		const seed =
+			r === 0
+				? snakeDraft(effective)
+				: (() => {
+						const s = shuffle(effective);
+						const half = Math.ceil(s.length / 2);
+						return [s.slice(0, half), s.slice(half)];
+				  })();
 
-	// --- Simulated annealing ---
-	// 800 iterations is plenty for groups up to ~20 players
-	const ITERATIONS = 800;
-	let temperature = 50; // starts high (accepts worse swaps), cools to 0
-
-	for (let iter = 0; iter < ITERATIONS; iter++) {
-		temperature = 50 * (1 - iter / ITERATIONS); // linear cooling
-
-		// Pick one random player from each team and try swapping them
-		const i1 = Math.floor(Math.random() * team1.length);
-		const i2 = Math.floor(Math.random() * team2.length);
-
-		// Swap
-		[team1[i1], team2[i2]] = [team2[i2], team1[i1]];
-
-		const newPenalty = penalty(team1, team2);
-		const delta = newPenalty - bestPenalty;
-
-		if (delta < 0) {
-			// Improvement — always keep
-			bestPenalty = newPenalty;
-			bestTeams = [team1.map((p) => ({ ...p })), team2.map((p) => ({ ...p }))];
-		} else if (
-			temperature > 0 &&
-			Math.random() < Math.exp(-delta / temperature)
-		) {
-			// Occasionally accept a worse swap early on (escape local optima)
-			// — don't update bestTeams, just keep exploring from here
-		} else {
-			// Reject — swap back
-			[team1[i1], team2[i2]] = [team2[i2], team1[i1]];
-		}
+		const result = anneal(seed);
+		if (!best || result.diff < best.diff) best = result;
+		if (best.diff <= TARGET_DIFFERENCE) break;
 	}
 
-	// Enforce equal team sizes if odd number of players
-	// (extra player stays in team1 as snake draft left them)
-	return { team1: bestTeams[0], team2: bestTeams[1] };
+	if (best.diff > TARGET_DIFFERENCE) {
+		console.warn(
+			`Team balance difference ${best.diff} exceeds target ${TARGET_DIFFERENCE}. Returning the closest split found.`,
+		);
+	}
+
+	return { team1: best.teams[0], team2: best.teams[1] };
 };
