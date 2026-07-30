@@ -8,25 +8,26 @@
  *   4. Tackling + Positioning + Marking  (defensive)
  *   5. Mental
  *
- * Strategy: simulated annealing over random swaps.
- * - Start from a greedy snake-draft split (good starting point).
- * - Score a split by the total absolute difference between the teams across
- *   the five categories (lower = more balanced).
- * - Repeatedly try random single-player swaps; keep improvements, and
- *   occasionally keep a worse swap early on to escape local optima.
- * - Restart a few times and keep the best; stop early once the difference is
- *   within TARGET_DIFFERENCE.
+ * Goal: keep the difference between the two teams within TARGET_DIFFERENCE in
+ * EACH category (not just overall). Strategy: simulated annealing over random
+ * swaps, optimising primarily for the worst category (with the total as a
+ * tie-breaker), restarting a few times and keeping the best split.
  *
- * Enough randomness that teams aren't identical every week, but always aims
- * for a tightly balanced result.
+ * Logs the final teams and the per-category differences to the console.
  */
 
-// How close the two teams' combined-category totals must be. The algorithm
-// keeps trying to get the total difference at or below this; if it can't, it
-// returns the best split it found and logs a warning.
+// Max allowed difference between the two teams in EACH category.
 const TARGET_DIFFERENCE = 20;
 const RESTARTS = 10;
 const ITERATIONS = 800;
+
+const CATEGORY_LABELS = {
+	workrate: "Workrate",
+	concentration: "Concentration + Decision making",
+	teamwork: "Teamwork",
+	defensive: "Tackling + Positioning + Marking",
+	mental: "Mental",
+};
 
 const n = (player, key) => Number(player[key] || 0);
 
@@ -62,17 +63,27 @@ function teamTotals(team) {
 	return t;
 }
 
-// Total absolute difference between the two teams across the five categories.
-function difference(t1, t2) {
+// Absolute difference between the two teams in each of the five categories.
+function categoryDiffs(t1, t2) {
 	const a = teamTotals(t1);
 	const b = teamTotals(t2);
-	return (
-		Math.abs(a.workrate - b.workrate) +
-		Math.abs(a.concentration - b.concentration) +
-		Math.abs(a.teamwork - b.teamwork) +
-		Math.abs(a.defensive - b.defensive) +
-		Math.abs(a.mental - b.mental)
-	);
+	return {
+		workrate: Math.abs(a.workrate - b.workrate),
+		concentration: Math.abs(a.concentration - b.concentration),
+		teamwork: Math.abs(a.teamwork - b.teamwork),
+		defensive: Math.abs(a.defensive - b.defensive),
+		mental: Math.abs(a.mental - b.mental),
+	};
+}
+
+const maxDiff = (diffs) => Math.max(...Object.values(diffs));
+const sumDiff = (diffs) => Object.values(diffs).reduce((s, d) => s + d, 0);
+
+// Score to minimise: the worst category difference dominates, with the total
+// as a small tie-breaker so the other categories keep improving too.
+function score(t1, t2) {
+	const d = categoryDiffs(t1, t2);
+	return maxDiff(d) + sumDiff(d) / 100;
 }
 
 function shuffle(array) {
@@ -100,7 +111,7 @@ function snakeDraft(players) {
 // One simulated-annealing run from a given starting split.
 function anneal(seed) {
 	let [team1, team2] = seed;
-	let bestDiff = difference(team1, team2);
+	let bestScore = score(team1, team2);
 	let bestTeams = [team1.map((p) => ({ ...p })), team2.map((p) => ({ ...p }))];
 
 	for (let iter = 0; iter < ITERATIONS; iter++) {
@@ -111,11 +122,11 @@ function anneal(seed) {
 
 		[team1[i1], team2[i2]] = [team2[i2], team1[i1]]; // swap
 
-		const newDiff = difference(team1, team2);
-		const delta = newDiff - bestDiff;
+		const newScore = score(team1, team2);
+		const delta = newScore - bestScore;
 
 		if (delta < 0) {
-			bestDiff = newDiff;
+			bestScore = newScore;
 			bestTeams = [team1.map((p) => ({ ...p })), team2.map((p) => ({ ...p }))];
 		} else if (temperature > 0 && Math.random() < Math.exp(-delta / temperature)) {
 			// keep exploring from this worse position
@@ -124,7 +135,25 @@ function anneal(seed) {
 		}
 	}
 
-	return { teams: bestTeams, diff: bestDiff };
+	return { teams: bestTeams, sc: score(bestTeams[0], bestTeams[1]) };
+}
+
+// Print the final teams and their per-category differences.
+function logResult(team1, team2) {
+	const diffs = categoryDiffs(team1, team2);
+	const a = teamTotals(team1);
+	const b = teamTotals(team2);
+
+	console.log("=== Team balance ===");
+	console.log("Team 1:", team1.map((p) => p.preferred_name).join(", "));
+	console.log("Team 2:", team2.map((p) => p.preferred_name).join(", "));
+	console.log(`Category differences (target ≤ ${TARGET_DIFFERENCE} each):`);
+	for (const key of Object.keys(diffs)) {
+		const within = diffs[key] <= TARGET_DIFFERENCE ? "✅" : "⚠️";
+		console.log(
+			`  ${within} ${CATEGORY_LABELS[key]}: team1=${a[key]}, team2=${b[key]}, diff=${diffs[key]}`,
+		);
+	}
 }
 
 export const randomiserMk3 = (playersAttributes) => {
@@ -152,9 +181,9 @@ export const randomiserMk3 = (playersAttributes) => {
 		);
 	}
 
-	// Try several annealing runs and keep the best; stop early once we're
-	// within the target difference. The first run seeds from a snake draft;
-	// later runs seed from shuffled splits for variety.
+	// Try several annealing runs, keep the best; stop early once every category
+	// is within TARGET_DIFFERENCE. First run seeds from a snake draft; later
+	// runs from shuffled splits for variety.
 	let best = null;
 	for (let r = 0; r < RESTARTS; r++) {
 		const seed =
@@ -167,15 +196,21 @@ export const randomiserMk3 = (playersAttributes) => {
 				  })();
 
 		const result = anneal(seed);
-		if (!best || result.diff < best.diff) best = result;
-		if (best.diff <= TARGET_DIFFERENCE) break;
+		if (!best || result.sc < best.sc) best = result;
+		if (maxDiff(categoryDiffs(best.teams[0], best.teams[1])) <= TARGET_DIFFERENCE) {
+			break;
+		}
 	}
 
-	if (best.diff > TARGET_DIFFERENCE) {
+	const [team1, team2] = best.teams;
+	logResult(team1, team2);
+
+	const worst = maxDiff(categoryDiffs(team1, team2));
+	if (worst > TARGET_DIFFERENCE) {
 		console.warn(
-			`Team balance difference ${best.diff} exceeds target ${TARGET_DIFFERENCE}. Returning the closest split found.`,
+			`Some category is off by ${worst} (target ≤ ${TARGET_DIFFERENCE}). This is the closest split found.`,
 		);
 	}
 
-	return { team1: best.teams[0], team2: best.teams[1] };
+	return { team1, team2 };
 };
