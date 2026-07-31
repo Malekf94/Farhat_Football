@@ -210,8 +210,9 @@ const batchUpdateMatchPlayers = async (req, res) => {
              chancescreated = COALESCE($4, chancescreated),
              own_goals = COALESCE($5, own_goals),
              late = COALESCE($6, late),
-             team_id = COALESCE($7, team_id)
-         WHERE match_id = $8 AND player_id = $9`,
+             team_id = COALESCE($7, team_id),
+             rating = COALESCE($8, rating)
+         WHERE match_id = $9 AND player_id = $10`,
 				[
 					p.goals ?? null,
 					p.assists ?? null,
@@ -220,6 +221,7 @@ const batchUpdateMatchPlayers = async (req, res) => {
 					p.own_goals ?? null,
 					p.late ?? null,
 					p.team_id ?? null,
+					p.rating ?? null,
 					match_id,
 					p.player_id,
 				],

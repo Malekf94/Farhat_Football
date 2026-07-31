@@ -17,7 +17,8 @@ router.get("/", async (req, res) => {
   SUM(mp.defcons) AS total_defcons,
   SUM(mp.chancescreated) AS total_chancescreated,
   COUNT(CASE WHEN m.man_of_the_match = mp.player_id THEN 1 END) AS man_of_the_match_count,
-  COUNT(CASE WHEN m.winning_team = mp.team_id THEN 1 END) AS wins
+  COUNT(CASE WHEN m.winning_team = mp.team_id THEN 1 END) AS wins,
+  CASE WHEN COUNT(mp.rating) >= 3 THEN ROUND(AVG(mp.rating), 2) ELSE NULL END AS avg_rating
 FROM match_players mp
 JOIN players p ON mp.player_id = p.player_id
 JOIN matches m ON mp.match_id = m.match_id

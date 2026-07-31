@@ -95,6 +95,7 @@ function IndividualMatch() {
 							own_goals: player.own_goals,
 							late: player.late,
 							team_id: player.team_id,
+							rating: player.rating ?? "",
 						};
 						return acc;
 					}, {}),
@@ -157,6 +158,10 @@ function IndividualMatch() {
 				own_goals: parseInt(stats.own_goals, 10),
 				late: stats.late,
 				team_id: stats.team_id ? parseInt(stats.team_id, 10) : null,
+				rating:
+					stats.rating === "" || stats.rating == null
+						? null
+						: parseFloat(stats.rating),
 			}),
 		);
 
@@ -712,6 +717,7 @@ function PlayerTable({
 							<th>Defcons</th>
 							<th>Key Passes</th>
 							<th>Own Goals</th>
+							<th>Rating</th>
 							<th>Late</th>
 							{isEditingStats && <th>Team</th>}
 						</tr>
@@ -802,6 +808,25 @@ function PlayerTable({
 												/>
 											</td>
 											<td>
+												<input
+													type="number"
+													step="0.1"
+													min="1"
+													max="10"
+													placeholder="1-10"
+													value={editData.rating}
+													onChange={(e) =>
+														setEditedPlayerStats((prev) => ({
+															...prev,
+															[player.player_id]: {
+																...prev[player.player_id],
+																rating: e.target.value,
+															},
+														}))
+													}
+												/>
+											</td>
+											<td>
 												<select
 													value={editData.late}
 													onChange={(e) =>
@@ -844,6 +869,7 @@ function PlayerTable({
 											<td>{player.defcons}</td>
 											<td>{player.chancescreated}</td>
 											<td>{player.own_goals}</td>
+											<td>{player.rating != null ? Number(player.rating).toFixed(1) : "—"}</td>
 											<td>{player.late ? "Yes" : "No"}</td>
 										</>
 									)}
@@ -922,6 +948,7 @@ PlayerTable.propTypes = {
 			own_goals: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 			late: PropTypes.bool,
 			team_id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+			rating: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 		}),
 	),
 	isAdmin: PropTypes.bool,
@@ -936,6 +963,7 @@ PlayerTable.propTypes = {
 			own_goals: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 			late: PropTypes.bool,
 			team_id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+			rating: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 		}),
 	),
 	setEditedPlayerStats: PropTypes.func.isRequired,

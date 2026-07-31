@@ -59,6 +59,7 @@ function ElevenLeaderBoard() {
 						<option value="matches_played">Matches Played</option>
 						<option value="wins">Wins</option>
 						<option value="man_of_the_match_count">Man of the Match</option>
+						<option value="avg_rating">Avg Rating</option>
 					</select>
 				</label>
 			</div>
@@ -73,6 +74,7 @@ function ElevenLeaderBoard() {
 						<th>Matches Played</th>
 						<th>Wins</th>
 						<th>Man of the Match Wins</th>
+						<th>Avg Rating</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -86,6 +88,11 @@ function ElevenLeaderBoard() {
 							<td>{player.matches_played}</td>
 							<td>{player.wins}</td>
 							<td>{player.man_of_the_match_count}</td>
+							<td>
+								{player.avg_rating != null
+									? Number(player.avg_rating).toFixed(2)
+									: "—"}
+							</td>
 						</tr>
 					))}
 				</tbody>
