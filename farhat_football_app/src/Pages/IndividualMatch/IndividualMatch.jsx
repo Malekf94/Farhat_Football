@@ -209,7 +209,20 @@ function IndividualMatch() {
 			showToast("You've joined the match!");
 		} catch (error) {
 			console.error("Error joining match:", error);
-			showToast("Failed to join the match. Please check your balance.", "error");
+			const data = error.response?.data;
+			if (data?.banned_until) {
+				const until = new Date(data.banned_until).toLocaleDateString("en-GB", {
+					day: "numeric",
+					month: "short",
+					year: "numeric",
+				});
+				showToast(`You're banned until ${until} and can't join.`, "error");
+			} else {
+				showToast(
+					data?.error || "Failed to join the match. Please check your balance.",
+					"error",
+				);
+			}
 		}
 	};
 

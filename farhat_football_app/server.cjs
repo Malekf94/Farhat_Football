@@ -12,6 +12,7 @@ const elevenAsideRoutes = require("./Apis/leaderboard/eleven-aside-leaderboard.c
 const attributesRoutes = require("./Apis/attributes/routes.cjs");
 const paymentRoutes = require("./Apis/payments/routes.cjs");
 const hostRoutes = require("./Apis/hosts/routes.cjs");
+const banRoutes = require("./Apis/bans/routes.cjs");
 const authRoutes = require("./Apis/auth/routes.cjs");
 const pool = require("./db.cjs");
 const checkJwt = require("./Apis/auth/checkJwt.cjs");
@@ -141,6 +142,7 @@ app.use("/api/v1/seasonal-leaderboard", seasonalleaderRoutes);
 app.use("/api/v1/eleven-aside-leaderboard", elevenAsideRoutes);
 app.use("/api/v1/payments", checkJwt, paymentRoutes);
 app.use("/api/v1/hosts", hostRoutes);
+app.use("/api/v1/bans", banRoutes);
 
 // Serve static files from React frontend
 app.use(express.static(path.join(__dirname, "./dist/client")));

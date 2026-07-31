@@ -18,6 +18,7 @@ function AccountDetails() {
 	const [paymentHistory, setPaymentHistory] = useState([]);
 	const [playerMatches, setPlayerMatches] = useState([]);
 	const [careerStats, setCareerStats] = useState(null);
+	const [myBans, setMyBans] = useState([]);
 
 	useEffect(() => {
 		if (!playerId) return;
@@ -59,6 +60,11 @@ function AccountDetails() {
 			.catch((error) =>
 				console.error("Error fetching career stats:", error),
 			);
+
+		privateApi
+			.get(`/api/v1/bans/mine`)
+			.then((response) => setMyBans(response.data.bans || []))
+			.catch((error) => console.error("Error fetching ban status:", error));
 	}, [playerId]);
 
 	const handleChange = (e) => {
@@ -124,6 +130,23 @@ function AccountDetails() {
 	return (
 		<div className="page-content AccountDetails">
 			<h1>Hello {userDetails.preferred_name}</h1>
+
+			{myBans.length > 0 && (
+				<div className="ban-warning">
+					{myBans.map((ban) => (
+						<div key={ban.ban_id}>
+							You are banned{ban.host_name ? ` from ${ban.host_name}` : ""} until{" "}
+							{new Date(ban.banned_until).toLocaleDateString("en-GB", {
+								day: "numeric",
+								month: "short",
+								year: "numeric",
+							})}
+							{ban.reason ? ` — ${ban.reason}` : ""}. You cannot join games
+							until then.
+						</div>
+					))}
+				</div>
+			)}
 
 			{/* Balance */}
 			<div className="balance-section">

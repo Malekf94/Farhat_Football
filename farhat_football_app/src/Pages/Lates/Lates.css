@@ -1,0 +1,152 @@
+.lates-page h1 {
+	color: #ffcc00;
+	margin-bottom: 18px;
+}
+
+.lb-msg {
+	font-weight: 600;
+	padding: 8px 0;
+}
+.lb-msg--success {
+	color: #4caf50;
+}
+.lb-msg--error {
+	color: #e63946;
+}
+
+/* Collapsible sections */
+.collapse {
+	background: rgba(0, 0, 0, 0.6);
+	border: 1px solid #555;
+	border-radius: 10px;
+	margin: 0 auto 14px;
+	max-width: 760px;
+	overflow: hidden;
+}
+
+.collapse > summary {
+	cursor: pointer;
+	list-style: none;
+	padding: 14px 18px;
+	font-weight: 700;
+	color: #ffcc00;
+	font-size: 1.05rem;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	user-select: none;
+}
+.collapse > summary::-webkit-details-marker {
+	display: none;
+}
+.collapse > summary::after {
+	content: "▸";
+	color: #888;
+	transition: transform 0.15s ease;
+}
+.collapse[open] > summary::after {
+	transform: rotate(90deg);
+}
+
+.collapse-body {
+	padding: 0 18px 18px;
+}
+
+.empty {
+	color: #aaa;
+	font-style: italic;
+	margin: 4px 0 0;
+}
+
+/* Tables inside sections */
+.latesTable,
+.negativeBalanceTable {
+	width: 100%;
+	border-collapse: collapse;
+	margin-top: 6px;
+}
+.latesTable th,
+.negativeBalanceTable th {
+	text-align: left;
+	color: #ffcc00;
+	font-size: 0.8rem;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	padding: 8px 10px;
+	border-bottom: 1px solid #444;
+}
+.latesTable td,
+.negativeBalanceTable td {
+	padding: 8px 10px;
+	border-bottom: 1px solid #2a2a2a;
+	color: #f0f0f0;
+	font-size: 0.92rem;
+}
+
+/* Ban form */
+.ban-form {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	align-items: center;
+	padding: 12px 0 16px;
+	border-bottom: 1px solid #333;
+	margin-bottom: 12px;
+}
+.ban-form select,
+.ban-form input[type="text"],
+.ban-form input[type="date"] {
+	padding: 8px 10px;
+	background: #222;
+	color: white;
+	border: 1px solid #555;
+	border-radius: 6px;
+	font-size: 0.9rem;
+}
+.ban-form select {
+	min-width: 160px;
+}
+.ban-form input[type="text"] {
+	flex: 1;
+	min-width: 140px;
+}
+.ban-until {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	color: #ccc;
+	font-size: 0.85rem;
+}
+.ban-form button {
+	background: #9b1b1b;
+	color: white;
+	border: 1px solid #e63946;
+	border-radius: 6px;
+	padding: 8px 18px;
+	font-weight: 700;
+	cursor: pointer;
+}
+.ban-form button:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+.lift-btn {
+	background: none;
+	border: 1px solid #ffcc00;
+	color: #ffcc00;
+	border-radius: 6px;
+	padding: 4px 12px;
+	font-size: 0.8rem;
+	cursor: pointer;
+}
+.lift-btn:hover {
+	background: rgba(255, 204, 0, 0.12);
+}
+
+@media (max-width: 768px) {
+	.ban-form select,
+	.ban-form input[type="text"] {
+		width: 100%;
+	}
+}

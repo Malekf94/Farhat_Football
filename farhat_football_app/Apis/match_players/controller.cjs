@@ -1,5 +1,55 @@
 const pool = require("../../db.cjs");
 const queries = require("./queries.cjs");
+const banQueries = require("../bans/queries.cjs");
+
+// Auto-ban policy: this many lates within the window (days) triggers a ban of
+// banDays. Counted per host, resetting after each auto-ban.
+const AUTO_BAN = { lates: 3, windowDays: 21, banDays: 7 };
+
+// After stats are saved, ban anyone who has hit the late threshold at this host.
+async function runAutoLateBans(match_id, players) {
+	const lateOnes = players.filter((p) => p.late === true);
+	if (lateOnes.length === 0) return;
+
+	const hostRes = await pool.query(
+		"SELECT host_id FROM matches WHERE match_id = $1",
+		[match_id],
+	);
+	const hostId = hostRes.rows[0]?.host_id ?? null;
+
+	for (const p of lateOnes) {
+		try {
+			const countRes = await pool.query(banQueries.countRecentLates, [
+				p.player_id,
+				hostId,
+				AUTO_BAN.windowDays,
+			]);
+			if (parseInt(countRes.rows[0].lates, 10) < AUTO_BAN.lates) continue;
+
+			// Don't stack bans on an already-banned player.
+			const existing = await pool.query(banQueries.hasActiveBan, [
+				p.player_id,
+				hostId,
+			]);
+			if (existing.rows.length > 0) continue;
+
+			const bannedUntil = new Date(
+				Date.now() + AUTO_BAN.banDays * 24 * 60 * 60 * 1000,
+			);
+			await pool.query(banQueries.createBan, [
+				p.player_id,
+				hostId,
+				bannedUntil,
+				`Automatic: ${AUTO_BAN.lates}+ lates within ${AUTO_BAN.windowDays} days`,
+				"auto_late",
+				null,
+			]);
+			console.log(`⛔ Auto-banned player ${p.player_id} for repeated lates`);
+		} catch (err) {
+			console.error("Auto late-ban check failed:", err);
+		}
+	}
+}
 
 const getPlayersInMatch = async (req, res) => {
 	const match_id = parseInt(req.params.match_id);
@@ -29,12 +79,31 @@ const addPlayerToMatch = async (req, res) => {
 		}
 
 		const accountBalance = parseFloat(playerResult.rows[0].account_balance);
-		console.log(accountBalance);
 
 		// Check if balance is too low
 		if (accountBalance <= -12) {
 			return res.status(400).json({
 				error: "Your account balance is too low to join this game.",
+			});
+		}
+
+		// Block banned players (checked against this match's host).
+		const hostResult = await pool.query(
+			"SELECT host_id FROM matches WHERE match_id = $1",
+			[match_id],
+		);
+		const hostId = hostResult.rows[0]?.host_id ?? null;
+		const banResult = await pool.query(
+			`SELECT banned_until FROM bans
+			 WHERE player_id = $1 AND active = true AND now() < banned_until
+			   AND (host_id = $2 OR host_id IS NULL)
+			 ORDER BY banned_until DESC LIMIT 1`,
+			[player_id, hostId],
+		);
+		if (banResult.rows.length > 0) {
+			return res.status(403).json({
+				error: "You're currently banned and can't join this game.",
+				banned_until: banResult.rows[0].banned_until,
 			});
 		}
 
@@ -237,6 +306,11 @@ const batchUpdateMatchPlayers = async (req, res) => {
 			);
 		}
 		await client.query("COMMIT");
+
+		// After the stats commit, apply automatic late-bans (best-effort — a
+		// failure here shouldn't fail the stats save).
+		await runAutoLateBans(match_id, players);
+
 		res.status(200).json({ message: "Stats updated successfully." });
 	} catch (error) {
 		await client.query("ROLLBACK");
