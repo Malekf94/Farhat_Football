@@ -41,8 +41,9 @@ const getMonthlyPlayerStats = `
       SUM(mp.assists) AS total_assists,
       SUM(mp.defcons) AS total_defcons,
       SUM(mp.chancescreated) AS total_chancescreated,
-      SUM(mp.own_goals) AS total_own_goals
-  FROM 
+      SUM(mp.own_goals) AS total_own_goals,
+      ROUND(AVG(mp.rating), 2) AS avg_rating
+  FROM
       match_players mp
   JOIN 
       matches m ON mp.match_id = m.match_id
@@ -91,7 +92,8 @@ const getPlayerMatches = `
     mp.chancescreated,
     mp.own_goals,
     mp.late,
-    mp.team_id
+    mp.team_id,
+    mp.rating
   FROM match_players mp
   JOIN matches m ON mp.match_id = m.match_id
   LEFT JOIN pitches pi ON m.pitch_id = pi.pitch_id

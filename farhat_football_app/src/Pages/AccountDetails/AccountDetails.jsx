@@ -233,6 +233,7 @@ function AccountDetails() {
 								<th>G</th>
 								<th>A</th>
 								<th>DC</th>
+								<th>Rating</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -247,6 +248,11 @@ function AccountDetails() {
 									<td>{match.goals}</td>
 									<td>{match.assists}</td>
 									<td>{match.defcons}</td>
+									<td>
+										{match.rating != null
+											? Number(match.rating).toFixed(1)
+											: "—"}
+									</td>
 								</tr>
 							))}
 						</tbody>
@@ -267,6 +273,7 @@ function AccountDetails() {
 							<th>Defcons</th>
 							<th>Chances</th>
 							<th>OGs</th>
+							<th>Avg Rating</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -280,11 +287,16 @@ function AccountDetails() {
 									<td>{stat.total_defcons}</td>
 									<td>{stat.total_chancescreated}</td>
 									<td>{stat.total_own_goals}</td>
+									<td>
+										{stat.avg_rating != null
+											? Number(stat.avg_rating).toFixed(2)
+											: "—"}
+									</td>
 								</tr>
 							))
 						) : (
 							<tr>
-								<td colSpan="7">No stats available</td>
+								<td colSpan="8">No stats available</td>
 							</tr>
 						)}
 					</tbody>

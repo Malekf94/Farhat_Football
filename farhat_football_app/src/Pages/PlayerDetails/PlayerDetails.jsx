@@ -82,6 +82,7 @@ function PlayerDetails() {
 										<th>Defcons</th>
 										<th>Chances Created</th>
 										<th>Own Goals</th>
+										<th>Avg Rating</th>
 									</tr>
 								</thead>
 								<tbody>
@@ -94,6 +95,11 @@ function PlayerDetails() {
 											<td>{stat.total_defcons}</td>
 											<td>{stat.total_chancescreated}</td>
 											<td>{stat.total_own_goals}</td>
+											<td>
+												{stat.avg_rating != null
+													? Number(stat.avg_rating).toFixed(2)
+													: "—"}
+											</td>
 										</tr>
 									))}
 								</tbody>
