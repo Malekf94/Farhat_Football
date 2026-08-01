@@ -39,6 +39,9 @@ function IndividualMatch() {
 		youtube_links: "",
 	});
 	const [editedPlayerStats, setEditedPlayerStats] = useState({});
+	const [myVotes, setMyVotes] = useState({}); // ratee_id -> rating
+	const [votesSubmitted, setVotesSubmitted] = useState(false);
+	const [suggestedRatings, setSuggestedRatings] = useState({}); // ratee_id -> { suggested, votes }
 
 	const team1 = playersInMatch.filter((player) => player.team_id === 1);
 	const team2 = playersInMatch.filter((player) => player.team_id === 2);
@@ -181,6 +184,62 @@ function IndividualMatch() {
 	const userInMatch = playersInMatch.some(
 		(player) => player.player_id === playerId,
 	);
+
+	const matchFinished =
+		match &&
+		(match.match_status === "completed" || match.match_status === "friendly");
+
+	// Load the caller's existing votes once the match is finished and they played.
+	useEffect(() => {
+		if (!matchFinished || !userInMatch) return;
+		privateApi
+			.get(`/api/v1/matchPlayer/ratings/${match_id}/mine`)
+			.then((res) => {
+				const map = {};
+				res.data.forEach((r) => {
+					map[r.ratee_id] = r.rating;
+				});
+				setMyVotes(map);
+			})
+			.catch((err) => console.error("Error loading your votes:", err));
+	}, [matchFinished, userInMatch, match_id]);
+
+	// Admin: load the suggested (voted) averages while editing stats.
+	useEffect(() => {
+		if (!isAdmin || !isEditingStats) return;
+		privateApi
+			.get(`/api/v1/matchPlayer/ratings/${match_id}/suggested`)
+			.then((res) => {
+				const map = {};
+				res.data.forEach((r) => {
+					map[r.ratee_id] = { suggested: r.suggested, votes: r.votes };
+				});
+				setSuggestedRatings(map);
+			})
+			.catch((err) => console.error("Error loading suggested ratings:", err));
+	}, [isAdmin, isEditingStats, match_id]);
+
+	const handleSubmitVotes = async () => {
+		const ratings = Object.entries(myVotes)
+			.filter(([, v]) => v !== "" && v != null)
+			.map(([ratee_id, rating]) => ({
+				ratee_id: Number(ratee_id),
+				rating: Number(rating),
+			}));
+		try {
+			await privateApi.post(`/api/v1/matchPlayer/ratings/${match_id}`, {
+				ratings,
+			});
+			setVotesSubmitted(true);
+			showToast("Thanks — your ratings are in.");
+		} catch (error) {
+			console.error("Error submitting votes:", error);
+			showToast(
+				error.response?.data?.error || "Failed to submit ratings.",
+				"error",
+			);
+		}
+	};
 
 	const handleJoinMatch = async () => {
 		try {
@@ -438,6 +497,45 @@ function IndividualMatch() {
 				{!isAdmin && !motmPlayer && <p>Not yet selected.</p>}
 			</div>
 
+			{matchFinished && userInMatch && (
+				<div className="voting-panel">
+					<h2>Rate the players</h2>
+					<p className="voting-intro">
+						{votesSubmitted
+							? "Thanks — your ratings are in. You can update them any time before they're finalised."
+							: "Optional — score the players who played (1–10). Skip if you'd rather not."}
+					</p>
+					<div className="voting-list">
+						{playersInMatch
+							.filter(
+								(p) =>
+									(p.team_id === 1 || p.team_id === 2) &&
+									p.player_id !== playerId,
+							)
+							.map((p) => (
+								<div key={p.player_id} className="voting-row">
+									<span className="voting-name">{p.preferred_name}</span>
+									<input
+										type="number"
+										min="1"
+										max="10"
+										step="0.5"
+										placeholder="1-10"
+										value={myVotes[p.player_id] ?? ""}
+										onChange={(e) =>
+											setMyVotes((prev) => ({
+												...prev,
+												[p.player_id]: e.target.value,
+											}))
+										}
+									/>
+								</div>
+							))}
+					</div>
+					<button onClick={handleSubmitVotes}>Submit ratings</button>
+				</div>
+			)}
+
 			<h2>Team 1</h2>
 			<PlayerTable
 				players={team1}
@@ -447,6 +545,7 @@ function IndividualMatch() {
 				editedPlayerStats={editedPlayerStats}
 				setEditedPlayerStats={setEditedPlayerStats}
 				handleSavePlayerStats={handleSavePlayerStats}
+				suggested={suggestedRatings}
 			/>
 
 			<h2>Team 2</h2>
@@ -458,6 +557,7 @@ function IndividualMatch() {
 				editedPlayerStats={editedPlayerStats}
 				setEditedPlayerStats={setEditedPlayerStats}
 				handleSavePlayerStats={handleSavePlayerStats}
+				suggested={suggestedRatings}
 			/>
 
 			<h2>Reserves</h2>
@@ -469,6 +569,7 @@ function IndividualMatch() {
 				editedPlayerStats={editedPlayerStats}
 				setEditedPlayerStats={setEditedPlayerStats}
 				handleSavePlayerStats={handleSavePlayerStats}
+				suggested={suggestedRatings}
 			/>
 
 			{modal && (
@@ -710,6 +811,7 @@ function PlayerTable({
 	editedPlayerStats,
 	setEditedPlayerStats,
 	handleSavePlayerStats,
+	suggested = {},
 }) {
 	return (
 		<div style={{ width: "100%" }}>
@@ -838,6 +940,30 @@ function PlayerTable({
 														}))
 													}
 												/>
+												{suggested[player.player_id] && (
+													<div className="suggested-rating">
+														<span>
+															💡 {suggested[player.player_id].suggested} (
+															{suggested[player.player_id].votes})
+														</span>
+														<button
+															type="button"
+															className="use-suggested"
+															onClick={() =>
+																setEditedPlayerStats((prev) => ({
+																	...prev,
+																	[player.player_id]: {
+																		...prev[player.player_id],
+																		rating:
+																			suggested[player.player_id].suggested,
+																	},
+																}))
+															}
+														>
+															Use
+														</button>
+													</div>
+												)}
 											</td>
 											<td>
 												<select
@@ -981,6 +1107,7 @@ PlayerTable.propTypes = {
 	),
 	setEditedPlayerStats: PropTypes.func.isRequired,
 	handleSavePlayerStats: PropTypes.func.isRequired,
+	suggested: PropTypes.object,
 };
 
 export default IndividualMatch;

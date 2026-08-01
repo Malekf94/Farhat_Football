@@ -87,7 +87,42 @@ const updateTeamAssignments = `
     AND (player_id = ANY($1::int[]) OR player_id = ANY($2::int[]));
 `;
 
+// ---- Player-voted ratings ----
+const getMatchStatus = `SELECT match_status FROM matches WHERE match_id = $1;`;
+
+const playedInMatch = `
+  SELECT 1 FROM match_players
+  WHERE match_id = $1 AND player_id = $2 AND team_id IN (1, 2)
+  LIMIT 1;
+`;
+
+const upsertRating = `
+  INSERT INTO match_player_ratings (match_id, rater_id, ratee_id, rating)
+  VALUES ($1, $2, $3, $4)
+  ON CONFLICT (match_id, rater_id, ratee_id)
+  DO UPDATE SET rating = EXCLUDED.rating, created_at = now();
+`;
+
+const getMyRatings = `
+  SELECT ratee_id, rating
+  FROM match_player_ratings
+  WHERE match_id = $1 AND rater_id = $2;
+`;
+
+// Suggested (average) rating per player from all votes for a match.
+const getSuggestedRatings = `
+  SELECT ratee_id, ROUND(AVG(rating), 1) AS suggested, COUNT(*) AS votes
+  FROM match_player_ratings
+  WHERE match_id = $1
+  GROUP BY ratee_id;
+`;
+
 module.exports = {
+	getMatchStatus,
+	playedInMatch,
+	upsertRating,
+	getMyRatings,
+	getSuggestedRatings,
 	getPlayersInMatch,
 	addPlayerToMatch,
 	removePlayerFromMatch,

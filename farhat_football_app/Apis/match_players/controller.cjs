@@ -1,6 +1,7 @@
 const pool = require("../../db.cjs");
 const queries = require("./queries.cjs");
 const banQueries = require("../bans/queries.cjs");
+const { getCaller } = require("../auth/requireHostAdmin.cjs");
 
 // Auto-ban policy: this many lates within the window (days) triggers a ban of
 // banDays. Counted per host, resetting after each auto-ban.
@@ -320,7 +321,108 @@ const batchUpdateMatchPlayers = async (req, res) => {
 		client.release();
 	}
 };
+// ---- Player-voted ratings ----
+
+// A player submits their ratings of the other players in a completed match.
+const submitRatings = async (req, res) => {
+	const { match_id } = req.params;
+	const { ratings } = req.body; // [{ ratee_id, rating }]
+
+	if (!Array.isArray(ratings)) {
+		return res.status(400).json({ error: "ratings array is required." });
+	}
+
+	try {
+		const caller = await getCaller(req);
+		if (!caller) return res.status(403).json({ error: "Could not verify identity." });
+
+		const statusRes = await pool.query(queries.getMatchStatus, [match_id]);
+		const status = statusRes.rows[0]?.match_status;
+		if (!["completed", "friendly"].includes(status)) {
+			return res
+				.status(400)
+				.json({ error: "Voting is only open once a match is completed." });
+		}
+
+		const played = await pool.query(queries.playedInMatch, [
+			match_id,
+			caller.player_id,
+		]);
+		if (played.rows.length === 0) {
+			return res
+				.status(403)
+				.json({ error: "Only players who played in this match can rate it." });
+		}
+
+		const client = await pool.connect();
+		try {
+			await client.query("BEGIN");
+			for (const r of ratings) {
+				const rateeId = Number(r.ratee_id);
+				const value = parseFloat(r.rating);
+				if (rateeId === caller.player_id) continue; // no self-rating
+				if (Number.isNaN(value) || value < 1 || value > 10) continue;
+
+				const rateePlayed = await client.query(queries.playedInMatch, [
+					match_id,
+					rateeId,
+				]);
+				if (rateePlayed.rows.length === 0) continue;
+
+				await client.query(queries.upsertRating, [
+					match_id,
+					caller.player_id,
+					rateeId,
+					value,
+				]);
+			}
+			await client.query("COMMIT");
+			res.json({ message: "Ratings submitted." });
+		} catch (err) {
+			await client.query("ROLLBACK");
+			throw err;
+		} finally {
+			client.release();
+		}
+	} catch (error) {
+		console.error("Error submitting ratings:", error);
+		res.status(500).json({ error: "Failed to submit ratings." });
+	}
+};
+
+// The caller's own submitted votes for a match (to pre-fill the voting UI).
+const getMyRatings = async (req, res) => {
+	try {
+		const caller = await getCaller(req);
+		if (!caller) return res.status(403).json({ error: "Could not verify identity." });
+		const result = await pool.query(queries.getMyRatings, [
+			req.params.match_id,
+			caller.player_id,
+		]);
+		res.json(result.rows);
+	} catch (error) {
+		console.error("Error fetching own ratings:", error);
+		res.status(500).json({ error: "Failed to fetch ratings." });
+	}
+};
+
+// Admin: the suggested (average) rating per player from all votes.
+const getSuggestedRatings = async (req, res) => {
+	try {
+		const result = await pool.query(queries.getSuggestedRatings, [
+			req.params.match_id,
+		]);
+		res.json(result.rows);
+	} catch (error) {
+		console.error("Error fetching suggested ratings:", error);
+		res.status(500).json({ error: "Failed to fetch suggested ratings." });
+	}
+};
+
 module.exports = {
+	submitRatings,
+	getMyRatings,
+	getSuggestedRatings,
 	addPlayerToMatch,
 	removePlayerFromMatch,
 	getPlayersInMatch,

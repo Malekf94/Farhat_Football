@@ -12,6 +12,16 @@ router.post("/", checkJwt, controller.addPlayerToMatch);
 router.get("/lates", controller.getLates);
 router.get("/attributes/:match_id", controller.getPlayerAttributesInMatch);
 
+// Player-voted ratings
+router.get("/ratings/:match_id/mine", checkJwt, controller.getMyRatings);
+router.get(
+	"/ratings/:match_id/suggested",
+	checkJwt,
+	requireHostAdmin(),
+	controller.getSuggestedRatings,
+);
+router.post("/ratings/:match_id", checkJwt, controller.submitRatings);
+
 // Host-admin only: managing teams and stats (authorised against the match's host)
 router.put(
 	"/update-teams/:match_id",

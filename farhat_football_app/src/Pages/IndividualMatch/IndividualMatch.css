@@ -161,6 +161,77 @@ h2 {
 	color: white;
 }
 
+/* Player voting panel */
+.voting-panel {
+	max-width: 560px;
+	margin: 20px auto;
+	background: rgba(0, 0, 0, 0.75);
+	border: 1px solid #ffcc00;
+	border-radius: 12px;
+	padding: 18px 20px;
+}
+.voting-panel h2 {
+	margin: 0 0 6px;
+}
+.voting-intro {
+	color: #ccc;
+	font-size: 0.88rem;
+	margin: 0 0 14px;
+}
+.voting-list {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	margin-bottom: 16px;
+}
+.voting-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 6px 0;
+	border-bottom: 1px solid #2a2a2a;
+}
+.voting-name {
+	color: #f0f0f0;
+	font-weight: 600;
+}
+.voting-row input {
+	width: 70px;
+	padding: 6px;
+	background: #222;
+	color: white;
+	border: 1px solid #555;
+	border-radius: 6px;
+	text-align: center;
+}
+
+/* Suggested (voted) rating shown to admins in the stats editor */
+.suggested-rating {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	margin-top: 4px;
+	font-size: 0.72rem;
+	color: #ffcc00;
+	white-space: nowrap;
+}
+.use-suggested {
+	padding: 2px 8px;
+	margin: 0;
+	min-height: unset;
+	font-size: 0.65rem;
+	background: transparent;
+	color: #ffcc00;
+	border: 1px solid #ffcc00;
+	border-radius: 5px;
+	cursor: pointer;
+}
+.use-suggested:hover {
+	background: rgba(255, 204, 0, 0.15);
+	color: #ffcc00;
+}
+
 /* Man of the match card */
 .man-of-the-match {
 	margin: 8px 0;
