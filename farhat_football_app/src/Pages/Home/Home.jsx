@@ -35,6 +35,31 @@ function Home() {
 				View Matches
 			</button>
 
+			{isDefault && (
+				<div className="home-howto">
+					<h2>New here? How to play</h2>
+					<ol>
+						<li>
+							<strong>Sign up</strong> — just your name and year of birth.
+						</li>
+						<li>
+							<strong>Top up your balance</strong> on the Your Account page —
+							we&apos;re pay-before-you-play.
+						</li>
+						<li>
+							<strong>Join a game</strong> from the Matches tab.
+						</li>
+						<li>
+							<strong>Turn up and play</strong> — the fee comes off once the game
+							is done.
+						</li>
+					</ol>
+					<button className="btn" onClick={() => navigate("/faq")}>
+						Full details &amp; FAQ
+					</button>
+				</div>
+			)}
+
 			<div className="buttons">
 				<div className="btn-group">
 					<h2>Leaderboards</h2>

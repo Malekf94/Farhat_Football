@@ -5,6 +5,35 @@
 	align-items: center;
 }
 
+/* How-to-play card on the home page */
+.home-howto {
+	max-width: 540px;
+	margin: 24px auto;
+	padding: 20px 24px;
+	background: rgba(0, 0, 0, 0.7);
+	border: 1px solid #ffcc00;
+	border-radius: 12px;
+	text-align: left;
+}
+.home-howto h2 {
+	color: #ffcc00;
+	margin: 0 0 12px;
+	text-align: center;
+}
+.home-howto ol {
+	margin: 0 0 16px;
+	padding-left: 22px;
+	color: #f0f0f0;
+	line-height: 1.7;
+}
+.home-howto ol strong {
+	color: #fff;
+}
+.home-howto .btn {
+	display: block;
+	margin: 0 auto;
+}
+
 /* Style for h2 with yellow and black color scheme */
 .btn-group h2 {
 	padding: 10px 20px;

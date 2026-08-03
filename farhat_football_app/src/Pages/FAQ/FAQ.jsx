@@ -29,47 +29,40 @@ const faqs = [
 		],
 		custom: (
 			<>
-				To get started, follow these steps:
+				It&apos;s dead simple:
 				<ul>
-					<li>Create an account</li>
-					<li>Go to the "Matches" tab</li>
 					<li>
-						Look for upcoming matches, which will be listed with the following
-						details:
-						<ul>
-							<li>Pitch location</li>
-							<li>Number of players per team</li>
-							<li>Date and time of the match</li>
-						</ul>
+						<strong>Sign up</strong> — just your name and year of birth.
 					</li>
 					<li>
-						All the match details will be available at the top of the page
+						<strong>Add credit</strong> — go to <em>Your Account</em> and hit{" "}
+						<em>Top Up Balance</em>. We&apos;re pay-before-you-play, so you need
+						money on your account before joining (games are usually around
+						£4.50). It tags the payment to you automatically.
 					</li>
 					<li>
-						If you want to join a match:
-						<ul>
-							<li>
-								Go to the "Your Account" page and click on "Update Balance"
-							</li>
-							<li>
-								Alternatively, send the price of the pitch to the bank details
-								provided in the group chat description, using "ffc" as the
-								reference/note
-							</li>
-							<li>
-								Note: It might take some time for your balance to update, but
-								once it's done, you'll be able to join the game
-							</li>
-						</ul>
+						<strong>Pick a game</strong> in the <em>Matches</em> tab — you&apos;ll
+						see the pitch, players per team, and the date and time.
+					</li>
+					<li>
+						<strong>Hit Join</strong> — as long as you&apos;ve got the balance,
+						you&apos;re in.
+					</li>
+					<li>
+						<strong>Turn up and play.</strong> The fee comes off your balance
+						once the game is marked complete.
 					</li>
 				</ul>
+				Heads up: if you drop out within 5 hours of kick-off you&apos;ll still be
+				charged, and being late 3 times in 3 weeks means a 1-week ban — so try
+				to be on time!
 			</>
 		),
 	},
 	{
 		question: "How do I update my balance / pay?",
 		answer:
-			'Go to the "Your Account" page and click "Update Balance". Alternatively, send the pitch price to the bank details in the group chat using "ffc" as the reference. It may take a short while for your balance to update.',
+			'Go to the "Your Account" page and click "Top Up Balance" — it opens a payment link that tags the money to you automatically. It may take a short while for your balance to update.',
 		tags: ["balance", "payment", "pay", "money", "account", "update", "bank"],
 	},
 	{
