@@ -1,25 +1,31 @@
 /**
  * randomiserMk3 — balanced team splitter.
  *
- * Balances two teams across FIVE categories:
- *   1. Workrate
- *   2. Concentration + Decision making
- *   3. Teamwork
- *   4. Tackling + Positioning + Marking  (defensive)
- *   5. Mental
+ * Balances two teams across SIX dimensions, each with its own allowed
+ * difference between the teams:
+ *   1. Workrate                              (≤ 20)
+ *   2. Concentration + Decision making       (≤ 20)
+ *   3. Teamwork                              (≤ 20)
+ *   4. Tackling + Positioning + Marking      (≤ 20)
+ *   5. Mental                                (≤ 20)
+ *   6. Total stats (sum of all attributes)   (≤ 45)
  *
- * Goal: keep the difference between the two teams within TARGET_DIFFERENCE in
- * EACH category (not just overall). Strategy: simulated annealing over random
- * swaps, optimising primarily for the worst category (with the total as a
- * tie-breaker), restarting a few times and keeping the best split.
- *
- * Logs the final teams and the per-category differences to the console.
+ * Because the dimensions are on very different scales, the algorithm scores a
+ * split by how far each dimension is RELATIVE TO ITS OWN THRESHOLD, and always
+ * works on the worst-off dimension first. Simulated annealing over random
+ * swaps, restarted a few times; stops early once every dimension is within its
+ * threshold. Logs the full breakdown to the console.
  */
 
-// Max allowed difference between the two teams in EACH category.
-const TARGET_DIFFERENCE = 20;
-const RESTARTS = 10;
-const ITERATIONS = 800;
+// Allowed difference between the two teams for each dimension.
+const THRESHOLDS = {
+	workrate: 20,
+	concentration: 20,
+	teamwork: 20,
+	defensive: 20,
+	mental: 20,
+	total: 45,
+};
 
 const CATEGORY_LABELS = {
 	workrate: "Workrate",
@@ -27,12 +33,27 @@ const CATEGORY_LABELS = {
 	teamwork: "Teamwork",
 	defensive: "Tackling + Positioning + Marking",
 	mental: "Mental",
+	total: "Total stats",
 };
+
+const RESTARTS = 10;
+const ITERATIONS = 800;
 
 const n = (player, key) => Number(player[key] || 0);
 
-// The five category values for a single player.
-function categories(player) {
+// Sum of every numeric attribute on a player (their overall rating).
+function totalStats(player) {
+	let sum = 0;
+	for (const [key, val] of Object.entries(player)) {
+		if (typeof val === "number" && !key.endsWith("_id") && key !== "team_id") {
+			sum += val;
+		}
+	}
+	return sum;
+}
+
+// The six dimension values for a single player.
+function dimensions(player) {
 	return {
 		workrate: n(player, "workrate"),
 		concentration: n(player, "concentration") + n(player, "decision_making"),
@@ -40,51 +61,52 @@ function categories(player) {
 		defensive:
 			n(player, "tackling") + n(player, "positioning") + n(player, "marking"),
 		mental: n(player, "mental"),
+		total: totalStats(player),
 	};
 }
 
-// A player's overall rating (sum of the five categories) — used for the snake
-// draft ordering and to detect unrated players.
-function playerOverall(player) {
-	const c = categories(player);
-	return c.workrate + c.concentration + c.teamwork + c.defensive + c.mental;
-}
-
 function teamTotals(team) {
-	const t = { workrate: 0, concentration: 0, teamwork: 0, defensive: 0, mental: 0 };
+	const t = {
+		workrate: 0,
+		concentration: 0,
+		teamwork: 0,
+		defensive: 0,
+		mental: 0,
+		total: 0,
+	};
 	for (const p of team) {
-		const c = categories(p);
-		t.workrate += c.workrate;
-		t.concentration += c.concentration;
-		t.teamwork += c.teamwork;
-		t.defensive += c.defensive;
-		t.mental += c.mental;
+		const d = dimensions(p);
+		for (const key of Object.keys(t)) t[key] += d[key];
 	}
 	return t;
 }
 
-// Absolute difference between the two teams in each of the five categories.
-function categoryDiffs(t1, t2) {
+// Absolute difference between the two teams in each dimension.
+function diffs(t1, t2) {
 	const a = teamTotals(t1);
 	const b = teamTotals(t2);
-	return {
-		workrate: Math.abs(a.workrate - b.workrate),
-		concentration: Math.abs(a.concentration - b.concentration),
-		teamwork: Math.abs(a.teamwork - b.teamwork),
-		defensive: Math.abs(a.defensive - b.defensive),
-		mental: Math.abs(a.mental - b.mental),
-	};
+	const out = {};
+	for (const key of Object.keys(THRESHOLDS)) {
+		out[key] = Math.abs(a[key] - b[key]);
+	}
+	return out;
 }
 
-const maxDiff = (diffs) => Math.max(...Object.values(diffs));
-const sumDiff = (diffs) => Object.values(diffs).reduce((s, d) => s + d, 0);
+// Each difference relative to its own threshold (1.0 = exactly on the limit).
+const normalised = (d) =>
+	Object.keys(THRESHOLDS).map((key) => d[key] / THRESHOLDS[key]);
 
-// Score to minimise: the worst category difference dominates, with the total
-// as a small tie-breaker so the other categories keep improving too.
+// Score to minimise: worst-off dimension dominates, total (scaled) as a
+// tie-breaker so the others keep improving too.
 function score(t1, t2) {
-	const d = categoryDiffs(t1, t2);
-	return maxDiff(d) + sumDiff(d) / 100;
+	const norm = normalised(diffs(t1, t2));
+	const worst = Math.max(...norm);
+	const sum = norm.reduce((s, v) => s + v, 0);
+	return worst + sum / 100;
 }
+
+const withinAllThresholds = (d) =>
+	Object.keys(THRESHOLDS).every((key) => d[key] <= THRESHOLDS[key]);
 
 function shuffle(array) {
 	const a = [...array];
@@ -96,8 +118,8 @@ function shuffle(array) {
 }
 
 function snakeDraft(players) {
-	// Sort best → worst by overall, then snake-draft into two teams.
-	const sorted = [...players].sort((a, b) => playerOverall(b) - playerOverall(a));
+	// Sort best → worst by overall (total stats), then snake-draft.
+	const sorted = [...players].sort((a, b) => totalStats(b) - totalStats(a));
 	const t1 = [];
 	const t2 = [];
 	sorted.forEach((p, i) => {
@@ -135,23 +157,23 @@ function anneal(seed) {
 		}
 	}
 
-	return { teams: bestTeams, sc: score(bestTeams[0], bestTeams[1]) };
+	return { teams: bestTeams };
 }
 
-// Print the final teams and their per-category differences.
+// Print the final teams and each dimension's difference vs its threshold.
 function logResult(team1, team2) {
-	const diffs = categoryDiffs(team1, team2);
+	const d = diffs(team1, team2);
 	const a = teamTotals(team1);
 	const b = teamTotals(team2);
 
 	console.log("=== Team balance ===");
 	console.log("Team 1:", team1.map((p) => p.preferred_name).join(", "));
 	console.log("Team 2:", team2.map((p) => p.preferred_name).join(", "));
-	console.log(`Category differences (target ≤ ${TARGET_DIFFERENCE} each):`);
-	for (const key of Object.keys(diffs)) {
-		const within = diffs[key] <= TARGET_DIFFERENCE ? "✅" : "⚠️";
+	console.log("Differences (team 1 vs team 2):");
+	for (const key of Object.keys(THRESHOLDS)) {
+		const ok = d[key] <= THRESHOLDS[key] ? "✅" : "⚠️";
 		console.log(
-			`  ${within} ${CATEGORY_LABELS[key]}: team1=${a[key]}, team2=${b[key]}, diff=${diffs[key]}`,
+			`  ${ok} ${CATEGORY_LABELS[key]}: ${a[key]} vs ${b[key]} = ${d[key]} (target ≤ ${THRESHOLDS[key]})`,
 		);
 	}
 }
@@ -159,10 +181,10 @@ function logResult(team1, team2) {
 export const randomiserMk3 = (playersAttributes) => {
 	const players = [...playersAttributes];
 
-	// Players with a zero overall haven't been rated yet. Substitute the
+	// Players with a zero total haven't been rated yet. Substitute the
 	// per-attribute average from rated players so they're treated as neutral
 	// unknowns and spread evenly rather than dumped on one team.
-	const rated = players.filter((p) => playerOverall(p) > 0);
+	const rated = players.filter((p) => totalStats(p) > 0);
 	let effective = players;
 
 	if (rated.length > 0 && rated.length < players.length) {
@@ -177,13 +199,13 @@ export const randomiserMk3 = (playersAttributes) => {
 			);
 		}
 		effective = players.map((p) =>
-			playerOverall(p) === 0 ? { ...p, ...avgAttrs } : p,
+			totalStats(p) === 0 ? { ...p, ...avgAttrs } : p,
 		);
 	}
 
-	// Try several annealing runs, keep the best; stop early once every category
-	// is within TARGET_DIFFERENCE. First run seeds from a snake draft; later
-	// runs from shuffled splits for variety.
+	// Try several annealing runs, keep the best; stop early once every
+	// dimension is within its threshold. First run seeds from a snake draft;
+	// later runs from shuffled splits for variety.
 	let best = null;
 	for (let r = 0; r < RESTARTS; r++) {
 		const seed =
@@ -196,19 +218,18 @@ export const randomiserMk3 = (playersAttributes) => {
 				  })();
 
 		const result = anneal(seed);
-		if (!best || result.sc < best.sc) best = result;
-		if (maxDiff(categoryDiffs(best.teams[0], best.teams[1])) <= TARGET_DIFFERENCE) {
-			break;
+		if (!best || score(result.teams[0], result.teams[1]) < score(best.teams[0], best.teams[1])) {
+			best = result;
 		}
+		if (withinAllThresholds(diffs(best.teams[0], best.teams[1]))) break;
 	}
 
 	const [team1, team2] = best.teams;
 	logResult(team1, team2);
 
-	const worst = maxDiff(categoryDiffs(team1, team2));
-	if (worst > TARGET_DIFFERENCE) {
+	if (!withinAllThresholds(diffs(team1, team2))) {
 		console.warn(
-			`Some category is off by ${worst} (target ≤ ${TARGET_DIFFERENCE}). This is the closest split found.`,
+			"Couldn't get every dimension within its target — this is the closest split found.",
 		);
 	}
 
