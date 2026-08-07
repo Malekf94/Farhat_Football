@@ -120,7 +120,7 @@ const getLeadingAttributes = async (req, res) => {
 			FROM attributes a
 			JOIN players p ON a.player_id = p.player_id
 			${whereClause}
-			ORDER BY stat DESC
+			ORDER BY stat DESC, p.preferred_name ASC, a.player_id ASC
 			LIMIT ${limit} OFFSET ${offset}
 		`;
 		const { rows } = await pool.query(leaderboardQuery);
