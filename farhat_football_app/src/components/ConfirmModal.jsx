@@ -1,4 +1,5 @@
 import PropTypes from "prop-types";
+import { createPortal } from "react-dom";
 import "./ConfirmModal.css";
 
 function ConfirmModal({
@@ -8,7 +9,9 @@ function ConfirmModal({
 	confirmText = "Confirm",
 	cancelText = "Cancel",
 }) {
-	return (
+	// Portal to body so the fixed overlay pins to the viewport, not to
+	// .page-content (whose backdrop-filter would otherwise contain it).
+	return createPortal(
 		<div className="modal-overlay">
 			<div className="modal-box">
 				<p>{message}</p>
@@ -21,7 +24,8 @@ function ConfirmModal({
 					</button>
 				</div>
 			</div>
-		</div>
+		</div>,
+		document.body,
 	);
 }
 

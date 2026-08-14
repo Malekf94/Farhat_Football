@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
+import { createPortal } from "react-dom";
 import PropTypes from "prop-types";
 import "./IndividualMatch.css";
 import { useNavigate, useParams } from "react-router-dom";
@@ -592,9 +593,11 @@ function IndividualMatch() {
 				/>
 			)}
 
-			{toast && (
-				<div className={`toast toast--${toast.type}`}>{toast.message}</div>
-			)}
+			{toast &&
+				createPortal(
+					<div className={`toast toast--${toast.type}`}>{toast.message}</div>,
+					document.body,
+				)}
 		</div>
 	);
 }
@@ -626,7 +629,7 @@ function EmailModal({ matchId, showToast, onClose }) {
 		}
 	};
 
-	return (
+	return createPortal(
 		<div className="modal-overlay">
 			<div className="modal-box email-modal">
 				<h3>Email Players</h3>
@@ -657,7 +660,8 @@ function EmailModal({ matchId, showToast, onClose }) {
 					</button>
 				</div>
 			</div>
-		</div>
+		</div>,
+		document.body,
 	);
 }
 
