@@ -89,6 +89,37 @@ jobs:
       - name: Integration tests
         run: npm run test:integration
 
+  secret-scan:
+    name: Secret scan
+    runs-on: ubuntu-latest
+    # Scans the repository, not the npm package, so it opts out of the
+    # workflow-level working-directory.
+    defaults:
+      run:
+        working-directory: ${{ github.workspace }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # gitleaks git mode walks commits; the default shallow clone would
+          # scan almost nothing and pass for the wrong reason.
+          fetch-depth: 0
+
+      # SEC-015. .env holds real production credentials and is protected by
+      # .gitignore alone, in a public repository — one `git add -f` or a rename
+      # that escapes the ignore rule is all it would take.
+      #
+      # Pinned by version, not :latest, so the gate cannot change under us.
+      # Exits 1 when it finds anything, which fails the job.
+      #
+      # git mode (committed history) rather than dir mode on purpose: dir mode
+      # also reads gitignored files, so locally it reports the real .env every
+      # time and would train everyone to ignore it.
+      - name: Scan committed history for secrets
+        run: |
+          docker run --rm -v "${{ github.workspace }}:/repo" \
+            zricethezav/gitleaks:v8.30.1 \
+            git /repo --redact --no-banner
+
   audit:
     name: Dependency audit
     runs-on: ubuntu-latest

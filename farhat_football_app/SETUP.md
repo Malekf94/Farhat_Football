@@ -132,3 +132,37 @@ that branch is still open, but once the base merges, the PR's own work reaches n
 `.env` is gitignored. Production credentials (the real database URL, Monzo
 token, Brevo key, Auth0 client secret) stay with the owner and are set as
 environment variables in the hosting dashboard — never in the repo.
+
+**This repository is public**, so a committed credential is disclosed the moment it is pushed,
+and deleting it later does not undo that — the object stays reachable in the history and in
+every clone and fork. CI runs `gitleaks` over the committed history on every pull request
+(SEC-015) and fails on a hit, but that is a net, not a guarantee: treat `.env` as radioactive.
+
+**Baseline scan:** the full history was scanned on 2026-08-25 — 289 commits, ~24 MB — and
+**no leaks were found**. That is the clean state the CI job protects. Re-run it after any
+history rewrite:
+
+```bash
+docker run --rm -v "$PWD:/repo" zricethezav/gitleaks:v8.30.1 git /repo --redact --no-banner
+```
+
+Scan the working tree with `dir` instead of `git`, and expect it to report your local `.env` —
+`dir` mode reads gitignored files. That is why CI uses `git` mode.
+
+### If a credential is exposed
+
+Rotate first, then clean up. Rotation is what ends the exposure; removing the commit is
+housekeeping. Assume anything pushed to a public repository was scraped within minutes.
+
+| Secret | Where it is rotated | Owner | Notes |
+|---|---|---|---|
+| `DATABASE_URL` | Hosting provider's database dashboard — reset the password, then update the variable | Owner | Highest impact: it is the whole ledger and every player's details. Rotating breaks the running app until the variable is updated, so do it in that order deliberately |
+| `MONZO_ACCESS_TOKEN` | Monzo developer portal — revoke the token and issue a new one | Owner | Payment ingress. Revoke immediately; a stale token only stops payment sync, while a leaked one exposes account data |
+| `AUTH0_CLIENT_SECRET` | Auth0 dashboard → Applications → the app → Settings → Rotate | Owner | Rotating invalidates the old secret at once |
+| `BREVO_API_KEY` | Brevo dashboard → SMTP & API → API keys — delete and recreate | Owner | Lets an attacker send mail as the group; low data risk, high reputational one |
+| `VITE_AUTH0_DOMAIN`, `VITE_AUTH0_CLIENT_ID`, `VITE_AUTH0_AUDIENCE`, `VITE_API_BASE_URL` | Not secret | — | `VITE_`-prefixed values are compiled into the client bundle and are public by design. Do not treat a report on these as an incident |
+| `MONZO_ACCOUNT_ID`, `BREVO_FROM_EMAIL`, `DEFAULT_HOST_SLUG` | Not secret | — | Identifiers, not credentials |
+
+After rotating, purge the value from history (`git filter-repo` or BFG), force-push, and tell
+every clone holder to re-clone — a rewrite does not reach existing clones or forks. Then re-run
+the baseline scan above and confirm it is clean again.
