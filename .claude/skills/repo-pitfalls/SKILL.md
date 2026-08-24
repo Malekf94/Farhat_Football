@@ -43,6 +43,18 @@ Append a rule here only once it generalises. Keep the reasoning short and cite `
   to an unreachable sentinel, and `tests/backend/db-guard.test.js` pins that guard. **Never
   weaken either, and never set a real `DATABASE_URL` in a test.** Consequence: backend units that
   touch the pool — controllers, guards, queries — are **not unit-testable as written**.
+- **[V 2026-08-24] `schema.sql` cannot be loaded into the PostgreSQL major it came from.** The
+  dump header says "Dumped from database version 16.13 ... Dumped by pg_dump version 17.1"
+  (`schema.sql:4-5`), and pg_dump 17 emits `SET transaction_timeout = 0` at line 11 — a parameter
+  PostgreSQL 16 does not have. Loading it into `postgres:16` aborts there under `ON_ERROR_STOP`.
+  The integration harness strips that line at load time; the tracked file is still wrong and is
+  `DB-001`'s to fix. Anyone restoring this dump to rebuild an environment hits it first.
+- **[V 2026-08-24] Backend modules that require the pool ARE testable — against Docker.** The
+  `vi.mock()` limit above is real but it is a limit on *unit* tests only. `npm run test:integration`
+  seeds a throwaway `postgres:16` from `schema.sql` and drives guards and controllers directly.
+  Before concluding "this cannot be tested", check
+  [`.claude/rules/testing.md`](../../rules/testing.md) §Integration tests against a disposable
+  database. No new dependency is involved.
 - **[V 2026-08-21] Heredocs break on this repo's markdown.** Writing these skill files via
   `cat > file <<'EOF'` failed with an unmatched-quote parse error. Use the Write/Edit tools for
   any file over ~20 lines, especially one containing backticks, `$`, or apostrophes.
@@ -125,6 +137,7 @@ Append a rule here only once it generalises. Keep the reasoning short and cite `
   | `farhat_football_app/models/index.js` | Sequelize scaffold. `sequelize` is not installed and it requires `config/config.json`, which does not exist. Crashes if imported. |
   | `farhat_football_app/config/config.cjs` | Only consumed by that dead scaffold. |
   | `Apis/auth/checkAdmin.cjs` | Never imported; placeholder claim namespace. |
+  | `set_first_player_as_admin()` (DB function) | Defined in `schema.sql`; **no** `CREATE TRIGGER` references it. Inserting the first player does not make them an admin. |
   | `Apis/payments/syncPayments.cjs` | Deprecated; would double balances. |
   | `src/Pages/UpcomingMatch/`, `src/Pages/YourPage/` | Defined, never imported or routed. |
   | `randomisermk2.js`, `randomisermk3.js` (root) | Standalone experiments, not wired in. There is **no** `Apis/match_players/balancer.cjs`. |

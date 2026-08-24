@@ -2,6 +2,7 @@
 paths:
   - "farhat_football_app/tests/**/*"
   - "farhat_football_app/vite.config.js"
+  - "farhat_football_app/vitest.integration.config.js"
 ---
 
 # Testing rules
@@ -20,8 +21,9 @@ that something is untestable — except for the one structural limit below, whic
 | Runner | Vitest 2.1.9 (`devDependencies`) |
 | Config | the `test` block in `farhat_football_app/vite.config.js` — **not** a separate `vitest.config.js` |
 | Setup file | `farhat_football_app/tests/setup.js` |
-| Included | `tests/**/*.test.{js,jsx}` |
+| Included | `tests/frontend/**` and `tests/backend/**` only |
 | Environment | `node` — there is **no jsdom and no Testing Library** |
+| Integration config | `farhat_football_app/vitest.integration.config.js` — separate on purpose, see below |
 
 Commands, from `farhat_football_app/`:
 
@@ -31,6 +33,7 @@ Commands, from `farhat_football_app/`:
 | Watch | `npm run test:watch` |
 | One file | `npx vitest run tests/frontend/components/RadarChart.test.jsx` |
 | One test | `npx vitest run -t "rounds halves upward"` |
+| Integration suite | `npm run test:integration` (needs Docker) |
 
 **There is no CI.** Nothing runs `npm test` but a person, so run it yourself before claiming a
 change is verified.
@@ -45,7 +48,15 @@ directories.
 tests/
 ├── setup.js                                  # runs before every test file
 ├── backend/                                  # mirrors Apis/
+│   ├── auth/
+│   │   └── requireAdmin.test.js
 │   └── db-guard.test.js
+├── integration/                              # needs Docker; own config
+│   ├── global-setup.js                       # container lifecycle
+│   ├── setup.js                              # live DATABASE_URL
+│   ├── helpers/seed.js
+│   ├── auth/requireAdmin.test.js
+│   └── payments/paymentDashboard.test.js
 └── frontend/                                 # mirrors src/
     └── components/
         └── RadarChart.test.jsx
@@ -77,6 +88,43 @@ set a real `DATABASE_URL` in a test.
 What this rules in and out is the testability matrix in
 [`references/test-matrix.md`](../skills/unit-test-engineer/references/test-matrix.md).
 
+## Integration tests against a disposable database
+
+The pool constraint above is a limit on *unit* tests. Anything that needs the real database —
+the admin tiers, a trigger, an `ON CONFLICT`, a transaction rolling back — is covered by a
+second suite that runs against a throwaway PostgreSQL container.
+
+| Piece | What it does |
+|---|---|
+| `vitest.integration.config.js` | Own config. `npm test` never loads it |
+| `tests/integration/global-setup.js` | Creates, seeds and destroys the container |
+| `tests/integration/setup.js` | Points `DATABASE_URL` at that container |
+| `tests/integration/helpers/seed.js` | Shared pool, `resetDatabase()`, row builders |
+
+Run it with `npm run test:integration`. It needs a running Docker daemon and nothing else — no
+new dependency, and no local PostgreSQL.
+
+**The two suites are separate so the unit guard can stay absolute.** `tests/setup.js` pins
+`DATABASE_URL` to a dead sentinel for everything under `tests/backend` and `tests/frontend`;
+integration tests need the opposite, and get it only through their own config. Never merge the
+two, never point the unit suite at a live database, and never relax `db-guard.test.js`.
+
+Details that bite:
+
+- The container is seeded from the repo-root **`schema.sql`**, which is a real `pg_dump` of
+  production — triggers, sequences and the `payments_transaction_id_key` unique constraint
+  included. That is what makes ledger behaviour testable at all.
+- That dump was written by `pg_dump` **17.1** against a **16.13** server, so it contains
+  `SET transaction_timeout`, which PostgreSQL 16 rejects. `global-setup.js` strips it at load
+  time; the tracked file is left alone because reconciling it is `DB-001`.
+- The image is pinned to `postgres:16` to match production. Do not bump it casually — trigger
+  and locking behaviour is exactly what these tests assert.
+- Docker picks the host port, so a local PostgreSQL on 5432 is never in the way.
+- `fileParallelism` is off: one database, shared state. Call `resetDatabase()` in `beforeEach`
+  rather than assuming a clean table.
+- `set_first_player_as_admin()` exists in the schema but **no trigger uses it**, so a seeded
+  player does not silently become an admin. Verified against the dump.
+
 ## Conventions
 
 - One `describe` per exported unit; `it` names read as sentences about behaviour.
@@ -105,10 +153,12 @@ Add tooling only when a test genuinely needs it, and update this file in the sam
 - **Coverage** needs `@vitest/coverage-v8`. There is no threshold and no CI to enforce one, so
   treat coverage as diagnostic.
 - **CI** is the single highest-value follow-up, because an unrun suite rots
-  (`EPIC-QUALITY` in the backlog).
+  (`EPIC-QUALITY` in the backlog). It must run both suites — `npm test` and
+  `npm run test:integration` — or the integration ones rot fastest.
 
 ## Verifying your change
 
-`npm test` must pass, and `npm run lint` must not gain new problems against the **red baseline**
+`npm test` must pass, `npm run test:integration` must pass if you touched anything it covers,
+and `npm run lint` must not gain new problems against the **red baseline**
 of 17 errors and 5 warnings ([`frontend.md`](frontend.md) §Toolchain gaps). Everything under
 `tests/` gets Node globals from a dedicated block in `eslint.config.js`.

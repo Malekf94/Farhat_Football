@@ -14,11 +14,17 @@ backend module that requires `db.cjs` builds a real `pg` Pool.
 | Frontend ESM — pure functions, helpers, hooks-free logic | **Yes**, fully, including `vi.mock` |
 | Frontend components (rendering) | **No.** Environment is `node`; no jsdom, no Testing Library |
 | Backend `.cjs` logic that never touches the pool | Yes — but almost none of it is currently exported |
-| Backend `.cjs` that requires `db.cjs` (controllers, guards, queries) | **No.** The pool cannot be faked |
+| Backend `.cjs` that requires `db.cjs` (controllers, guards, queries) | **Not as a unit** — the pool cannot be faked. **Yes as an integration test** against the disposable container (`npm run test:integration`) |
 
-The third row is the one worth pushing on. To make a backend unit testable, extract its pure
-logic into a module that does not require the pool, and test that. **That extraction is a source
-change on production code — propose it, do not do it silently.**
+The fourth row is the one that changed. A backend module that requires the pool still cannot be
+unit tested, but it **can** now be driven directly against a real disposable PostgreSQL — see
+[`.claude/rules/testing.md`](../../../rules/testing.md) §Integration tests against a disposable
+database. Reach for that before reaching for an extraction: seeding a container and calling the
+guard or controller with a fake `req`/`res` needs **no** change to production code.
+
+Extraction is still the right answer when the logic is genuinely pure and the database is
+incidental. **That extraction is a source change on production code — propose it, do not do it
+silently.**
 
 `tests/backend/db-guard.test.js` shows the one thing you *can* assert about an unmockable module:
 that it loads, and that the pool it built is inert.
@@ -59,8 +65,9 @@ These have each already produced a real defect or a deliberate decision:
 - **A missing attribute counts as `0`**, rather than averaging over the keys present. That is a
   decision, not an accident, so it has a test pinning it — do not "fix" it without asking.
 - **A global `is_admin` is admin of the default host only.** Superadmin is admin everywhere; any
-  other host needs a `host_admins` row. These three tiers are the highest-value untested logic in
-  the repo and are currently blocked by the pool constraint.
+  other host needs a `host_admins` row. `requireAdmin`'s two tiers are now covered in
+  `tests/integration/auth/requireAdmin.test.js`; `requireHostAdmin`'s three are still uncovered
+  and remain the highest-value gap.
 - **`ON CONFLICT (transaction_id) DO NOTHING` is what makes retried webhooks safe** — a suppressed
   insert does not fire the balance trigger. Duplicate-transaction is a required row on anything
   touching payments.

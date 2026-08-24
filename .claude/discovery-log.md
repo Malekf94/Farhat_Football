@@ -110,3 +110,41 @@ and the conventions half of `unit-test-engineer` was split out into
 `database-changes` deliberately stayed a skill: it is task-bound (schema work, payments
 reasoning) rather than path-bound, and its trigger is a question being asked, not a file being
 opened.
+
+## 2026-08-24
+
+### The pool constraint was a unit-test limit, not a testability limit
+
+**Issue** — `SEC-004` was planned on the basis that neither changed backend unit could be
+tested at all: both require `db.cjs`, `vi.mock()` cannot fake that pool, and the ticket's
+"authorization and response-contract tests pass" was written off as blocked on `TEST-002` and
+`TEST-003`. A manual staging check was going to stand in for it.
+
+**Cause** — Two separate facts had been collapsed into one. `vi.mock()` genuinely cannot
+intercept a `require()` inside a `.cjs` module, so the pool cannot be *faked*. But nothing
+stopped the pool being *real*. Once Docker was available, `schema.sql` at the repo root turned
+out to be a complete `pg_dump` — 14 tables, 5 functions, 4 triggers including `trg_apply_payment`,
+and the `payments_transaction_id_key` unique constraint — so a faithful throwaway database was
+one `docker run` away. Guards and controllers can then be called directly with a fake `req`/`res`
+and no production code has to move.
+
+**Lesson** — "Not unit testable" is not "not testable". Promoted to
+[`repo-pitfalls`](skills/repo-pitfalls/SKILL.md) and to the testability matrix in
+[`unit-test-engineer/references/test-matrix.md`](skills/unit-test-engineer/references/test-matrix.md),
+whose blanket **No** on pool-bound modules was the negative claim that stopped the search. The
+harness itself is documented in [`rules/testing.md`](rules/testing.md).
+
+### schema.sql does not load into the PostgreSQL it was dumped from
+
+**Issue** — Seeding `postgres:16` from `schema.sql` failed on line 11:
+`ERROR: unrecognized configuration parameter "transaction_timeout"`.
+
+**Cause** — The dump header (`schema.sql:4-5`) says it came from server 16.13 but was written by
+`pg_dump` 17.1, and pg_dump 17 emits `SET transaction_timeout = 0`. PostgreSQL 16 has no such
+parameter, so under `ON_ERROR_STOP` the whole load aborts on the first statement that matters.
+
+**Lesson** — The one artefact the repo has for rebuilding a database does not work against the
+version production runs, and nothing had exercised it until something tried to restore it. The
+harness strips the line at load time rather than editing the tracked dump; fixing the file itself
+belongs to `DB-001`. Promoted to [`repo-pitfalls`](skills/repo-pitfalls/SKILL.md), and raised as
+a proposed backlog ticket.
