@@ -3,12 +3,14 @@ const controller = require("./controller.cjs");
 const checkJwt = require("../auth/checkJwt.cjs");
 const requireHostAdmin = require("../auth/requireHostAdmin.cjs");
 const requireAdmin = require("../auth/requireAdmin.cjs");
+const requireSelfOrHostAdmin = require("../auth/requireSelfOrHostAdmin.cjs");
 
 const router = Router();
 
-// Player self-service (join / leave a match)
-router.delete("/", checkJwt, controller.removePlayerFromMatch);
-router.post("/", checkJwt, controller.addPlayerToMatch);
+// Player self-service (join / leave a match). A caller may act on themselves;
+// acting on another player requires admin rights over the match's host.
+router.delete("/", checkJwt, requireSelfOrHostAdmin, controller.removePlayerFromMatch);
+router.post("/", checkJwt, requireSelfOrHostAdmin, controller.addPlayerToMatch);
 
 router.get("/lates", controller.getLates);
 router.get("/attributes/:match_id", controller.getPlayerAttributesInMatch);
