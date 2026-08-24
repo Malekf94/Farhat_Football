@@ -48,7 +48,7 @@ app.use(
 		origin:
 			process.env.NODE_ENV === "production"
 				? "https://farhatfootball.co.uk"
-				: "http://localhost:3000",
+				: process.env.FRONTEND_URL,
 	}),
 );
 
