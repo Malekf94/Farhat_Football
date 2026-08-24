@@ -53,6 +53,12 @@ const logPayment = `
 const getCurrentStatus = `
 SELECT match_status FROM matches WHERE match_id = $1
 `;
+// Same read, but holding a row lock for the rest of the transaction. Two
+// concurrent finalisations would otherwise both see an unfinished status and
+// both charge the roster.
+const lockMatchForUpdate = `
+SELECT match_status FROM matches WHERE match_id = $1 FOR UPDATE
+`;
 const removeReserves = `
 DELETE FROM match_players WHERE match_id = $1 AND team_id = 0
 `;
@@ -89,6 +95,7 @@ module.exports = {
 	updateMatch,
 	logPayment,
 	getCurrentStatus,
+	lockMatchForUpdate,
 	removeReserves,
 	getPlayersInMatch,
 	getManOfTheMatch,

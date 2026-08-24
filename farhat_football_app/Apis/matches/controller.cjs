@@ -216,59 +216,55 @@ const updateMatch = async (req, res) => {
 		winning_team,
 	} = req.body;
 
+	// Charges and the status change commit together on ONE connection. The
+	// charges used to commit in their own transaction before the status was
+	// written, so a failure in between left players charged for a match that
+	// was never finalised.
+	const client = await pool.connect();
 	try {
-		// Fetch the current match status
-		const currentStatusResult = await pool.query(
-			matchQueries.getCurrentStatus,
+		await client.query("BEGIN");
+
+		// Locks the match row for the rest of the transaction.
+		const currentStatusResult = await client.query(
+			matchQueries.lockMatchForUpdate,
 			[match_id],
 		);
+		if (currentStatusResult.rows.length === 0) {
+			await client.query("ROLLBACK");
+			return res.status(404).json({ error: "Match not found." });
+		}
 		const currentStatus = currentStatusResult.rows[0].match_status;
 
 		// Charge players when match is finalised (completed or friendly)
 		const finishedStatuses = ["completed", "friendly"];
 		if (!finishedStatuses.includes(currentStatus) && finishedStatuses.includes(match_status)) {
-			// Use a dedicated client so BEGIN/INSERT/UPDATE/COMMIT all run on
-			// the SAME connection — pool.query() can otherwise spread them
-			// across different connections and break the transaction.
-			const client = await pool.connect();
-			try {
-				await client.query("BEGIN");
+			// Remove reserves
+			await client.query(matchQueries.removeReserves, [match_id]);
 
-				// Remove reserves
-				await client.query(matchQueries.removeReserves, [match_id]);
+			// Get confirmed players
+			const playersResult = await client.query(matchQueries.getPlayersInMatch, [match_id]);
+			const players = playersResult.rows;
 
-				// Get confirmed players
-				const playersResult = await client.query(matchQueries.getPlayersInMatch, [match_id]);
-				const players = playersResult.rows;
+			for (const player of players) {
+				const amount = player.late
+					? parseFloat(player.price) + 1
+					: parseFloat(player.price);
+				const transactionId = `match_charge_${match_id}_${player.player_id}`;
+				const description = `Match fee for match ${match_id}`;
 
-				for (const player of players) {
-					const amount = player.late
-						? parseFloat(player.price) + 1
-						: parseFloat(player.price);
-					const transactionId = `match_charge_${match_id}_${player.player_id}`;
-					const description = `Match fee for match ${match_id}`;
-
-					// Idempotent insert — skips silently if already charged.
-					// The DB trigger deducts the balance automatically.
-					await client.query(matchQueries.logPayment, [
-						player.player_id,
-						-amount,
-						transactionId,
-						description,
-					]);
-				}
-
-				await client.query("COMMIT");
-			} catch (err) {
-				await client.query("ROLLBACK");
-				throw err;
-			} finally {
-				client.release();
+				// Idempotent insert — skips silently if already charged.
+				// The DB trigger deducts the balance automatically.
+				await client.query(matchQueries.logPayment, [
+					player.player_id,
+					-amount,
+					transactionId,
+					description,
+				]);
 			}
 		}
 
 		// Update the match details
-		const updatedMatch = await pool.query(matchQueries.updateMatch, [
+		const updatedMatch = await client.query(matchQueries.updateMatch, [
 			match_status,
 			match_time,
 			number_of_players,
@@ -278,12 +274,22 @@ const updateMatch = async (req, res) => {
 			match_id,
 		]);
 
+		await client.query("COMMIT");
 		res.status(200).json(updatedMatch.rows[0]);
 	} catch (error) {
+		// A failed ROLLBACK must not mask the original error or leave the
+		// request without a response.
+		try {
+			await client.query("ROLLBACK");
+		} catch (rollbackError) {
+			console.error("Rollback failed after update error:", rollbackError);
+		}
 		console.error("Error updating match:", error);
 		res
 			.status(500)
 			.json({ error: "An error occurred while updating the match." });
+	} finally {
+		client.release();
 	}
 };
 
