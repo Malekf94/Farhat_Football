@@ -24,17 +24,71 @@ directory, and the hosting build command must `cd` there before installing.
    Use **your own dev values** — a local/staging database, and a **dev Auth0
    application** (see below). Leave the Monzo and Brevo secrets blank; payments
    and emails simply won't fire locally, which is fine for development.
-3. Create the database schema (see `schema.sql` at the repo root — generate it
-   with `pg_dump --schema-only` from an existing environment):
+3. Create the database schema. `DATABASE_URL` must already point at your empty
+   local database:
    ```bash
-   psql "$DATABASE_URL" -f ../schema.sql
+   npm run migrate:provision
    ```
+   That applies the `schema.sql` baseline and every migration on top of it. See
+   *Database schema and migrations* below.
 4. Start both the API and the frontend together:
    ```bash
    npm run dev
    ```
    - Frontend: http://localhost:5173
    - API: http://localhost:3000
+
+## Database schema and migrations
+
+Schema changes used to be hand-written `.sql` files applied by hand, with no record of what had
+already been run. They are now versioned and recorded.
+
+- **Baseline** — `schema.sql` at the repo root, a `pg_dump` of production. This is version
+  `0000`, the starting point every environment shares.
+- **Migrations** — `farhat_football_app/migrations/NNNN_name.sql`, applied in ascending order,
+  each inside one transaction.
+- **Ledger** — `public.schema_migrations` records the version, name, checksum and time of every
+  applied migration, so what a database has had done to it is a query, not a memory.
+
+Run everything from `farhat_football_app/` with `DATABASE_URL` pointing at the target.
+
+| Command | Use it when |
+|---|---|
+| `npm run migrate:status` | Always safe. Shows applied versions, what is pending and any drift |
+| `npm run migrate:provision` | The database is **empty** — applies the baseline, then all migrations |
+| `npm run migrate:baseline` | The database **already matches** `schema.sql` but has never been recorded. Stamps `0000` without applying anything |
+| `npm run migrate` | Applies pending migrations to an already-baselined database |
+
+### Adopting the production database (one time)
+
+Production predates this runner: its schema is already in place and nothing is recorded. Adopt
+it once, then use `npm run migrate` from then on.
+
+1. Take a backup first. This is the one step that is hard to undo.
+2. Confirm the live schema matches `schema.sql`. Regenerate with `pg_dump --schema-only` from
+   production and diff it; reconcile any difference **before** stamping, because the stamp
+   asserts they agree.
+3. `npm run migrate:baseline` — records `0000` and applies nothing.
+4. `npm run migrate:status` — confirm `Baseline stamped : true`.
+
+### Adding a schema change
+
+1. Write `migrations/NNNN_short_description.sql`. Conventions and the rollback stance are in
+   [`migrations/README.md`](migrations/README.md).
+2. Apply it locally with `npm run migrate`, and run `npm run test:integration` — that suite
+   provisions a throwaway PostgreSQL **through this runner**, so a migration that breaks
+   provisioning fails the tests.
+3. **Dry-run on staging before production.** Deploy the branch to staging, run
+   `npm run migrate:status`, then `npm run migrate`, and exercise the affected pages. Staging
+   and production share the same baseline, so a migration that applies cleanly on staging is
+   the only evidence worth having.
+4. Apply to production with `npm run migrate`, then `npm run migrate:status` to confirm.
+
+An applied migration is immutable — the runner stores a checksum and refuses to continue if the
+file has changed since. Fix a mistake with a new migration.
+
+**Regenerate `schema.sql` with `pg_dump` 16.x**, matching the server major. `pg_dump` 17 emits
+`SET transaction_timeout = 0`, which PostgreSQL 16 rejects, and that aborts the whole load.
 
 ## Auth0 for local development
 Log-in won't work locally until Auth0 allows localhost. Use a **separate dev

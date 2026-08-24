@@ -24,7 +24,7 @@ files, docs and loose scripts — its `package.json` has **no scripts at all**.
 | `farhat_football_app/Apis/<domain>/` | Backend REST modules, `routes.cjs → controller.cjs → queries.cjs` |
 | `farhat_football_app/src/` | React SPA — `Pages/`, `components/`, `context/`, `hooks/` |
 | `farhat_football_app/src/Pages/<Name>/` | One folder per page: `<Name>.jsx` + `<Name>.css` |
-| `*.sql` at repo root | Hand-applied schema changes — there is no migration tool |
+| `*.sql` at repo root | `schema.sql` is the migration baseline (version `0000`); the other two predate DB-001 |
 | `.cursor/` | `REPO_MAP.md` navigation index + `rules/*.mdc` (they apply to Claude too) |
 
 ## Entry points

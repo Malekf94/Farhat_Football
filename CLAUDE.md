@@ -83,8 +83,8 @@ Always true. The owning skill or rule carries the explanation and the evidence.
 - **Never `UPDATE players.account_balance`** — insert a `payments` row and let the trigger apply
   it. `syncPayments.cjs` is disabled and would double balances. → `database-changes`
 - **`payments.user_id` is the player FK**, not `player_id`. → `database-changes`
-- **No migration tool exists.** Schema changes are hand-written re-runnable `.sql` files at the
-  repo root, applied manually. → `database-changes`
+- **Schema changes are numbered migrations now**, applied by `scripts/migrate.cjs` and recorded
+  in `public.schema_migrations` — never an edit to an applied file. → `database-changes`
 - **Build internal links with `hostPath()`** — a bare path silently drops the user out of the
   active `/h/<slug>` portal and still renders. → `rules/frontend.md`
 - **Never read `farhat_football_app/.env`** — real production credentials. Names are in

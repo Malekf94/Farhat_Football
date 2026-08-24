@@ -111,12 +111,17 @@ two, never point the unit suite at a live database, and never relax `db-guard.te
 
 Details that bite:
 
-- The container is seeded from the repo-root **`schema.sql`**, which is a real `pg_dump` of
-  production — triggers, sequences and the `payments_transaction_id_key` unique constraint
-  included. That is what makes ledger behaviour testable at all.
-- That dump was written by `pg_dump` **17.1** against a **16.13** server, so it contains
-  `SET transaction_timeout`, which PostgreSQL 16 rejects. `global-setup.js` strips it at load
-  time; the tracked file is left alone because reconciling it is `DB-001`.
+- The container is provisioned by the **migration runner** (`scripts/migrate.cjs`, DB-001), not
+  by piping the dump into `psql`. It applies the repo-root **`schema.sql`** baseline — a real
+  `pg_dump` of production, triggers, sequences and the `payments_transaction_id_key` unique
+  constraint included — then every migration. So each run asserts that provisioning from tracked
+  files actually works, and a migration that breaks it fails the suite rather than production.
+- DB-001 removed the `SET transaction_timeout` that `pg_dump` 17 emits and PostgreSQL 16
+  rejects, so the dump now loads unedited and the harness no longer filters anything. If someone
+  regenerates `schema.sql` with `pg_dump` 17, provisioning fails here loudly — that is intended.
+- `tests/integration/migrations/migrate.test.js` covers the runner itself. Each case builds its
+  **own scratch database** in the same container and drops it afterwards, because those tests
+  provision from empty and `resetDatabase()` cannot undo that. Do not point them at `ff_test`.
 - The image is pinned to `postgres:16` to match production. Do not bump it casually — trigger
   and locking behaviour is exactly what these tests assert.
 - Docker picks the host port, so a local PostgreSQL on 5432 is never in the way.

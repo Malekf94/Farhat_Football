@@ -243,7 +243,7 @@ Authoritative schema is the hosted DB (`dump (1).sql` is a dump of it — do not
 
 `match_status` values used in queries: `pending`, `in_progress`, `completed`, `friendly`. `match_players.team_id` `0` denotes reserves (see `removeReserves` in `matches/queries.cjs`).
 
-**Schema changes have no migration tool.** Changes are hand-written, re-runnable `.sql` files at the repo root (`IF NOT EXISTS`, `CREATE OR REPLACE`, `DROP ... IF EXISTS`) applied manually against the hosted DB. Follow that pattern.
+**Schema changes go through `farhat_football_app/scripts/migrate.cjs`** (DB-001): `schema.sql` at the repo root is baseline `0000`, and every change after it is a numbered file in `farhat_football_app/migrations/`, recorded in `public.schema_migrations`. Still write re-runnable SQL (`IF NOT EXISTS`, `CREATE OR REPLACE`, `DROP ... IF EXISTS`) and schema-qualify every object, because the baseline leaves `search_path` empty. Applying to production is a human step, after a staging dry run — see `farhat_football_app/SETUP.md`.
 
 ---
 

@@ -135,10 +135,18 @@ Append a rule here only once it generalises. Keep the reasoning short and cite `
 - **[V 2026-08-21] `payments.user_id` is the player FK, not `player_id`** (`all_tables.txt:69`,
   and every payments query). Writing `payments.player_id` fails at the DB, and it is the single
   most repeated mistake in this schema.
-- **[V 2026-08-21] There is no migration tool and no `migrations/` directory.** Schema, index and
-  trigger changes are hand-written re-runnable `.sql` files at the **repo root**
-  (`add_indexes.sql`, `payment_balance_trigger.sql`) applied manually against the hosted DB. Use
-  `IF NOT EXISTS` / `CREATE OR REPLACE` / `DROP ... IF EXISTS`. See the `database-changes` skill.
+- **[V 2026-08-24] Since DB-001 there IS a migration runner** — `scripts/migrate.cjs`, built on
+  the `pg` client already in `package.json`. `schema.sql` is baseline `0000`; changes after it
+  are numbered files in `farhat_football_app/migrations/`, recorded in
+  `public.schema_migrations`. **Never edit an applied migration** — the runner checksums each
+  one and refuses to continue if a recorded file changed. Still write re-runnable SQL and
+  **schema-qualify every object**: the baseline ends with
+  `SELECT pg_catalog.set_config('search_path', '', false)`, so an unqualified `schema_migrations`
+  or `players` resolves to nothing for the rest of the session. See `database-changes`.
+- **[V 2026-08-24] `schema.sql` now loads into PostgreSQL 16 unedited.** DB-001 removed the
+  `SET transaction_timeout = 0` that pg_dump 17 emits and PostgreSQL 16 rejects, and the
+  integration harness no longer strips it. **Regenerate the dump with pg_dump 16.x** — using 17
+  reintroduces the line and breaks provisioning everywhere at once.
 - **[V 2026-08-21] `all_tables.txt` is a stale early snapshot — do not treat it as the schema.**
   It predates `hosts`, `host_admins`, `bans`, `match_player_ratings`, `players.is_admin` /
   `is_superadmin`, and `matches.host_id`. The authoritative schema is the hosted DB;

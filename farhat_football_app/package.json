@@ -12,7 +12,11 @@
 		"preview": "vite preview",
 		"test": "vitest run",
 		"test:watch": "vitest",
-		"test:integration": "vitest run --config vitest.integration.config.js"
+		"test:integration": "vitest run --config vitest.integration.config.js",
+		"migrate": "node scripts/migrate.cjs up",
+		"migrate:status": "node scripts/migrate.cjs status",
+		"migrate:provision": "node scripts/migrate.cjs provision",
+		"migrate:baseline": "node scripts/migrate.cjs baseline"
 	},
 	"dependencies": {
 		"@auth0/auth0-react": "^2.2.4",

@@ -1,5 +1,4 @@
 import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 
@@ -18,7 +17,7 @@ const USER = "postgres";
 const PASSWORD = "postgres";
 
 const here = dirname(fileURLToPath(import.meta.url));
-const SCHEMA = resolve(here, "../../../schema.sql");
+const MIGRATE = resolve(here, "../../scripts/migrate.cjs");
 
 const docker = (args, options = {}) =>
 	execFileSync("docker", args, {
@@ -59,18 +58,10 @@ const waitForReady = async () => {
 	);
 };
 
-// schema.sql was produced by pg_dump 17.1 against a 16.13 server
-// (schema.sql:4-5), so it emits SET directives for parameters that exist only
-// in PostgreSQL 17. Under ON_ERROR_STOP those abort the entire load. Strip them
-// at load time rather than editing the tracked dump — reconciling that file is
-// DB-001's job, not this harness's.
-const PG17_ONLY_SETTINGS = /^SET\s+transaction_timeout\b/;
-
-const loadableSchema = () =>
-	readFileSync(SCHEMA, "utf8")
-		.split(/\r?\n/)
-		.filter((line) => !PG17_ONLY_SETTINGS.test(line))
-		.join("\n");
+// DB-001 removed the pg_dump-17-only `SET transaction_timeout` from schema.sql,
+// so the dump now loads into PostgreSQL 16 unedited and this harness no longer
+// filters it. If that line comes back — someone regenerating the dump with
+// pg_dump 17 — provisioning fails loudly here rather than being papered over.
 
 export default async function setup({ provide }) {
 	try {
@@ -101,32 +92,20 @@ export default async function setup({ provide }) {
 
 	await waitForReady();
 
-	// ON_ERROR_STOP makes a failed schema load fail the run instead of leaving
-	// tests to fail one by one against a half-built database.
-	docker(
-		[
-			"exec",
-			"--interactive",
-			CONTAINER,
-			"psql",
-			"--host",
-			"127.0.0.1",
-			"--username",
-			USER,
-			"--dbname",
-			DB,
-			"--set",
-			"ON_ERROR_STOP=1",
-			"--quiet",
-			"--file",
-			"-",
-		],
-		{ input: loadableSchema(), stdio: ["pipe", "pipe", "pipe"] },
-	);
-
 	const mapping = docker(["port", CONTAINER, "5432/tcp"]).trim().split("\n")[0];
 	const port = mapping.slice(mapping.lastIndexOf(":") + 1);
 	const url = `postgres://${USER}:${PASSWORD}@127.0.0.1:${port}/${DB}`;
+
+	// Provision through the real migration runner (DB-001) rather than piping
+	// the dump into psql. The suite then exercises the same path an operator
+	// uses on a new environment, so "provision works" is asserted by every run
+	// instead of being assumed. Each step is transactional, so a failure leaves
+	// nothing half-built.
+	execFileSync(process.execPath, [MIGRATE, "provision", "--url", url], {
+		cwd: resolve(here, "../.."),
+		encoding: "utf8",
+		stdio: ["ignore", "pipe", "pipe"],
+	});
 
 	process.env.TEST_DATABASE_URL = url;
 	provide("databaseUrl", url);
