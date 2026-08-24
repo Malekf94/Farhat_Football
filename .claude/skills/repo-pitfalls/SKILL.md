@@ -20,9 +20,12 @@ Append a rule here only once it generalises. Keep the reasoning short and cite `
 
 ## Project shape
 
-- **[V 2026-08-21] Every command runs from `farhat_football_app/`, never the repo root.** The
-  root `package.json` declares dependencies and **no scripts whatsoever**. `npm run dev` at the
-  root fails with "missing script".
+- **[V 2026-08-24] Every command runs from `farhat_football_app/`, never the repo root.** It is
+  the repository's only npm package. Until REPO-001 the root also carried a `package.json` with
+  no scripts and a separate 133-package lockfile that pinned four of the app's dependencies at
+  **different** versions (`@getbrevo/brevo` 3 vs 5, `dotenv` 17 vs 16, `express-oauth2-jwt-bearer`
+  1.7 vs 1.9); nothing at the root ever required them. Both root files are now deleted — if a
+  `package.json` reappears at the root, it is a mistake, not a second install target.
 - **[V 2026-08-21] Backend files must keep the `.cjs` extension.** The package is
   `"type": "module"` (`farhat_football_app/package.json:5`), so a backend file named `.js` is
   parsed as ESM and `require()` throws. New backend file → `.cjs`; new frontend file → `.jsx`.
