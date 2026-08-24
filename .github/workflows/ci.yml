@@ -1,0 +1,116 @@
+# Quality gates (TEST-001).
+#
+# Until this existed nothing ran any check but a person, so a broken test, a
+# lint error or a failed build could merge unnoticed.
+#
+# Everything runs from farhat_football_app/ — it is the repository's only npm
+# package and there is no manifest at the root (REPO-001).
+name: CI
+
+on:
+  pull_request:
+    branches: [zak-dev, staging, main]
+  push:
+    branches: [zak-dev, staging, main]
+
+# A newer push to the same branch makes an in-flight run pointless.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: farhat_football_app
+
+env:
+  NODE_VERSION: "20.x"
+
+jobs:
+  quality:
+    name: Lint, unit tests and build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: farhat_football_app/package-lock.json
+
+      # ci, not install: fails on a lockfile that disagrees with package.json
+      # rather than quietly resolving something new.
+      - name: Clean install
+        run: npm ci
+
+      # Covers the backend too since QA-001 — 0 errors required, warnings
+      # capped by --max-warnings in the lint script.
+      - name: Lint
+        run: npm run lint
+
+      # Belt and braces alongside lint: a parse error in a .cjs file is worth
+      # catching on its own terms, and this is the check the repo used before
+      # ESLint reached the backend.
+      - name: Backend syntax check
+        run: |
+          set -euo pipefail
+          find . -name '*.cjs' -not -path './node_modules/*' -not -path './dist/*' -print0 \
+            | xargs -0 -n1 node --check
+          echo "All .cjs files parse."
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+  integration:
+    name: Integration tests and migration validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: farhat_football_app/package-lock.json
+
+      - name: Clean install
+        run: npm ci
+
+      # This provisions a throwaway postgres:16 through scripts/migrate.cjs
+      # (DB-001), so it validates the migration path as well as the queries:
+      # a baseline or migration that fails to apply fails the job here rather
+      # than in production. Docker is preinstalled on ubuntu runners.
+      - name: Integration tests
+        run: npm run test:integration
+
+  audit:
+    name: Dependency audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: farhat_football_app/package-lock.json
+
+      - name: Clean install
+        run: npm ci
+
+      # THRESHOLD: high. Anything high or critical is a build failure.
+      #
+      # Reported but not yet enforced: the tree currently carries 1 critical and
+      # 5 high advisories, so making this blocking today would make every pull
+      # request red including the one that adds it. DEP-001 remediates them and
+      # flips continue-on-error to false in the same change — that is the point
+      # at which this becomes a real gate.
+      - name: "npm audit (threshold: high)"
+        continue-on-error: true
+        run: npm audit --audit-level=high

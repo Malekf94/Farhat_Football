@@ -45,10 +45,22 @@ Append a rule here only once it generalises. Keep the reasoning short and cite `
   the binding from blocks whose bodies still call `console.error(err)`, which would throw
   `ReferenceError` at runtime — the frontend build does **not** catch it, and lint only caught
   it because `no-undef` was already on. Change the sites the linter names, one at a time.
-- **[V 2026-08-21] There is a Vitest suite (`npm test`) but still no CI.** Added 2026-08-21;
-  before that there was nothing. No `.github/` exists, so **nothing runs the suite but a person** —
-  run it yourself before calling work done. Tests live under `farhat_football_app/tests/`
-  (`tests/frontend/**`, `tests/backend/**`), never colocated. See `unit-test-engineer`.
+- **[V 2026-08-25] CI exists since TEST-001** — `.github/workflows/ci.yml` runs lint, backend
+  `node --check`, `npm test`, `npm run build` and `npm run test:integration` (which validates
+  the migration path) on every pull request into `zak-dev`, `staging` and `main`. Each gate was
+  proven to block by deliberately breaking it. Run them locally first regardless. Tests live
+  under `farhat_football_app/tests/` (`tests/frontend/**`, `tests/backend/**`), never colocated.
+  See `unit-test-engineer`.
+- **[V 2026-08-25] A GitHub Actions step name containing `: ` must be quoted.** `- name: npm
+  audit (threshold: high)` is a YAML syntax error, and GitHub reports it only once the workflow
+  is pushed. Parse the file locally (`python -c "import yaml, sys; yaml.safe_load(open(...))"`)
+  before committing a workflow change — the round trip through a failed push is otherwise the
+  first sign.
+- **[V 2026-08-25] The audit gate is deliberately not blocking yet.** `.github/workflows/ci.yml`
+  runs `npm audit --audit-level=high` under `continue-on-error: true`, because the tree carries
+  1 critical and 5 high advisories and a blocking gate would have made every pull request red,
+  including the one adding CI. **DEP-001 remediates them and flips it to blocking** — if you see
+  `continue-on-error` still there after DEP-001, that is a regression, not a decision.
 - **[V 2026-08-21] `vi.mock()` cannot intercept a `require()` inside a `.cjs` module, and the
   failure mode is a real database connection.** Mocking `../../db.cjs` works for a direct ESM
   `import` and does nothing for the `require()` inside `Apis/auth/requireHostAdmin.cjs`; mocking

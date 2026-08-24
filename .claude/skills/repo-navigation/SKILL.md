@@ -58,7 +58,8 @@ reasoning is the `database-changes` skill; environment and tooling traps are `re
 
 ## Commands
 
-All from `farhat_football_app/`. There is a Vitest suite but **no CI**, so nothing runs it but you.
+All from `farhat_football_app/`. **CI runs these on every pull request**
+(`.github/workflows/ci.yml`); run them locally first anyway.
 
 | Purpose | Command |
 |---|---|
