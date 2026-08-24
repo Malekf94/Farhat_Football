@@ -1,6 +1,5 @@
 const pool = require("../../db.cjs");
 const matchQueries = require("./queries.cjs");
-const matchPlayerQueries = require("../match_players/queries.cjs");
 // const {
 // 	TransactionalEmailsApi,
 // 	TransactionalEmailsApiApiKeys,
@@ -319,22 +318,16 @@ const updateManOfTheMatch = async (req, res) => {
 	}
 };
 
+// Deleting the match removes its roster and its ratings with it:
+// match_players.match_id and match_player_ratings.match_id are both declared
+// ON DELETE CASCADE. One statement is therefore atomic on its own, and no
+// caller needs to clear the child rows first.
 const deleteMatch = async (req, res) => {
 	const { match_id } = req.params;
-	// Superadmin identity is verified by requireAdmin({ superadmin: true })
-	// middleware (req.player) — not trusted from the request body.
+	// Host-admin identity is verified by requireHostAdmin middleware (req.player)
+	// — not trusted from the request body.
 	try {
-		// Start a transaction to delete players and the match
-		await pool.query("BEGIN");
-
-		// Delete players in the match
-		await pool.query(matchPlayerQueries.removeAllPlayerFromMatch, [match_id]);
-
-		// Delete the match itself
 		const result = await pool.query(matchQueries.deleteMatch, [match_id]);
-
-		// Commit transaction
-		await pool.query("COMMIT");
 
 		if (result.rowCount > 0) {
 			res.json({ message: "Match successfully deleted." });
@@ -342,8 +335,6 @@ const deleteMatch = async (req, res) => {
 			res.status(404).json({ error: "Match not found." });
 		}
 	} catch (error) {
-		// Rollback transaction on error
-		await pool.query("ROLLBACK");
 		console.error("Error deleting match:", error);
 		res.status(500).json({ error: "Internal server error." });
 	}
