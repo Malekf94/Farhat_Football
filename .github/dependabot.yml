@@ -1,0 +1,38 @@
+version: 2
+
+# Dependabot reads this file from the DEFAULT branch (main). It does nothing
+# until it lands there, however many branches it exists on.
+#
+# Only farhat_football_app is scanned. The root package.json is a vestigial
+# second manifest with no scripts (REPO-001); scanning it would open pull
+# requests for dependencies nothing installs.
+updates:
+  - package-ecosystem: "npm"
+    directory: "/farhat_football_app"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "07:00"
+      timezone: "Europe/London"
+    # One pull request per group per week rather than one per package.
+    # Majors are deliberately outside the groups: they arrive individually so
+    # a breaking upgrade is reviewed and reverted on its own.
+    groups:
+      production:
+        dependency-type: "production"
+        update-types: ["minor", "patch"]
+      development:
+        dependency-type: "development"
+        update-types: ["minor", "patch"]
+    # target-branch is deliberately unset. Pointing it at zak-dev would route
+    # these through the normal pipeline, but GitHub disables Dependabot
+    # SECURITY updates for an ecosystem that sets it, and this repository has
+    # open advisories on a payment path. Version pull requests therefore open
+    # against main; apply them on zak-dev if you would rather not merge there.
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps)"
+      prefix-development: "chore(deps-dev)"
+      include: "scope"
+    labels:
+      - "dependencies"
