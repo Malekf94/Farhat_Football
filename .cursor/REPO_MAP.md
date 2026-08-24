@@ -41,6 +41,7 @@ Farhat_football/
 │   │   ├── hosts/  bans/  leaderboard/
 │   ├── config/config.cjs       # Sequelize-style DB config — used only by dead models/index.js
 │   ├── models/index.js         # DEAD — see Dead Code
+│   ├── tests/                  # Vitest: backend/ frontend/ (unit), integration/ (Docker)
 │   └── scripts/                # empty
 ├── add_indexes.sql             # Hand-applied performance indexes
 ├── payment_balance_trigger.sql # Hand-applied payments -> account_balance trigger
@@ -54,7 +55,8 @@ Farhat_football/
 
 **Do not read by default:** `node_modules/`, `dist/`, `package-lock.json`, `dump (1).sql`, `.env`.
 
-**There is no** `migrations/`, `docs/`, `plan.md`, `.github/workflows/`, root `scripts/`, or test suite.
+**There is no** `migrations/`, `docs/`, `plan.md`, `.github/workflows/`, or root `scripts/`.
+There **is** a Vitest suite under `farhat_football_app/tests/` — see Commands below.
 
 ---
 
@@ -69,8 +71,9 @@ All run from `farhat_football_app/`:
 | `npm run client` | Vite dev server only |
 | `npm run build` | `vite build` → `dist/client` |
 | `npm run lint` | `eslint .` |
-| `npm test` | Vitest — all specs under `tests/` |
+| `npm test` | Vitest — unit specs under `tests/backend/` and `tests/frontend/` only |
 | `npm run test:watch` | Vitest in watch mode |
+| `npm run test:integration` | Vitest against a disposable `postgres:16` container (needs Docker) |
 
 **Vitest suite added 2026-08-21; there is still no CI**, so nothing runs it but a person. Tests
 live in `farhat_football_app/tests/` (`tests/frontend/**` mirroring `src/`, `tests/backend/**`
@@ -272,6 +275,7 @@ Authoritative schema is the hosted DB (`dump (1).sql` is a dump of it — do not
 | `Apis/payments/syncPayments.cjs` | Explicitly deprecated — would double balances. |
 | `src/Pages/UpcomingMatch/`, `src/Pages/YourPage/` | Components defined but never imported or routed. |
 | `randomisermk2.js`, `randomisermk3.js` (root) | Standalone experiments, not wired into the app. There is **no** `Apis/match_players/balancer.cjs`. |
+| `set_first_player_as_admin()` (database function) | Defined in `schema.sql` but **no** `CREATE TRIGGER` references it, so inserting the first player does not make them an admin. Dropping it belongs to `DB-002`. |
 
 ---
 
