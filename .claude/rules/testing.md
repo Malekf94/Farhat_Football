@@ -159,6 +159,6 @@ Add tooling only when a test genuinely needs it, and update this file in the sam
 ## Verifying your change
 
 `npm test` must pass, `npm run test:integration` must pass if you touched anything it covers,
-and `npm run lint` must not gain new problems against the **red baseline**
-of 17 errors and 5 warnings ([`frontend.md`](frontend.md) §Toolchain gaps). Everything under
+and `npm run lint` must stay green — since QA-001 the baseline is **0 errors and 5 warnings**,
+and the lint script caps warnings at 5 ([`frontend.md`](frontend.md) §Toolchain gaps). Everything under
 `tests/` gets Node globals from a dedicated block in `eslint.config.js`.

@@ -73,7 +73,8 @@ matching `Protected*Route` on the frontend ([`frontend.md`](frontend.md) §Route
 server guard is the real check; the frontend one is UI gating only. Shipping only the frontend
 half leaves the endpoint open.
 
-Do not use `Apis/auth/checkAdmin.cjs` — it is dead and checks a placeholder claim namespace.
+Do not reintroduce `Apis/auth/checkAdmin.cjs` — it was dead, checked a placeholder claim
+namespace, and REPO-003 deleted it. `requireAdmin` is the real guard.
 
 ## Host scoping
 
