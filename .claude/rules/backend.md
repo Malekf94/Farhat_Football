@@ -101,6 +101,7 @@ be verified writes nothing and is left for `runFullPaymentSync` to pick up.
 
 ## Style
 
-Tabs. ESLint does **not** cover `.cjs`, so match the surrounding file by hand and syntax-check
-with `node --check <file>.cjs`. No comments narrating what the code does — comments are for
-non-obvious business logic or technical constraints only.
+Tabs, matched by hand — ESLint covers `.cjs` since QA-001 but does not enforce indentation.
+`npm run lint` must stay at **0 errors**, and CI runs it plus `node --check` over every `.cjs`
+file. No comments narrating what the code does — comments are for non-obvious business logic or
+technical constraints only.
