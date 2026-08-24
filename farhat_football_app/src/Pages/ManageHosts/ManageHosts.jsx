@@ -72,7 +72,7 @@ export default function ManageHosts() {
 		try {
 			await privateApi.delete(`/api/v1/hosts/${hostId}/admins/${playerId}`);
 			loadAdmins(hostId);
-		} catch (err) {
+		} catch {
 			flash("error", "Failed to remove admin.");
 		}
 	};
