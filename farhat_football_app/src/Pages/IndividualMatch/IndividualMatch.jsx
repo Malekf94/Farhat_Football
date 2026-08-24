@@ -392,16 +392,8 @@ function IndividualMatch() {
 			confirmText: "Delete",
 			onConfirm: async () => {
 				try {
-					await Promise.all(
-						playersInMatch.map((player) =>
-							privateApi.delete("/api/v1/matchPlayer", {
-								data: {
-									match_id: parseInt(match_id, 10),
-									player_id: player.player_id,
-								},
-							}),
-						),
-					);
+					// One request: the server deletes the match, and the roster and
+					// ratings go with it through ON DELETE CASCADE.
 					await privateApi.delete(`/api/v1/matches/${match_id}`);
 					navigate(hostPath("/matches"));
 				} catch (error) {

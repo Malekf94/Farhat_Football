@@ -1,6 +1,5 @@
 const pool = require("../../db.cjs");
 const matchQueries = require("./queries.cjs");
-const matchPlayerQueries = require("../match_players/queries.cjs");
 // const {
 // 	TransactionalEmailsApi,
 // 	TransactionalEmailsApiApiKeys,
@@ -217,59 +216,55 @@ const updateMatch = async (req, res) => {
 		winning_team,
 	} = req.body;
 
+	// Charges and the status change commit together on ONE connection. The
+	// charges used to commit in their own transaction before the status was
+	// written, so a failure in between left players charged for a match that
+	// was never finalised.
+	const client = await pool.connect();
 	try {
-		// Fetch the current match status
-		const currentStatusResult = await pool.query(
-			matchQueries.getCurrentStatus,
+		await client.query("BEGIN");
+
+		// Locks the match row for the rest of the transaction.
+		const currentStatusResult = await client.query(
+			matchQueries.lockMatchForUpdate,
 			[match_id],
 		);
+		if (currentStatusResult.rows.length === 0) {
+			await client.query("ROLLBACK");
+			return res.status(404).json({ error: "Match not found." });
+		}
 		const currentStatus = currentStatusResult.rows[0].match_status;
 
 		// Charge players when match is finalised (completed or friendly)
 		const finishedStatuses = ["completed", "friendly"];
 		if (!finishedStatuses.includes(currentStatus) && finishedStatuses.includes(match_status)) {
-			// Use a dedicated client so BEGIN/INSERT/UPDATE/COMMIT all run on
-			// the SAME connection — pool.query() can otherwise spread them
-			// across different connections and break the transaction.
-			const client = await pool.connect();
-			try {
-				await client.query("BEGIN");
+			// Remove reserves
+			await client.query(matchQueries.removeReserves, [match_id]);
 
-				// Remove reserves
-				await client.query(matchQueries.removeReserves, [match_id]);
+			// Get confirmed players
+			const playersResult = await client.query(matchQueries.getPlayersInMatch, [match_id]);
+			const players = playersResult.rows;
 
-				// Get confirmed players
-				const playersResult = await client.query(matchQueries.getPlayersInMatch, [match_id]);
-				const players = playersResult.rows;
+			for (const player of players) {
+				const amount = player.late
+					? parseFloat(player.price) + 1
+					: parseFloat(player.price);
+				const transactionId = `match_charge_${match_id}_${player.player_id}`;
+				const description = `Match fee for match ${match_id}`;
 
-				for (const player of players) {
-					const amount = player.late
-						? parseFloat(player.price) + 1
-						: parseFloat(player.price);
-					const transactionId = `match_charge_${match_id}_${player.player_id}`;
-					const description = `Match fee for match ${match_id}`;
-
-					// Idempotent insert — skips silently if already charged.
-					// The DB trigger deducts the balance automatically.
-					await client.query(matchQueries.logPayment, [
-						player.player_id,
-						-amount,
-						transactionId,
-						description,
-					]);
-				}
-
-				await client.query("COMMIT");
-			} catch (err) {
-				await client.query("ROLLBACK");
-				throw err;
-			} finally {
-				client.release();
+				// Idempotent insert — skips silently if already charged.
+				// The DB trigger deducts the balance automatically.
+				await client.query(matchQueries.logPayment, [
+					player.player_id,
+					-amount,
+					transactionId,
+					description,
+				]);
 			}
 		}
 
 		// Update the match details
-		const updatedMatch = await pool.query(matchQueries.updateMatch, [
+		const updatedMatch = await client.query(matchQueries.updateMatch, [
 			match_status,
 			match_time,
 			number_of_players,
@@ -279,12 +274,22 @@ const updateMatch = async (req, res) => {
 			match_id,
 		]);
 
+		await client.query("COMMIT");
 		res.status(200).json(updatedMatch.rows[0]);
 	} catch (error) {
+		// A failed ROLLBACK must not mask the original error or leave the
+		// request without a response.
+		try {
+			await client.query("ROLLBACK");
+		} catch (rollbackError) {
+			console.error("Rollback failed after update error:", rollbackError);
+		}
 		console.error("Error updating match:", error);
 		res
 			.status(500)
 			.json({ error: "An error occurred while updating the match." });
+	} finally {
+		client.release();
 	}
 };
 
@@ -319,22 +324,16 @@ const updateManOfTheMatch = async (req, res) => {
 	}
 };
 
+// Deleting the match removes its roster and its ratings with it:
+// match_players.match_id and match_player_ratings.match_id are both declared
+// ON DELETE CASCADE. One statement is therefore atomic on its own, and no
+// caller needs to clear the child rows first.
 const deleteMatch = async (req, res) => {
 	const { match_id } = req.params;
-	// Superadmin identity is verified by requireAdmin({ superadmin: true })
-	// middleware (req.player) — not trusted from the request body.
+	// Host-admin identity is verified by requireHostAdmin middleware (req.player)
+	// — not trusted from the request body.
 	try {
-		// Start a transaction to delete players and the match
-		await pool.query("BEGIN");
-
-		// Delete players in the match
-		await pool.query(matchPlayerQueries.removeAllPlayerFromMatch, [match_id]);
-
-		// Delete the match itself
 		const result = await pool.query(matchQueries.deleteMatch, [match_id]);
-
-		// Commit transaction
-		await pool.query("COMMIT");
 
 		if (result.rowCount > 0) {
 			res.json({ message: "Match successfully deleted." });
@@ -342,8 +341,6 @@ const deleteMatch = async (req, res) => {
 			res.status(404).json({ error: "Match not found." });
 		}
 	} catch (error) {
-		// Rollback transaction on error
-		await pool.query("ROLLBACK");
 		console.error("Error deleting match:", error);
 		res.status(500).json({ error: "Internal server error." });
 	}
