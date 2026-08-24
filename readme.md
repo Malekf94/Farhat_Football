@@ -66,8 +66,8 @@ Track detailed player stats including:
 
 ## 🔐 Authentication
 
-- JWT-based authentication
-- Protected admin routes
+- Auth0-issued JWT access tokens, verified server-side
+- Admin routes guarded on the server, not just in the UI
 - Secure API access
 
 ---
@@ -91,7 +91,8 @@ Track detailed player stats including:
 
 ## Other Tools
 
-- JWT Authentication
+- Auth0 (`express-oauth2-jwt-bearer`)
+- Vite
 - Axios
 - REST API Architecture
 
@@ -99,18 +100,32 @@ Track detailed player stats including:
 
 # Project Structure
 
+Both tiers live in **one** npm package, `farhat_football_app/`. There is no manifest at the
+repo root, and no separate `client/`, `server/` or `database/` directory.
+
 ```bash
 Farhat_Football/
 │
-├── client/         # React frontend
-├── server/         # Express backend
-├── database/       # SQL/database files
-└── README.md
+├── farhat_football_app/    # the only npm package — install and run from here
+│   ├── src/                # React frontend (one folder per page under src/Pages/)
+│   ├── Apis/               # Express API, CommonJS .cjs (routes → controller → queries)
+│   ├── tests/              # Vitest unit and integration suites
+│   ├── server.cjs          # Express entry point
+│   ├── db.cjs              # shared pg pool
+│   └── SETUP.md            # authoritative setup and deploy guide
+│
+├── schema.sql              # hand-maintained database schema
+├── add_indexes.sql         # re-runnable index definitions
+├── payment_balance_trigger.sql
+└── readme.md
 ```
 
 ---
 
 # Installation
+
+**`farhat_football_app/SETUP.md` is the authoritative setup guide** — it covers the Auth0
+dev application and database schema steps this summary leaves out.
 
 ## 1. Clone the repository
 
@@ -118,25 +133,10 @@ Farhat_Football/
 git clone https://github.com/Malekf94/Farhat_Football.git
 ```
 
-## 2. Navigate into the project
+## 2. Install (one package, one install)
 
 ```bash
-cd Farhat_Football
-```
-
-## 3. Install dependencies
-
-### Frontend
-
-```bash
-cd client
-npm install
-```
-
-### Backend
-
-```bash
-cd ../server
+cd Farhat_Football/farhat_football_app
 npm install
 ```
 
@@ -144,33 +144,29 @@ npm install
 
 # Environment Variables
 
-Create a `.env` file inside the server directory.
+Create `.env` inside `farhat_football_app/` by copying the template, then fill it in with
+your own development values:
 
-Example:
-
-```env
-PORT=5000
-DATABASE_URL=your_database_url
-JWT_SECRET=your_secret_key
+```bash
+cp .env.example .env
 ```
+
+`.env.example` lists every variable the app reads. Never commit a filled-in `.env` — the
+production values live in the hosting dashboard.
 
 ---
 
 # Running the Application
 
-## Start Backend
+One command starts the API and the frontend together:
 
 ```bash
-cd server
-npm start
-```
-
-## Start Frontend
-
-```bash
-cd client
+cd farhat_football_app
 npm run dev
 ```
+
+- Frontend: http://localhost:5173
+- API: http://localhost:3000
 
 ---
 

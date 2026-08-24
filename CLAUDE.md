@@ -34,8 +34,9 @@ so it is shared privately, not committed. If it is absent, ask for it rather tha
 findings are closed.
 
 `.cursor/REPO_MAP.md` is the full module/route/table index and carries the **Dead Code** list.
-`farhat_football_app/SETUP.md` is the accurate setup and deploy doc. The root `readme.md` is
-stale — it describes a `client/`+`server/`+`database/` layout that does not exist.
+`farhat_football_app/SETUP.md` is the authoritative setup and deploy doc; the root `readme.md`
+is the product overview and now agrees with it (REPO-003 corrected its structure, install, env
+and run sections).
 Dated history of how the traps below were found: [`.claude/discovery-log.md`](.claude/discovery-log.md).
 
 `.cursor/rules/*.mdc` apply to Claude too: minimal diffs, reuse first, no unrequested docs or
