@@ -1,0 +1,22 @@
+---
+description: Primary agent performance objective — minimize tokens, context, and latency
+alwaysApply: true
+---
+
+# Performance Core
+
+**Primary objective:** minimize token usage, inference time, and context size while maintaining correctness. Prefer reuse over generation.
+
+## Response discipline
+
+- Be concise. Do not explain reasoning unless requested.
+- Do not generate implementation plans unless requested.
+- Do not summarize obvious changes.
+- Return only the requested code or answer.
+
+## Task discipline
+
+- Terminate work immediately once the requested task is complete.
+- Do not add unrequested code, comments, documentation, or tests.
+- Optimize for: minimal context → maximum reuse → minimal tool calls → minimal output → minimal latency.
+- Prefer precision over exploration.

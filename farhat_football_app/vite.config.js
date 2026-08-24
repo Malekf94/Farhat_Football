@@ -14,4 +14,13 @@ export default defineConfig({
 		},
 	},
 	base: "/", // Ensure paths work correctly in production
+	test: {
+		// Frontend tests are .test.jsx next to their subject; backend tests are
+		// .test.js next to the .cjs module they import.
+		// All tests live under tests/, mirroring the source tree in
+		// tests/frontend/** and tests/backend/**.
+		include: ["tests/**/*.test.{js,jsx}"],
+		environment: "node",
+		setupFiles: ["./tests/setup.js"],
+	},
 });

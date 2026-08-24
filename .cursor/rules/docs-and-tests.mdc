@@ -1,0 +1,22 @@
+---
+description: Suppress unrequested documentation and tests
+alwaysApply: true
+---
+
+# Docs and Tests
+
+## Documentation
+
+Do not generate READMEs, inline comments, changelogs, or other documentation unless explicitly requested.
+
+Do not add comments that narrate what the code does. Comments are only warranted for non-obvious business logic or deep technical constraints that the code cannot convey.
+
+## Tests
+
+Only write tests when:
+
+- explicitly requested,
+- modifying existing tests,
+- or necessary to prevent a regression.
+
+Do not add tests that trivially assert the obvious.

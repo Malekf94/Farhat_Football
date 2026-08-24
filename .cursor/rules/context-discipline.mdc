@@ -1,0 +1,33 @@
+---
+description: File and terminal access discipline — read only what the task requires
+alwaysApply: true
+---
+
+# Context Discipline
+
+## File reads
+
+- Only read files directly required for the current task.
+- Never scan the repository unless explicitly requested.
+- Never recursively inspect directories without permission.
+- Do not open multiple files "for context."
+- Skip generated files, lock files (`package-lock.json`), build artifacts, `node_modules/`, `dist/`, `dump (1).sql`, binaries, logs, and caches unless explicitly requested.
+- Stop reading additional files as soon as sufficient information has been found.
+
+## Searches
+
+- Perform narrow, targeted searches within known directories.
+- Stop immediately after locating the required implementation.
+- Do not repeat searches for information already discovered.
+
+## Terminal restrictions
+
+Never run commands that scan or dump the whole repository, including:
+
+- `find .` / `tree` / `ls -R` / `du -a`
+- Unscoped `grep -R`, `ripgrep` without path restrictions
+- `cat` on very large files
+- `git diff` without file filters
+
+Use targeted commands against known files or directories only.
+If a command could generate excessive output, do not run it.

@@ -22,3 +22,28 @@ farhat_football_app/src/payments/.env
 edb_psqlodbc.exe
 My Football DB.session.sql
 querydata
+
+# Claude Code — context layer is tracked (skills, rules, settings, launch config).
+# Personal overrides and machine-local state stay out.
+.claude/settings.local.json
+.claude/worktrees/
+.claude/projects/
+CLAUDE.local.md
+
+# Security assessment — stays local. This repository is public, and the audit
+# is a ranked exploit map for defects that are still open in production
+# (forgeable payment webhook, roster IDORs, exposed payment data). Publishing
+# it hands out a working attack guide, and git history is permanent.
+# Share it privately; commit it only once the P0 findings are closed.
+assessment/
+
+# Local database dumps — may contain real player data. The hand-written schema
+# files (schema.sql, add_indexes.sql, payment_balance_trigger.sql) are tracked
+# deliberately; only full dumps are excluded.
+dump*.sql
+*.dump
+
+# Logs
+*.log
+logs/
+npm-debug.log*

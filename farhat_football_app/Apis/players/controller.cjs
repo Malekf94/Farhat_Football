@@ -178,9 +178,14 @@ const auth0Signup = async (req, res) => {
 		return res.status(400).json({ error: "Invalid email format." });
 	}
 
-	if (year_of_birth < 1900 || year_of_birth > new Date().getFullYear()) {
+	const birthYear = Number(year_of_birth);
+	if (
+		!Number.isInteger(birthYear) ||
+		birthYear <= 1970 ||
+		birthYear >= 2009
+	) {
 		return res.status(400).json({
-			error: "Invalid year of birth. Must be between 1900 and current year.",
+			error: "Invalid year of birth. Must be between 1971 and 2008.",
 		});
 	}
 
@@ -205,7 +210,7 @@ const auth0Signup = async (req, res) => {
 			first_name,
 			last_name,
 			preferred_name,
-			year_of_birth,
+			birthYear,
 		]);
 
 		// Respond with the created player

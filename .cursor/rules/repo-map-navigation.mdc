@@ -1,0 +1,20 @@
+---
+description: Use .cursor/REPO_MAP.md as the primary navigation index before opening source files
+alwaysApply: true
+---
+
+# Repository Map Navigation
+
+## Primary navigation source
+
+Before opening any implementation file, read `.cursor/REPO_MAP.md` to locate the correct file.
+
+The map contains: project structure, module responsibilities, entry points, public APIs, shared utilities, dependency relationships, architecture notes, and coding conventions.
+
+## Rules
+
+- Treat `.cursor/REPO_MAP.md` as the authoritative starting point for orientation.
+- Open implementation files only after identifying the correct location from the map.
+- Update the map incrementally when new modules, patterns, or conventions are discovered — append only, do not rewrite.
+- Never rebuild the map from scratch unless explicitly requested.
+- Do not read source files "for context" when the map already provides the needed information.
