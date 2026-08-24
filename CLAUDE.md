@@ -23,9 +23,9 @@ restate that content here, and do not import it.
 | `rules/testing.md` | *(auto, `tests/**` `vite.config.js`)* setup, layout, the DB-pool constraint, mock policy |
 
 **What to work on next: `assessment/FARHAT_FOOTBALL_ASSESSMENT.md`** §19–20 for the ordering,
-with `assessment/backlog.json` as the canonical ticket set (`backlog.csv` is its import-friendly
-projection). Four P0 findings are open, all on the payment and authorization paths — read the
-ticket before building on either.
+with `assessment/backlog.json` as the canonical ticket set — every ticket carries a `status`
+field, so read that before assuming a finding is open. Six of the seven P0 findings are now
+fixed; `IR-001`, the review of the historical ledger, is the one still open.
 
 **`assessment/` is deliberately gitignored and exists only in a local working copy.** This
 repository is public and the audit is a ranked exploit map for defects still open in production,
@@ -120,5 +120,8 @@ that, not against zero, and do not fix unrelated ones in passing.
 
 ## Branch workflow
 
-`main` is production (PR-only). `staging` is the staging deploy. Branch off `staging` → PR into
-`staging` → test there → PR `staging → main`. Details in `farhat_football_app/SETUP.md`.
+`main` is production (PR-only). `staging` is the staging deploy. `zak-dev` is the dev line a
+sprint's work accumulates on. Branch off `zak-dev` → PR into `zak-dev` → at the end of a sprint
+PR `zak-dev → staging` → test there → PR `staging → main`. **Check the base branch on every PR**
+— one targeting a feature branch that has already merged lands nowhere shared. Details in
+`farhat_football_app/SETUP.md`.

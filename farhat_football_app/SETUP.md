@@ -42,12 +42,19 @@ Action that adds the email custom claim must be enabled on the tenant you use.
 ## Branch & deploy workflow
 - **`main`** → production (protected: changes only via pull request).
 - **`staging`** → a staging deploy for testing before it goes live.
+- **`zak-dev`** → the dev line a sprint's work accumulates on.
 
 Flow for any change:
-1. Branch off `staging`: `git checkout staging && git pull && git checkout -b my-feature`
-2. Open a PR into **`staging`**. Merging it auto-deploys to the staging site.
-3. Test on staging.
-4. Open a PR from **`staging` → `main`**. Merging it deploys to production.
+1. Branch off `zak-dev`: `git checkout zak-dev && git pull && git checkout -b my-feature`
+2. Open a PR into **`zak-dev`**.
+3. At the end of a sprint, open a PR from **`zak-dev` → `staging`**. Merging it auto-deploys to
+   the staging site.
+4. Test on staging.
+5. Open a PR from **`staging` → `main`**. Merging it deploys to production.
+
+Check the base branch before opening a PR. A PR based on another feature branch is fine while
+that branch is still open, but once the base merges, the PR's own work reaches no shared branch
+— it stays on the feature branch and needs a fresh PR into `zak-dev`.
 
 ## Never commit secrets
 `.env` is gitignored. Production credentials (the real database URL, Monzo
