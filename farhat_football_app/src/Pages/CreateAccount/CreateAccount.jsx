@@ -1,16 +1,16 @@
 import { useAuth0 } from "@auth0/auth0-react";
 import { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import "./CreateAccount.css";
 
 function CreateAccount() {
-	const { loginWithRedirect, user, isAuthenticated } = useAuth0(); // Auth0 hook
+	const { loginWithRedirect, user, isAuthenticated } = useAuth0();
 	const location = useLocation();
-	// Preserve where the user was originally headed (e.g. a host portal match)
+	const navigate = useNavigate();
 	const returnTo = location.state?.returnTo || "/your-account";
 	const [formData, setFormData] = useState({
-		email: "",
+		email: location.state?.email || "",
 		first_name: "",
 		last_name: "",
 		preferred_name: "",
@@ -18,12 +18,11 @@ function CreateAccount() {
 	});
 	const [message, setMessage] = useState("");
 
-	// Pre-fill the email field with the logged-in user's email
 	useEffect(() => {
-		if (isAuthenticated && user) {
+		if (isAuthenticated && user?.email) {
 			setFormData((prevData) => ({
 				...prevData,
-				email: user.email, // Auth0 user's email
+				email: user.email,
 			}));
 		}
 	}, [user, isAuthenticated]);
@@ -38,20 +37,22 @@ function CreateAccount() {
 		setMessage("");
 
 		try {
-			// Save user to the players table via backend API
 			await axios.post("/api/v1/players/auth0-signup", formData);
 
-			// Trigger Auth0 signup flow
+			if (isAuthenticated) {
+				navigate(returnTo, { replace: true });
+				return;
+			}
+
 			await loginWithRedirect({
 				appState: { returnTo },
 				authorizationParams: {
 					screen_hint: "signup",
 				},
 			});
-
-			setMessage("Account created successfully!");
 		} catch (error) {
-			setMessage("Error creating account. Please try again.");
+			const apiError = error.response?.data?.error;
+			setMessage(apiError || "Error creating account. Please try again.");
 			console.error(error);
 		}
 	};
@@ -106,6 +107,8 @@ function CreateAccount() {
 						name="year_of_birth"
 						value={formData.year_of_birth}
 						onChange={handleChange}
+						min="1971"
+						max="2008"
 						required
 					/>
 				</label>
