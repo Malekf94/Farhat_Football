@@ -1,0 +1,34 @@
+---
+description: Prefer existing code and dependencies before writing new implementations
+globs: **/*.{js,jsx,cjs}
+alwaysApply: false
+---
+
+# Reuse First
+
+Before writing any new code, check whether the functionality already exists.
+
+## Preference order
+
+1. Existing project code
+2. Shared utilities already in the repository
+3. Existing project abstractions
+4. Well-maintained, widely adopted libraries
+5. New implementation — only when nothing above applies
+
+## Rules
+
+- Do not duplicate existing functionality.
+- Do not create helper functions that already exist elsewhere.
+- Do not reimplement standard algorithms available via existing dependencies.
+
+## Avoid hand-rolling these (use existing deps instead)
+
+HTTP clients, validation, parsing, date/time handling, retries, caching, logging, configuration, serialization, authentication, database access, cryptography.
+
+## When adding a new dependency
+
+- Prefer libraries with strong maintenance, documentation, and community adoption.
+- Do not add dependencies for trivial functionality.
+- Reuse dependencies already present in `farhat_football_app/package.json` first:
+  `axios`, `express`, `pg`, `express-oauth2-jwt-bearer`, `@auth0/auth0-react`, `date-fns`, `react-router-dom`.

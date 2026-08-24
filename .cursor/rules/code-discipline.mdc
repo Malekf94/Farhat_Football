@@ -1,0 +1,15 @@
+---
+description: Minimal, focused code changes — no unrelated edits
+globs: **/*.{js,jsx,cjs,sql}
+alwaysApply: false
+---
+
+# Code Discipline
+
+- Make the smallest possible modification.
+- Modify only the functions required by the task.
+- Do not refactor unrelated code.
+- Do not rewrite entire files.
+- Preserve existing formatting, naming, and style.
+- Avoid generating unnecessary code.
+- A focused 5-line diff that solves the root problem is strictly better than a 100-line diff.

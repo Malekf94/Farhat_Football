@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "permissions": {
+    "allow": [
+      "Grep",
+      "Glob",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git show*)",
+      "Bash(git blame*)",
+      "Bash(git ls-files*)",
+      "Bash(git rev-parse*)",
+      "Bash(git branch --list*)",
+      "Bash(git branch -a*)",
+      "Bash(git remote -v*)",
+      "Bash(git stash list*)",
+      "PowerShell(git status*)",
+      "PowerShell(git diff*)",
+      "PowerShell(git log*)",
+      "PowerShell(git show*)",
+      "PowerShell(git ls-files*)",
+      "PowerShell(git rev-parse*)",
+      "Bash(npm run lint*)",
+      "Bash(npm run build*)",
+      "Bash(npx eslint*)",
+      "Bash(node --check*)",
+      "PowerShell(npm run lint*)",
+      "PowerShell(npm run build*)",
+      "PowerShell(node --check*)",
+      "Bash(gh pr view*)",
+      "Bash(gh pr list*)",
+      "Bash(gh pr diff*)",
+      "Bash(gh issue view*)",
+      "Bash(gh issue list*)"
+    ],
+    "deny": [
+      "Read(.env)",
+      "Read(**/.env)",
+      "Read(**/*.env)",
+      "Read(**/node_modules/**)",
+      "Read(**/dist/**)",
+      "Read(**/package-lock.json)",
+      "Read(**/dump*.sql)",
+      "Read(querydata)",
+      "Read(**/*.log)"
+    ]
+  }
+}
