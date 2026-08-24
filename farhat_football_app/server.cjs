@@ -11,10 +11,10 @@ const seasonalleaderRoutes = require("./Apis/leaderboard/seasonal-leaderboard.cj
 const elevenAsideRoutes = require("./Apis/leaderboard/eleven-aside-leaderboard.cjs");
 const attributesRoutes = require("./Apis/attributes/routes.cjs");
 const paymentRoutes = require("./Apis/payments/routes.cjs");
+const monzoWebhook = require("./Apis/payments/monzoWebhook.cjs");
 const hostRoutes = require("./Apis/hosts/routes.cjs");
 const banRoutes = require("./Apis/bans/routes.cjs");
 const authRoutes = require("./Apis/auth/routes.cjs");
-const pool = require("./db.cjs");
 const checkJwt = require("./Apis/auth/checkJwt.cjs");
 require("dotenv").config();
 
@@ -74,60 +74,9 @@ app.use(
 app.use(express.json());
 
 // ─── Monzo Webhook ────────────────────────────────────────────────────────────
-app.post("/monzo-webhook", async (req, res) => {
-	const data = req.body;
-	try {
-		if (data.type !== "transaction.created") {
-			return res.sendStatus(200);
-		}
-
-		const tx = data.data;
-
-		if (tx.amount <= 0) {
-			return res.sendStatus(200);
-		}
-
-		const notes = (tx.notes || "").toLowerCase();
-
-		if (!notes.includes("ffc")) {
-			return res.sendStatus(200);
-		}
-
-		const match = notes.match(/ffc(\d+)/);
-		const playerId = match ? parseInt(match[1], 10) : null;
-
-		if (!playerId) {
-			console.log("No valid player ID found in notes:", notes);
-			return res.sendStatus(200);
-		}
-
-		const amount = tx.amount / 100;
-		const transactionId = tx.id;
-		const created = tx.created;
-
-		// Insert only — the DB trigger applies the amount to the player's
-		// balance automatically. ON CONFLICT means duplicate webhook
-		// deliveries insert nothing and don't fire the trigger.
-		const insertResult = await pool.query(
-			`INSERT INTO payments
-				(transaction_id, payment_date, amount, description, user_id, processed)
-			 VALUES ($1, $2, $3, $4, $5, TRUE)
-			 ON CONFLICT (transaction_id) DO NOTHING
-			 RETURNING payment_id;`,
-			[transactionId, created, amount, notes, playerId],
-		);
-
-		if (insertResult.rowCount > 0) {
-			console.log(`✅ Payment recorded: Player ${playerId} + £${amount}`);
-		} else {
-			console.log(`ℹ️ Duplicate transaction ignored: ${transactionId}`);
-		}
-	} catch (err) {
-		console.error("❌ Webhook error:", err);
-	}
-
-	res.sendStatus(200);
-});
+// Mounted before the SPA catch-all. The handler re-fetches every event from
+// Monzo before it can reach the ledger — see Apis/payments/monzoWebhook.cjs.
+app.post("/monzo-webhook", monzoWebhook.handleMonzoWebhook);
 // ─────────────────────────────────────────────────────────────────────────────
 
 // API Routes

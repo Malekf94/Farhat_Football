@@ -40,9 +40,13 @@ const waitForReady = async () => {
 	let lastError;
 	while (Date.now() < deadline) {
 		try {
-			docker(["exec", CONTAINER, "pg_isready", "-U", USER, "-d", DB], {
-				stdio: "pipe",
-			});
+			// Over TCP, not the unix socket. The image runs a temporary server
+			// during initdb that listens on the socket only; asking it there
+			// reports ready, and the schema load then races that server's shutdown.
+			docker(
+				["exec", CONTAINER, "pg_isready", "-h", "127.0.0.1", "-p", "5432", "-U", USER, "-d", DB],
+				{ stdio: "pipe" },
+			);
 			return;
 		} catch (error) {
 			// pg_isready exits non-zero until the server accepts connections.
@@ -105,6 +109,8 @@ export default async function setup({ provide }) {
 			"--interactive",
 			CONTAINER,
 			"psql",
+			"--host",
+			"127.0.0.1",
 			"--username",
 			USER,
 			"--dbname",
