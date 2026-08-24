@@ -42,7 +42,6 @@ Farhat_football/
 │   ├── tests/                  # Vitest: backend/ frontend/ (unit), integration/ (Docker)
 │   └── scripts/                # empty
 ├── add_indexes.sql             # Hand-applied performance indexes
-├── payment_balance_trigger.sql # Hand-applied payments -> account_balance trigger
 ├── CLAUDE.md                   # Guidance for Claude Code
 ├── readme.md                   # Product overview; structure/install/run corrected by REPO-003
 ├── all_tables.txt              # STALE early schema snapshot (pre-hosts, pre-admin flags)
@@ -214,7 +213,7 @@ Auth0 (React SDK) → getAccessTokenSilently
 
 ## Payments and balances
 
-`payments` rows are the **single source of truth** for `players.account_balance`. An `AFTER INSERT` trigger (`trg_apply_payment`, see `payment_balance_trigger.sql`) applies the signed amount: positive = top-up/refund, negative = match fee/leave penalty/charge.
+`payments` rows are the **single source of truth** for `players.account_balance`. An `AFTER INSERT` trigger (`trg_apply_payment`, canonical in `farhat_football_app/migrations/0001_reconcile_payment_trigger.sql`) applies the signed amount: positive = top-up/refund, negative = match fee/leave penalty/charge. It also writes an audit row to `trigger_log` recording how many player rows the update actually touched.
 
 - **Application code must never `UPDATE account_balance` directly** — insert a payment row instead.
 - Duplicate protection is `ON CONFLICT (transaction_id) DO NOTHING`. A suppressed insert does not fire the trigger, so retried webhooks cannot double-credit.
