@@ -22,9 +22,9 @@ Farhat_football/
 ├── farhat_football_app/        # ONE npm package: React frontend + Express backend
 │   ├── server.cjs              # Express entry point, middleware, route mounting, Monzo webhook
 │   ├── db.cjs                  # pg connection pool (shared across all APIs)
-│   ├── package.json            # All dependencies and scripts (root package.json has NO scripts)
+│   ├── package.json            # The ONLY manifest in the repo — no package.json at the root
 │   ├── vite.config.js          # Build -> dist/client; dev proxy /api -> :3000
-│   ├── eslint.config.js        # Covers **/*.{js,jsx} only — .cjs is NOT linted
+│   ├── eslint.config.js        # Covers **/*.{js,jsx} AND **/*.cjs — backend is linted
 │   ├── .env.example            # Env var names (.env is gitignored — never read it)
 │   ├── SETUP.md                # Local setup + branch/deploy workflow
 │   ├── src/                    # React frontend (ESM / JSX)
@@ -39,17 +39,15 @@ Farhat_football/
 │   │   ├── auth/  players/  matches/  match_players/
 │   │   ├── attributes/  payments/  pitches/
 │   │   ├── hosts/  bans/  leaderboard/
-│   ├── config/config.cjs       # Sequelize-style DB config — used only by dead models/index.js
-│   ├── models/index.js         # DEAD — see Dead Code
 │   ├── tests/                  # Vitest: backend/ frontend/ (unit), integration/ (Docker)
 │   └── scripts/                # empty
 ├── add_indexes.sql             # Hand-applied performance indexes
 ├── payment_balance_trigger.sql # Hand-applied payments -> account_balance trigger
 ├── CLAUDE.md                   # Guidance for Claude Code
-├── readme.md                   # STALE — describes a client//server//database layout that does not exist
+├── readme.md                   # Product overview; structure/install/run corrected by REPO-003
 ├── all_tables.txt              # STALE early schema snapshot (pre-hosts, pre-admin flags)
 ├── triggers.txt                # Trigger snapshot
-├── randomisermk2.js / mk3.js   # Standalone team-randomiser experiments, not wired into the app
+├── randomisermk3.js            # LIVE team balancer — imported by src/Pages/IndividualMatch
 └── dump (1).sql                # DB dump — authoritative schema, but DO NOT READ (1.5 MB)
 ```
 
@@ -106,7 +104,7 @@ Each module follows `routes.cjs → controller.cjs → queries.cjs`, where `quer
 | `matches/` | `/api/v1/matches` | routes/controller/queries | Match lifecycle, man of the match, player notifications |
 | `match_players/` | `/api/v1/matchPlayer` | routes/controller/queries | Roster join/leave, team assignment, per-match stats, player-voted ratings |
 | `attributes/` | `/api/v1/attributes` | routes/controller/queries | Skill attribute ratings; **global across hosts — superadmin only to edit** |
-| `payments/` | `/api/v1/payments` | `controller.cjs`, `checkPayments.cjs`, `runFullPaymentSync.cjs`, `leavinggame.cjs`, `syncPayments.cjs` (DEAD) | Payment dashboard, Monzo sync, refunds, balance audit/reconcile, leave charges |
+| `payments/` | `/api/v1/payments` | `controller.cjs`, `checkPayments.cjs`, `runFullPaymentSync.cjs`, `leavinggame.cjs`, `monzoWebhook.cjs` | Payment dashboard, Monzo sync, refunds, balance audit/reconcile, leave charges |
 | `pitches/` | `/api/v1/pitches` | routes/controller/queries | Pitch management (add = global admin) |
 | `hosts/` | `/api/v1/hosts` | routes/controller/queries | Portal resolution by slug, host CRUD + host-admin management (superadmin) |
 | `bans/` | `/api/v1/bans` | routes/controller/queries | Player bans per host (or global), incl. auto-bans driven by late counts |
@@ -221,7 +219,7 @@ Auth0 (React SDK) → getAccessTokenSilently
 - **Application code must never `UPDATE account_balance` directly** — insert a payment row instead.
 - Duplicate protection is `ON CONFLICT (transaction_id) DO NOTHING`. A suppressed insert does not fire the trigger, so retried webhooks cannot double-credit.
 - The **Monzo webhook is inline in `server.cjs`**, not in `Apis/`. It matches `ffc<player_id>` in the transaction notes to attribute a payment, and always responds 200 so Monzo does not retry.
-- `Apis/payments/syncPayments.cjs` is **deprecated and disabled** — running the old balance sync would double every unprocessed payment.
+- `Apis/payments/syncPayments.cjs` was the pre-trigger balance sync and would have doubled every unprocessed payment; REPO-003 deleted it. Do not reintroduce that pattern — the trigger owns `account_balance`.
 
 ---
 
@@ -254,7 +252,7 @@ Authoritative schema is the hosted DB (`dump (1).sql` is a dump of it — do not
 - **Backend:** CommonJS `.cjs`, `require()` / `module.exports`. The package is `"type": "module"`, so backend files **must** keep the `.cjs` extension.
 - **Frontend:** ESM `.jsx`, one folder per page (`src/Pages/<Name>/<Name>.jsx` + `.css`).
 - **SQL:** inline template strings in `Apis/**/queries.cjs` with `$1` placeholders; no ORM, no repository layer — controllers call the shared `pool` directly.
-- **Formatting:** tabs. ESLint covers `**/*.{js,jsx}` only, so `.cjs` files are unlinted — match surrounding style by hand.
+- **Formatting:** tabs, applied by hand — no formatter is wired up. ESLint covers `.cjs` as well as `.jsx` since QA-001, but it does not enforce indentation.
 - **Config:** `dotenv`; env var names in `.env.example`.
 
 ---
@@ -269,13 +267,20 @@ Authoritative schema is the hosted DB (`dump (1).sql` is a dump of it — do not
 
 | Path | Why |
 |---|---|
-| `farhat_football_app/models/index.js` | Sequelize scaffold. `sequelize` is not installed and it requires `config/config.json`, which does not exist. Would crash if imported. |
-| `farhat_football_app/config/config.cjs` | Only consumed by the dead Sequelize scaffold. |
-| `Apis/auth/checkAdmin.cjs` | Never imported, and checks a placeholder claim namespace (`https://your-app-url.com/roles`). Use `requireAdmin` instead. |
-| `Apis/payments/syncPayments.cjs` | Explicitly deprecated — would double balances. |
-| `src/Pages/UpcomingMatch/`, `src/Pages/YourPage/` | Components defined but never imported or routed. |
-| `randomisermk2.js`, `randomisermk3.js` (root) | Standalone experiments, not wired into the app. There is **no** `Apis/match_players/balancer.cjs`. |
 | `set_first_player_as_admin()` (database function) | Defined in `schema.sql` but **no** `CREATE TRIGGER` references it, so inserting the first player does not make them an admin. Dropping it belongs to `DB-002`. |
+| `feedback`, `replies` tables | Present in the old schema snapshot; no backend code references them. |
+
+REPO-003 **deleted** the former entries here — `models/index.js`, `config/config.cjs`,
+`Apis/auth/checkAdmin.cjs`, `Apis/payments/syncPayments.cjs`, `src/Pages/UpcomingMatch/`,
+`src/Pages/YourPage/` and `randomisermk2.js`. If one reappears, it is a mistake.
+
+**`randomisermk3.js` is NOT dead** — it was listed here in error. `src/Pages/IndividualMatch/IndividualMatch.jsx:7`
+imports `randomiserMk3` from it and that page is routed in `App.jsx`, so the live team balancer sits
+**outside** the npm package. There is still **no** `Apis/match_players/balancer.cjs`.
+
+Live despite looking dead: `Apis/payments/runFullPaymentSync.cjs` (called by `controller.cjs`) and
+`Apis/payments/checkPayments.cjs` (spawned via `exec("node Apis/payments/checkPayments.cjs")`, a
+reference no import-grep finds).
 
 ---
 

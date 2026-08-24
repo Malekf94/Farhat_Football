@@ -70,16 +70,19 @@ Run from `farhat_football_app/`.
 |---|---|
 | Dev (API + client) | `npm run dev` |
 | Client only | `npm run client` |
-| Lint (`**/*.{js,jsx}`) | `npm run lint` |
+| Lint (frontend **and** backend `.cjs`) | `npm run lint` |
 | Production build → `dist/client` | `npm run build` |
 
 ## Toolchain gaps that bite
 
-- **ESLint covers `**/*.{js,jsx}` only** (`eslint.config.js:10`), so a green `npm run lint` says
-  nothing about any `.cjs` backend file you touched in the same change.
-- **Lint has a red baseline** — 17 errors and 5 warnings pre-exist (unused `err` bindings,
-  exhaustive-deps, fast-refresh) in files unrelated to most changes. Compare against that
-  baseline rather than expecting zero; do not "fix" unrelated ones in passing.
+- **Lint is green and covers the backend** since QA-001 — a `**/*.cjs` block lints all 37
+  backend files as well as `**/*.{js,jsx}`. The baseline is **0 errors and 5 warnings**, so
+  compare against zero. Warnings are capped by `--max-warnings 5` in the lint script: fixing one
+  means lowering the cap in the same change, and adding one fails the build.
+- **Do not bulk-rewrite `catch (err)` to `catch {`** to clear an unused binding. Only some catch
+  blocks discard the error; a blind pass over `PaymentsDashboard.jsx` and `ManageHosts.jsx`
+  stripped bindings from blocks that still call `console.error(err)`. Fix the sites the linter
+  names, one at a time.
 - **`prop-types` is imported by `RadarChart.jsx` and `HostContext.jsx` but is not declared in
   `package.json`** — it resolves transitively today. Declare it if you touch those dependencies.
 - **Component rendering is not testable yet** — the Vitest environment is `node`, with no jsdom
