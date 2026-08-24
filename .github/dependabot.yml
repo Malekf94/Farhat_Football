@@ -3,9 +3,8 @@ version: 2
 # Dependabot reads this file from the DEFAULT branch (main). It does nothing
 # until it lands there, however many branches it exists on.
 #
-# Only farhat_football_app is scanned. The root package.json is a vestigial
-# second manifest with no scripts (REPO-001); scanning it would open pull
-# requests for dependencies nothing installs.
+# Only farhat_football_app is scanned, because since REPO-001 it is the only npm
+# package in the repository — the root manifest and its lockfile are gone.
 updates:
   - package-ecosystem: "npm"
     directory: "/farhat_football_app"
@@ -26,9 +25,15 @@ updates:
         update-types: ["minor", "patch"]
     # target-branch is deliberately unset. Pointing it at zak-dev would route
     # these through the normal pipeline, but GitHub disables Dependabot
-    # SECURITY updates for an ecosystem that sets it, and this repository has
-    # open advisories on a payment path. Version pull requests therefore open
-    # against main; apply them on zak-dev if you would rather not merge there.
+    # SECURITY updates for an ecosystem that sets it — and on a repository
+    # handling payments, losing security updates costs more than the routing is
+    # worth. DEP-001 brought the tree to zero advisories and CI now enforces
+    # that with a blocking `npm audit --audit-level=high`, so the job of these
+    # pull requests is to keep it there.
+    #
+    # Version pull requests therefore open against main, where the CI workflow
+    # runs them (it triggers on pull requests into main). Apply them on zak-dev
+    # instead if you would rather not merge to main directly.
     open-pull-requests-limit: 5
     commit-message:
       prefix: "chore(deps)"
