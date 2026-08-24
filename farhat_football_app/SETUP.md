@@ -82,6 +82,24 @@ it once, then use `npm run migrate` from then on.
 3. `npm run migrate:baseline` — records `0000` and applies nothing.
 4. `npm run migrate:status` — confirm `Baseline stamped : true`.
 
+### Resetting a local database
+
+There used to be a `querydata` file at the repo root — no extension, no warning, tracked in a
+public repository — that disabled every trigger, truncated every table in `public` and restarted
+identities. Pasted at the wrong prompt it would have destroyed the ledger, and nothing about its
+name suggested that. REPO-002 deleted it (it is recoverable from history if ever needed).
+
+To start clean locally, drop and recreate the database and provision it again — that way the
+reset is scoped to a database you named, not to whatever `DATABASE_URL` happens to point at:
+
+```bash
+psql "postgres://localhost/postgres" -c 'DROP DATABASE farhat_football_dev'
+psql "postgres://localhost/postgres" -c 'CREATE DATABASE farhat_football_dev'
+npm run migrate:provision
+```
+
+Integration tests need none of this — they build and destroy their own container per run.
+
 ### Adding a schema change
 
 1. Write `migrations/NNNN_short_description.sql`. Conventions and the rollback stance are in
