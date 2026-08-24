@@ -61,9 +61,9 @@ tests, narrow reads.
 
 Always true. The owning skill or rule carries the explanation and the evidence.
 
-- **There is a Vitest suite (`npm test`) but still no CI.** Nothing runs it but a person, so run
-  it yourself. All tests live under `farhat_football_app/tests/`, never colocated.
-  → `rules/testing.md`
+- **CI runs the gates on every PR** (`.github/workflows/ci.yml`, TEST-001) — but still run them
+  locally first; a red PR wastes a round trip. All tests live under `farhat_football_app/tests/`,
+  never colocated. → `rules/testing.md`
 - **`vi.mock()` cannot fake the DB pool inside a `.cjs` module**, so importing a backend module
   from a test opens a real connection. `tests/setup.js` pins `DATABASE_URL` to a dead sentinel —
   never weaken it. → `rules/testing.md`
@@ -111,11 +111,12 @@ npm run lint
 node --check server.cjs
 ```
 
-**There is no CI — nothing runs any of these but a person.** `npm test` is the whole suite and
-takes seconds; run it on any change. Since QA-001, `npm run lint` covers the backend too — all
-37 `.cjs` files — and the **baseline is green: 0 errors, 5 warnings**. Compare against zero, not
-against the old 17. `node --check` is still a useful fast syntax check but is no longer the only
-thing watching a `.cjs` file.
+**CI runs all of these on every PR** (`.github/workflows/ci.yml`), so a broken test, lint error,
+build failure or unappliable migration blocks the merge. Run them locally anyway — the loop is
+seconds and a red PR is a wasted round trip. Since QA-001, `npm run lint` covers the backend too
+— all `.cjs` files — and the **baseline is green: 0 errors, 5 warnings**. Compare against zero,
+not against the old 17. `node --check` is still a useful fast syntax check but is no longer the
+only thing watching a `.cjs` file. `npm run test:integration` needs Docker.
 
 `npm run build` before claiming a change ships. Full command list and the traps in each:
 → `repo-pitfalls`.

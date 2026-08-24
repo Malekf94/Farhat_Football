@@ -35,8 +35,10 @@ Commands, from `farhat_football_app/`:
 | One test | `npx vitest run -t "rounds halves upward"` |
 | Integration suite | `npm run test:integration` (needs Docker) |
 
-**There is no CI.** Nothing runs `npm test` but a person, so run it yourself before claiming a
-change is verified.
+**CI runs both suites on every pull request** (`.github/workflows/ci.yml`, TEST-001): lint,
+backend syntax, `npm test`, `npm run build`, and `npm run test:integration` including migration
+validation. Run them locally first anyway - the loop is seconds and a red pull request is a
+wasted round trip.
 
 ## Layout
 
@@ -155,8 +157,8 @@ Add tooling only when a test genuinely needs it, and update this file in the sam
 
 - **Component rendering** needs `jsdom` and `@testing-library/react`, neither installed. Install
   both and set `environment: "jsdom"` for those files via `test.environmentMatchGlobs`.
-- **Coverage** needs `@vitest/coverage-v8`. There is no threshold and no CI to enforce one, so
-  treat coverage as diagnostic.
+- **Coverage** needs `@vitest/coverage-v8`. No threshold is set, so treat coverage as
+  diagnostic; adding one is a scope decision, and CI is now there to enforce it if you do.
 - **CI** is the single highest-value follow-up, because an unrun suite rots
   (`EPIC-QUALITY` in the backlog). It must run both suites — `npm test` and
   `npm run test:integration` — or the integration ones rot fastest.

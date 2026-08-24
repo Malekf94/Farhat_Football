@@ -73,7 +73,7 @@ All run from `farhat_football_app/`:
 | `npm run test:watch` | Vitest in watch mode |
 | `npm run test:integration` | Vitest against a disposable `postgres:16` container (needs Docker) |
 
-**Vitest suite added 2026-08-21; there is still no CI**, so nothing runs it but a person. Tests
+**CI runs both suites, lint, backend syntax, build and migration validation on every pull request** (`.github/workflows/ci.yml`, TEST-001). Tests
 live in `farhat_football_app/tests/` (`tests/frontend/**` mirroring `src/`, `tests/backend/**`
 mirroring `Apis/`), never colocated. Backend modules that require the `pg` pool cannot be mocked —
 see the `unit-test-engineer` skill. Verification is `npm test` + `npm run lint` + manual exercise
