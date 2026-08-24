@@ -4,6 +4,7 @@
 	"version": "0.0.0",
 	"type": "module",
 	"scripts": {
+		"start": "node server.cjs",
 		"dev": "concurrently \"npm run server\" \"npm run client\"",
 		"server": "nodemon server.cjs",
 		"client": "vite",
@@ -21,22 +22,18 @@
 	"dependencies": {
 		"@auth0/auth0-react": "^2.2.4",
 		"@getbrevo/brevo": "^5.0.4",
-		"@sendgrid/mail": "^8.1.6",
 		"axios": "^1.7.7",
 		"cors": "^2.8.5",
 		"date-fns": "^4.1.0",
 		"dotenv": "^16.4.7",
-		"dotenv-vault": "^1.26.2",
 		"express": "^4.21.1",
 		"express-oauth2-jwt-bearer": "^1.9.0",
 		"helmet": "^8.0.0",
-		"nodemon": "^3.1.7",
 		"pg": "^8.13.1",
-		"prompt-sync": "^4.2.0",
+		"prop-types": "^15.8.1",
 		"react": "^18.3.1",
 		"react-dom": "^18.3.1",
-		"react-router-dom": "^7.18.2",
-		"vite": "^8.2.2"
+		"react-router-dom": "^7.18.2"
 	},
 	"devDependencies": {
 		"@eslint/js": "^9.13.0",
@@ -49,6 +46,8 @@
 		"eslint-plugin-react-hooks": "^5.0.0",
 		"eslint-plugin-react-refresh": "^0.4.14",
 		"globals": "^15.11.0",
+		"nodemon": "^3.1.14",
+		"vite": "^8.2.2",
 		"vitest": "^4.1.11"
 	}
 }

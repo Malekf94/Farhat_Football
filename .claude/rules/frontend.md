@@ -83,7 +83,9 @@ Run from `farhat_football_app/`.
   blocks discard the error; a blind pass over `PaymentsDashboard.jsx` and `ManageHosts.jsx`
   stripped bindings from blocks that still call `console.error(err)`. Fix the sites the linter
   names, one at a time.
-- **`prop-types` is imported by `RadarChart.jsx` and `HostContext.jsx` but is not declared in
-  `package.json`** — it resolves transitively today. Declare it if you touch those dependencies.
+- **`prop-types` is a declared dependency** since DEP-002. It is imported by
+  `Auth0ProviderWithNavigate.jsx`, `ConfirmModal.jsx`, `RadarChart.jsx` and `HostContext.jsx`;
+  before DEP-002 it resolved only transitively, so a bump that stopped hoisting it would have
+  broken the build with a confusing module-not-found.
 - **Component rendering is not testable yet** — the Vitest environment is `node`, with no jsdom
   and no Testing Library. Pure logic and helpers are testable. → [`testing.md`](testing.md)
