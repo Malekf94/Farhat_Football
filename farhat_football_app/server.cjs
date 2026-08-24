@@ -21,27 +21,6 @@ require("dotenv").config();
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Middleware: Dynamic CSP based on environment
-app.use((req, res, next) => {
-	const cspDirectives = {
-		"default-src": ["'self'"],
-		"connect-src": [
-			"'self'",
-			process.env.NODE_ENV === "production"
-				? "https://farhat-football.uk.auth0.com"
-				: "http://localhost:3000",
-		],
-		"frame-src": ["'self'", "https://farhat-football.uk.auth0.com"],
-	};
-
-	const cspHeader = Object.entries(cspDirectives)
-		.map(([key, values]) => `${key} ${values.join(" ")}`)
-		.join("; ");
-
-	res.setHeader("Content-Security-Policy", cspHeader);
-	next();
-});
-
 // Middleware: CORS
 app.use(
 	cors({
@@ -52,7 +31,14 @@ app.use(
 	}),
 );
 
-// Middleware: Helmet
+// Middleware: Helmet — the ONLY Content-Security-Policy. A hand-rolled CSP
+// middleware used to run above this one and set a different, narrower policy;
+// helmet then replaced the header wholesale, so that policy never reached a
+// browser (SEC-014).
+//
+// Unset variables are filtered out: an undefined entry is serialised into the
+// header as the literal token "undefined", which is not a valid source and
+// silently drops the origin the directive was meant to allow.
 app.use(
 	helmet({
 		contentSecurityPolicy: {
@@ -63,7 +49,7 @@ app.use(
 					process.env.FRONTEND_URL,
 					process.env.BACKEND_URL,
 					"https://farhat-football.uk.auth0.com",
-				],
+				].filter(Boolean),
 				frameSrc: ["'self'", "https://farhat-football.uk.auth0.com"],
 			},
 		},
