@@ -110,36 +110,93 @@ const paymentDashboard = async (req, res) => {
 	}
 };
 
-const leavingPayment = async (req, res) => {
-	const { player_id } = req.params;
-	const { matchData } = req.body;
+// A player who pulls out close to kick-off still owes the fee. The cutoff and
+// the amount are decided here from the match row — never from the request —
+// because both used to arrive in the request body.
+const LEAVE_CHARGE_CUTOFF_HOURS = 5;
 
-	// Basic validation
-	if (!matchData || !matchData.match_id || !matchData.price) {
-		return res
-			.status(400)
-			.json({ error: "Missing required matchData (id and price)" });
+const leavingPayment = async (req, res) => {
+	const match_id = Number.parseInt(req.body?.match_id, 10);
+	// Validated against the token by requireSelfOrHostAdmin.
+	const player_id = req.targetPlayerId;
+
+	if (!Number.isInteger(match_id)) {
+		return res.status(400).json({ error: "match_id is required." });
 	}
 
+	const client = await pool.connect();
 	try {
-		const transactionId = await recordPlayerLeave(player_id, matchData);
+		await client.query("BEGIN");
 
-		if (transactionId) {
-			return res.status(201).json({
-				success: true,
-				message: "Leave processed and payment recorded.",
-				transactionId: transactionId,
-			});
-		} else {
-			return res.status(200).json({
-				success: true,
-				message: "Transaction was skipped (duplicate detected).",
+		// Lock the match so its price and timing cannot move underneath the
+		// decision, and so two concurrent leaves cannot interleave.
+		const matchResult = await client.query(
+			`SELECT match_status,
+			        price,
+			        (match_date + match_time) AS kickoff,
+			        (match_date + match_time) - now() <= $2::interval AS within_cutoff
+			 FROM matches
+			 WHERE match_id = $1
+			 FOR UPDATE`,
+			[match_id, `${LEAVE_CHARGE_CUTOFF_HOURS} hours`],
+		);
+
+		if (matchResult.rows.length === 0) {
+			await client.query("ROLLBACK");
+			return res.status(404).json({ error: "Match not found." });
+		}
+
+		const match = matchResult.rows[0];
+		if (["completed", "friendly"].includes(match.match_status)) {
+			await client.query("ROLLBACK");
+			return res
+				.status(400)
+				.json({ error: "This match has already been finalised." });
+		}
+
+		// Removing the roster row and charging for it are the same decision, so
+		// they happen together. A player who is not on the roster cannot leave it.
+		const removal = await client.query(
+			"DELETE FROM match_players WHERE match_id = $1 AND player_id = $2 RETURNING player_id",
+			[match_id, player_id],
+		);
+		if (removal.rowCount === 0) {
+			await client.query("ROLLBACK");
+			return res.status(404).json({ error: "Player not found in this match." });
+		}
+
+		let transactionId = null;
+		if (match.within_cutoff) {
+			transactionId = await recordPlayerLeave(client, {
+				player_id,
+				match_id,
+				amount: Number(match.price),
 			});
 		}
+
+		await client.query("COMMIT");
+
+		return res.status(200).json({
+			success: true,
+			charged: Boolean(transactionId),
+			amount: transactionId ? Number(match.price) : 0,
+			transactionId,
+			message: transactionId
+				? `You left this match within ${LEAVE_CHARGE_CUTOFF_HOURS} hours of kick-off, so the fee was charged.`
+				: "You have left the match.",
+		});
 	} catch (error) {
+		try {
+			await client.query("ROLLBACK");
+		} catch (rollbackError) {
+			console.error("Rollback failed after leave error:", rollbackError);
+		}
+		console.error("Error processing player exit:", error);
 		return res.status(500).json({
 			error: "Internal server error processing player exit.",
 		});
+	} finally {
+		client.release();
 	}
 };
 

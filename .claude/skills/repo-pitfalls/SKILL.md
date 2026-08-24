@@ -49,6 +49,13 @@ Append a rule here only once it generalises. Keep the reasoning short and cite `
   PostgreSQL 16 does not have. Loading it into `postgres:16` aborts there under `ON_ERROR_STOP`.
   The integration harness strips that line at load time; the tracked file is still wrong and is
   `DB-001`'s to fix. Anyone restoring this dump to rebuild an environment hits it first.
+- **[V 2026-08-24] `pg_isready` over the unix socket lies while a `postgres` container is still
+  initialising.** The official image starts a **temporary** server during initdb that listens on
+  the socket only, shuts it down, then starts the real one. Asking `pg_isready` without `-h`
+  gets a "ready" from that temporary server, and the schema load then dies with
+  `FATAL: the database system is shutting down` — intermittently, so it looks like a flake.
+  Check readiness over **TCP** (`pg_isready -h 127.0.0.1`), which the initdb server never
+  listens on. Fixed in `tests/integration/global-setup.js`.
 - **[V 2026-08-24] Backend modules that require the pool ARE testable — against Docker.** The
   `vi.mock()` limit above is real but it is a limit on *unit* tests only. `npm run test:integration`
   seeds a throwaway `postgres:16` from `schema.sql` and drives guards and controllers directly.

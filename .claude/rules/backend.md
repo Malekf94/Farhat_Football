@@ -37,11 +37,11 @@ Two ordering rules, both of which fail silently:
 
 1. **Parameterised catch-alls last** within each router — `/:player_id` above `/check` makes
    `/check` unreachable. Existing routers mark the boundary in comments; keep them.
-2. **Mount before the SPA catch-all** in `server.cjs`. `app.get("*")` at `server.cjs:151` returns
+2. **Mount before the SPA catch-all** in `server.cjs`. `app.get("*")` at `server.cjs:100` returns
    `index.html` for anything below it, so a late-mounted API route serves HTML instead of JSON.
 
-Routers are mounted at `/api/v1/<name>` in `server.cjs:134-145`. `/api/v1/payments` has
-`checkJwt` applied at the **mount point** (`server.cjs:143`) **and** repeated on every route in
+Routers are mounted at `/api/v1/<name>` in `server.cjs:83-94`. `/api/v1/payments` has
+`checkJwt` applied at the **mount point** (`server.cjs:92`) **and** repeated on every route in
 `Apis/payments/routes.cjs`. The repetition is redundant, not load-bearing; leave it alone unless
 you are deliberately tidying it, and do not infer from it that other routers guard themselves.
 
@@ -89,12 +89,14 @@ insert a payment row (negative amount for a charge). Keep `ON CONFLICT (transact
 NOTHING` on payment inserts: a suppressed insert does not fire the trigger, which is what makes
 retried webhooks safe.
 
-The Monzo webhook is inline in `server.cjs:77-130`, not in `Apis/`. It always responds 200.
+The Monzo webhook handler lives in `Apis/payments/monzoWebhook.cjs` and is mounted in
+`server.cjs` before the SPA catch-all. It always responds 200.
 
-**Inbound webhook payloads are untrusted input.** Verify provenance before any ledger write, and
-never derive an amount, account or transaction id from the request body alone. Hardening this
-path is tracked as `SEC-001` in the local security assessment — check its current state with the
-maintainer before changing anything here.
+**Inbound webhook payloads are untrusted input, and are treated as one here.** The body is read
+only for a transaction id; the transaction is then re-fetched from Monzo under our own
+credentials, and every value written to the ledger comes from that copy. `verifyTransaction` is
+pure and unit tested — extend it rather than adding checks in the handler. An event that cannot
+be verified writes nothing and is left for `runFullPaymentSync` to pick up.
 
 ## Style
 
