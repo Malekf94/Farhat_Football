@@ -11,6 +11,17 @@ holds the only `package.json` and `package-lock.json`. There is deliberately no 
 the repo root: every `npm` command below assumes `farhat_football_app/` is the working
 directory, and the hosting build command must `cd` there before installing.
 
+### What the host must run
+
+The server serves the built SPA from `dist/client`, which is gitignored, so the host builds it.
+
+| Step | Command | Note |
+|---|---|---|
+| Install | `npm ci` | **Must include devDependencies.** `vite` is a devDependency (DEP-002), so an install that omits them cannot build. If the platform sets `NODE_ENV=production`, pass `npm ci --include=dev` |
+| Build | `npm run build` | Produces `dist/client` |
+| Migrate | `npm run migrate` | Only after the one-time baseline adoption — see below |
+| Start | `npm start` | Plain `node server.cjs`. Do **not** use `npm run server` in production: that is `nodemon`, a devDependency |
+
 ## Run it locally
 1. Clone the repo and install:
    ```bash
