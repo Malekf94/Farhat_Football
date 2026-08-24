@@ -1,6 +1,16 @@
 --
 -- PostgreSQL database dump
 --
+-- BASELINE for the migration runner (DB-001): this file is version 0000, the
+-- starting point every environment shares. Apply it with
+--   npm run migrate:provision      (empty database)
+--   npm run migrate:baseline       (existing database that already matches it)
+-- and make every later change a numbered file in farhat_football_app/migrations/.
+--
+-- Regenerate with pg_dump 16.x to match the server major. pg_dump 17 emits
+-- `SET transaction_timeout = 0`, a parameter PostgreSQL 16 does not have, which
+-- aborts the load; that line was removed here for exactly that reason.
+--
 
 -- Dumped from database version 16.13 (Debian 16.13-1.pgdg12+1)
 -- Dumped by pg_dump version 17.1
@@ -8,7 +18,6 @@
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
-SET transaction_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
 SELECT pg_catalog.set_config('search_path', '', false);

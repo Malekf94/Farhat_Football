@@ -1,7 +1,8 @@
 ---
 name: database-changes
 description: >-
-  PostgreSQL schema, indexes and triggers for Farhat Football, which has no migration tool. Use
+  PostgreSQL schema, indexes and triggers for Farhat Football, which uses a baseline-plus-
+  migrations runner rather than an ORM or a migration framework. Use
   when adding or altering a table, column, index, constraint or trigger; when writing SQL in
   Apis/**/queries.cjs; when reasoning about payments and account balances; and before trusting
   any schema doc in this repo.
@@ -9,26 +10,43 @@ description: >-
 
 # Database changes
 
-PostgreSQL accessed through a single shared `pg` pool (`db.cjs`). No ORM, no query builder, no
-migration tool. Table inventory: `.cursor/REPO_MAP.md`. Traps: `repo-pitfalls`.
+PostgreSQL accessed through a single shared `pg` pool (`db.cjs`). No ORM and no query builder.
+Table inventory: `.cursor/REPO_MAP.md`. Traps: `repo-pitfalls`.
 
-## There is no migration tool
+## Schema changes go through the migration runner (DB-001)
 
-No `migrations/` directory, no Alembic/Knex/node-pg-migrate, nothing in `package.json`. Schema
-work is a **hand-written `.sql` file at the repo root**, applied manually against the hosted DB.
-The existing examples are `add_indexes.sql` and `payment_balance_trigger.sql`.
+There is no ORM or migration framework, but since DB-001 there **is** a runner:
+`farhat_football_app/scripts/migrate.cjs`, built on the `pg` client the app already depends on.
 
-Write every such file to be **re-runnable**, because it will be run more than once and there is
-no record of what has already been applied:
+| Piece | Where |
+|---|---|
+| Baseline (version `0000`) | `schema.sql` at the repo root — a `pg_dump` of production |
+| Migrations | `farhat_football_app/migrations/NNNN_name.sql`, ascending order |
+| Ledger | `public.schema_migrations` — version, name, checksum, time |
+| Operator procedure | `farhat_football_app/SETUP.md` §Database schema and migrations |
+
+Commands from `farhat_football_app/`: `npm run migrate:status`, `migrate:provision` (empty
+database), `migrate:baseline` (adopt an existing one), `npm run migrate` (apply pending).
+
+**A schema change is a new numbered file, not an edit to an old one.** The runner checksums
+every applied migration and refuses to continue if a recorded file has changed. Each migration
+runs in one transaction and is recorded only if it commits.
+
+Still write defensively — production was hand-managed for a long time and an object may already
+exist:
 
 - `CREATE INDEX IF NOT EXISTS ...`
 - `CREATE OR REPLACE FUNCTION ...`
 - `DROP TRIGGER IF EXISTS ... ; CREATE TRIGGER ...`
 - `ALTER TABLE ... ADD COLUMN IF NOT EXISTS ...`
 
-Lead the file with a comment block explaining what it does and that it is safe to re-run — both
-existing files do this. Applying it is the owner's manual step; say so rather than assuming a
-deploy will pick it up.
+**Schema-qualify everything** (`public.players`). The baseline ends by setting `search_path` to
+empty, so an unqualified name may not resolve.
+
+Applying to production is still a human step, and staging is a required dry run first — say so
+rather than assuming a deploy picks it up. The pre-DB-001 files `add_indexes.sql` and
+`payment_balance_trigger.sql` remain at the repo root as history; both are already contained in
+the baseline (all five indexes in `add_indexes.sql` verified present in `schema.sql`).
 
 ## Finding the real schema
 
