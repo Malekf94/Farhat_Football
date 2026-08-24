@@ -63,12 +63,23 @@ const getPlayersInMatch = async (req, res) => {
 	}
 };
 
-// Adds a player to a match without fetching match price from the DB.
-// Assumes 'price' is known at this point (e.g., passed from front end).
+// Adds a player to a match. The price charged is read from the match, never
+// taken from the request — match_players.price is what the finalisation step
+// later charges. player_id is the target validated by requireSelfOrHostAdmin.
 const addPlayerToMatch = async (req, res) => {
-	const { match_id, player_id, price } = req.body;
+	const { match_id } = req.body;
+	const player_id = req.targetPlayerId;
 
 	try {
+		const matchResult = await pool.query(
+			"SELECT host_id, price FROM matches WHERE match_id = $1",
+			[match_id],
+		);
+		if (matchResult.rows.length === 0) {
+			return res.status(404).json({ error: "Match not found." });
+		}
+		const { host_id: hostId, price } = matchResult.rows[0];
+
 		// Fetch the player's account balance
 		const playerResult = await pool.query(
 			"SELECT account_balance FROM players WHERE player_id = $1",
@@ -89,11 +100,6 @@ const addPlayerToMatch = async (req, res) => {
 		}
 
 		// Block banned players (checked against this match's host).
-		const hostResult = await pool.query(
-			"SELECT host_id FROM matches WHERE match_id = $1",
-			[match_id],
-		);
-		const hostId = hostResult.rows[0]?.host_id ?? null;
 		const banResult = await pool.query(
 			`SELECT banned_until FROM bans
 			 WHERE player_id = $1 AND active = true AND now() < banned_until
@@ -126,12 +132,11 @@ const addPlayerToMatch = async (req, res) => {
 
 // Removes a player from a match (opting out)
 const removePlayerFromMatch = async (req, res) => {
-	const { match_id, player_id } = req.body;
+	const { match_id } = req.body;
+	const player_id = req.targetPlayerId;
 
-	if (!match_id || !player_id) {
-		return res
-			.status(400)
-			.json({ error: "match_id and player_id are required." });
+	if (!match_id) {
+		return res.status(400).json({ error: "match_id is required." });
 	}
 
 	try {
