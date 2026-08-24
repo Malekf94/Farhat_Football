@@ -49,7 +49,7 @@ export default function PaymentsDashboard() {
 			setLoading(true);
 			await privateApi.post(`/api/v1/payments/reconcile/${playerId}`);
 			await Promise.all([fetchAudit(), fetchPayments()]);
-		} catch (err) {
+		} catch {
 			alert("Reconcile failed");
 		} finally {
 			setLoading(false);
@@ -62,7 +62,7 @@ export default function PaymentsDashboard() {
 			const res = await privateApi.get("/api/v1/payments/sync");
 			alert(res.data.message);
 			await fetchPayments();
-		} catch (err) {
+		} catch {
 			alert("Sync failed");
 		} finally {
 			setLoading(false);
@@ -81,7 +81,7 @@ export default function PaymentsDashboard() {
 			setRefundMsg({ type: "success", text: res.data.message });
 			setRefund({ player_id: "", amount: "", description: "" });
 			await fetchPayments();
-		} catch (err) {
+		} catch {
 			setRefundMsg({ type: "error", text: "Refund failed." });
 		} finally {
 			setLoading(false);

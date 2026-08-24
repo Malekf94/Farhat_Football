@@ -70,8 +70,8 @@ Always true. The owning skill or rule carries the explanation and the evidence.
 - **Never weaken an assertion, skip a test, or retrofit an expectation to get green.** If a test
   and the implementation disagree, one is wrong, and which is a decision to make explicitly.
   → `rules/testing.md`
-- **ESLint does not cover `.cjs`** — a green `npm run lint` says nothing about the backend.
-  → `repo-pitfalls`
+- **ESLint now covers `.cjs` and lint is green — keep it that way.** Zero errors is the
+  standard, and warnings are capped at 5 by `--max-warnings`. → `repo-pitfalls`
 - **Backend files must be `.cjs`**; the package is `"type": "module"`. → `repo-pitfalls`
 - **Parameterised routes go last** in every router, and **any new API route must be mounted
   before the `app.get("*")` catch-all** — otherwise it silently serves `index.html`.
@@ -112,10 +112,10 @@ node --check server.cjs
 ```
 
 **There is no CI — nothing runs any of these but a person.** `npm test` is the whole suite and
-takes seconds; run it on any change. `npm run lint` covers `**/*.{js,jsx}` **only**, so it says
-nothing about a `.cjs` file you touched — syntax-check those by hand with `node --check`. Lint
-has a **red baseline of 17 errors and 5 warnings** in unrelated frontend files: compare against
-that, not against zero, and do not fix unrelated ones in passing.
+takes seconds; run it on any change. Since QA-001, `npm run lint` covers the backend too — all
+37 `.cjs` files — and the **baseline is green: 0 errors, 5 warnings**. Compare against zero, not
+against the old 17. `node --check` is still a useful fast syntax check but is no longer the only
+thing watching a `.cjs` file.
 
 `npm run build` before claiming a change ships. Full command list and the traps in each:
 → `repo-pitfalls`.

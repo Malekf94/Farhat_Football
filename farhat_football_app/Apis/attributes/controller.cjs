@@ -1,5 +1,4 @@
 const pool = require("../../db.cjs");
-const queries = require("./queries.cjs");
 
 const getAttributes = async (req, res) => {
 	const { player_id } = req.params;
@@ -60,8 +59,6 @@ const updateAttributes = async (req, res) => {
 		res.status(500).json({ error: "Internal server error" });
 	}
 };
-
-let cachedAttributes = null; // cache
 
 async function loadAttributes(db) {
 	const query = `

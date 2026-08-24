@@ -29,10 +29,22 @@ Append a rule here only once it generalises. Keep the reasoning short and cite `
 - **[V 2026-08-21] Backend files must keep the `.cjs` extension.** The package is
   `"type": "module"` (`farhat_football_app/package.json:5`), so a backend file named `.js` is
   parsed as ESM and `require()` throws. New backend file → `.cjs`; new frontend file → `.jsx`.
-- **[V 2026-08-21] ESLint does not cover the backend.** `eslint.config.js:10` matches
-  `**/*.{js,jsx}` only, so nothing in `Apis/`, `server.cjs` or `db.cjs` is linted. `npm run lint`
-  passing says nothing about backend files. Syntax-check them yourself with
-  `node --check <file>.cjs` and match surrounding style (tabs) by hand.
+- **[V 2026-08-24] ESLint covers the backend since QA-001, and the baseline is green.** A
+  `**/*.cjs` block in `eslint.config.js` lints all 37 backend files (~3,700 lines) with node
+  globals and `sourceType: 'commonjs'`. `npm run lint` must report **0 errors**; warnings are
+  capped at 5 by `--max-warnings 5` in the lint script, so a new warning fails too. Match
+  surrounding style (tabs) by hand — no formatter is wired up.
+- **[V 2026-08-24] Never delete `next` from an Express error handler to satisfy
+  `no-unused-vars`.** Express identifies an error handler by **arity** — it only receives errors
+  if it declares four parameters — so the unused `next` in `server.cjs` is load-bearing.
+  Removing it silently demotes the handler to ordinary middleware and errors stop being handled,
+  with no error at startup. The `.cjs` lint block sets
+  `'no-unused-vars': ['error', { argsIgnorePattern: '^next$|^_' }]` for exactly this.
+- **[V 2026-08-24] Do not bulk-rewrite `catch (err)` to `catch {`.** Only some catch blocks
+  discard the error. A blind `sed` over `PaymentsDashboard.jsx` and `ManageHosts.jsx` stripped
+  the binding from blocks whose bodies still call `console.error(err)`, which would throw
+  `ReferenceError` at runtime — the frontend build does **not** catch it, and lint only caught
+  it because `no-undef` was already on. Change the sites the linter names, one at a time.
 - **[V 2026-08-21] There is a Vitest suite (`npm test`) but still no CI.** Added 2026-08-21;
   before that there was nothing. No `.github/` exists, so **nothing runs the suite but a person** —
   run it yourself before calling work done. Tests live under `farhat_football_app/tests/`

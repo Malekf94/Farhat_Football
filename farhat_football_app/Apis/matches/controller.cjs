@@ -5,7 +5,6 @@ const matchQueries = require("./queries.cjs");
 // 	TransactionalEmailsApiApiKeys,
 // } = require("@getbrevo/brevo");
 
-const sgMail = require("@sendgrid/mail");
 const { BrevoClient } = require("@getbrevo/brevo");
 
 const brevo = new BrevoClient({ apiKey: process.env.BREVO_API_KEY });
@@ -453,7 +452,6 @@ module.exports = {
 	createMatch,
 	getMatches,
 	getMatchById,
-	createMatch,
 	updateMatch,
 	getManOfTheMatch,
 	updateManOfTheMatch,

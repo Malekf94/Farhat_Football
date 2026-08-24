@@ -134,7 +134,7 @@ function FAQ() {
 				</div>
 
 				{filtered.length === 0 && (
-					<p className="faq-no-results">No results for "{query}"</p>
+					<p className="faq-no-results">No results for &quot;{query}&quot;</p>
 				)}
 
 				<ul className="faq-list">
