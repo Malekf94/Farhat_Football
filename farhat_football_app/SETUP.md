@@ -119,6 +119,33 @@ file has changed since. Fix a mistake with a new migration.
 **Regenerate `schema.sql` with `pg_dump` 16.x**, matching the server major. `pg_dump` 17 emits
 `SET transaction_timeout = 0`, which PostgreSQL 16 rejects, and that aborts the whole load.
 
+## Git hooks: there are none, deliberately
+
+This project runs **no git hooks**. Nothing is installed on commit, and a fresh clone needs no
+hook setup — the gates live in CI (`.github/workflows/ci.yml`), which is the one place they
+cannot be skipped with `--no-verify`.
+
+A `.husky/` directory used to sit in working copies containing only husky's runtime shims: no
+hook definitions, no `husky` dependency in the manifest, no `prepare` script, and untracked, so
+it was never in the repository at all. It made `core.hooksPath` point at scaffolding that did
+nothing, which reads as protection that is not there. QA-002 removed it.
+
+If you have an older clone, clear the leftover:
+
+```bash
+git config --unset core.hooksPath && rm -rf .husky
+```
+
+Run the gates yourself before pushing — `npm run lint` and `npm test` take seconds together:
+
+```bash
+cd farhat_football_app && npm run lint && npm test
+```
+
+Reinstating hooks would mean adding `husky` as a devDependency plus a `prepare` script, so that
+a fresh clone reproduces them. That is a deliberate decision to take, not something to leave
+half-done in a working copy.
+
 ## Auth0 for local development
 Log-in won't work locally until Auth0 allows localhost. Use a **separate dev
 Auth0 application** (don't loosen the production one), and add to its settings:
