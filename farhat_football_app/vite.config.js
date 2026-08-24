@@ -19,7 +19,12 @@ export default defineConfig({
 		// .test.js next to the .cjs module they import.
 		// All tests live under tests/, mirroring the source tree in
 		// tests/frontend/** and tests/backend/**.
-		include: ["tests/**/*.test.{js,jsx}"],
+		// tests/integration/** is deliberately NOT collected here: it needs a live
+		// DATABASE_URL and runs from vitest.integration.config.js instead.
+		include: [
+			"tests/frontend/**/*.test.{js,jsx}",
+			"tests/backend/**/*.test.{js,jsx}",
+		],
 		environment: "node",
 		setupFiles: ["./tests/setup.js"],
 	},

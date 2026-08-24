@@ -74,7 +74,12 @@ const runPayments = async (req, res) => {
 const paymentDashboard = async (req, res) => {
 	try {
 		const payments = await pool.query(`
-			SELECT p.*, pl.first_name || ' ' || pl.last_name AS player_name
+			SELECT p.payment_id,
+			       p.amount,
+			       p.payment_date,
+			       p.description,
+			       p.processed,
+			       pl.first_name || ' ' || pl.last_name AS player_name
 			FROM payments p
 			LEFT JOIN players pl ON pl.player_id = p.user_id
 			ORDER BY payment_date DESC
