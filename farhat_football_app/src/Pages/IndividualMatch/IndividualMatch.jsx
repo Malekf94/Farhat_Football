@@ -294,6 +294,8 @@ function IndividualMatch() {
 		);
 		const timeDifference = differenceInHours(matchStartTime, new Date());
 
+		// Warning text only. Whether a charge is actually due is decided by the
+		// server from the match row — this is an estimate for the confirmation.
 		const message =
 			timeDifference < 5
 				? `You are leaving less than 5 hours before kick-off. £${matchData.price} will be deducted from your balance. Are you sure?`
@@ -303,20 +305,22 @@ function IndividualMatch() {
 			message,
 			onConfirm: async () => {
 				try {
-					if (timeDifference < 5) {
-						await privateApi.post(`/api/v1/payments/leave/${playerId}`, {
-							matchData: {
-								match_id: matchData.match_id,
-								price: matchData.price,
-							},
-						});
-					}
-					await privateApi.delete("/api/v1/matchPlayer", {
-						data: { match_id: parseInt(match_id, 10), player_id: playerId },
+					// One request: the server charges if a charge is due and removes
+					// the roster row, together or not at all.
+					const { data } = await privateApi.post("/api/v1/payments/leave", {
+						match_id: parseInt(match_id, 10),
+						player_id: playerId,
 					});
 					fetchPlayersInMatch();
+					if (data?.charged) {
+						showToast(`£${data.amount} was deducted from your balance.`);
+					}
 				} catch (error) {
 					console.error("Error leaving match:", error);
+					showToast(
+						error.response?.data?.error || "Failed to leave the match.",
+						"error",
+					);
 				}
 			},
 		});
