@@ -132,10 +132,20 @@ Append a rule here only once it generalises. Keep the reasoning short and cite `
 
 ## Payments and balances
 
-- **[V 2026-08-21] Never `UPDATE players.account_balance` from application code.** An
-  `AFTER INSERT` trigger on `payments` applies the signed amount
-  (`payment_balance_trigger.sql`). Insert a payment row instead — negative amount for a charge.
-  Writing the column directly double-counts against the trigger.
+- **[V 2026-08-25] Never `UPDATE players.account_balance` from application code.** An
+  `AFTER INSERT` trigger on `payments` applies the signed amount — canonical definition in
+  `farhat_football_app/migrations/0001_reconcile_payment_trigger.sql`. Insert a payment row
+  instead, negative amount for a charge. Writing the column directly double-counts against
+  the trigger.
+- **[V 2026-08-25] The payment trigger also writes an audit row to `trigger_log`, and that half
+  is easy to delete by accident.** Two definitions of `apply_payment_to_balance()` disagreed:
+  the live one writes `trigger_log(user_id, amount, transaction_id, rows_updated)`, while the
+  old root `payment_balance_trigger.sql` updated the balance only. Because that file used
+  `CREATE OR REPLACE` and advertised itself as re-runnable, applying it to production would have
+  silently dropped the audit write — **balances would have kept working**, so nothing would have
+  looked broken. DB-002 deleted it and made the migration canonical.
+  `tests/integration/payments/paymentTrigger.test.js` pins both halves; removing the
+  `trigger_log` insert turns 5 of its 6 cases red.
 - **[V 2026-08-21] `Apis/payments/syncPayments.cjs` is deprecated and disabled — never run it.**
   Its own header says running the old balance sync "would DOUBLE every unprocessed payment"
   (`syncPayments.cjs:1-9`). It now only prints a warning.

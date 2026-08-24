@@ -45,7 +45,7 @@ files, docs and loose scripts — its `package.json` has **no scripts at all**.
 | `.cursor/REPO_MAP.md` | Full module/route/table index and the **Dead Code** list — start here |
 | `farhat_football_app/SETUP.md` | Local setup, dev Auth0 application, branch and deploy workflow |
 | `farhat_football_app/.env.example` | Env var names (never open `.env` itself) |
-| `payment_balance_trigger.sql` | How payments become balances |
+| `farhat_football_app/migrations/0001_reconcile_payment_trigger.sql` | How payments become balances |
 | `add_indexes.sql` | Which indexes exist and why |
 | `readme.md` (root) | **Stale** — describes a `client/`+`server/`+`database/` layout that does not exist |
 | `all_tables.txt` | **Stale** early schema snapshot: pre-hosts, pre-admin-flags, pre-ratings, pre-bans |

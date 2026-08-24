@@ -45,8 +45,10 @@ empty, so an unqualified name may not resolve.
 
 Applying to production is still a human step, and staging is a required dry run first — say so
 rather than assuming a deploy picks it up. The pre-DB-001 files `add_indexes.sql` and
-`payment_balance_trigger.sql` remain at the repo root as history; both are already contained in
-the baseline (all five indexes in `add_indexes.sql` verified present in `schema.sql`).
+`add_indexes.sql` remains at the repo root as history - all five of its indexes are already in
+the baseline. `payment_balance_trigger.sql` was **deleted** by DB-002: it was re-runnable and
+held a definition that omitted the audit write, so applying it would have silently downgraded
+the live function. `migrations/0001_reconcile_payment_trigger.sql` is now canonical.
 
 ## Finding the real schema
 
@@ -75,7 +77,7 @@ than from a snapshot file.
 ## Payments and balances
 
 `players.account_balance` is maintained **entirely** by an `AFTER INSERT` trigger on `payments`
-(`trg_apply_payment`, see `payment_balance_trigger.sql`), which adds the signed amount: positive
+(`trg_apply_payment`, canonical in `migrations/0001_reconcile_payment_trigger.sql`), which adds the signed amount: positive
 for a top-up or refund, negative for a match fee, leave penalty or manual charge.
 
 - **Application code must never `UPDATE account_balance` directly.** Insert a payment row.
