@@ -229,10 +229,16 @@ Append a rule here only once it generalises. Keep the reasoning short and cite `
 - **[V 2026-08-21] With `VITE_API_BASE_URL` unset, both axios instances fall back to
   `http://localhost:5000`** (`src/api.jsx:6,11`) — a port nothing listens on. The API is `:3000`.
   A "server not responding" symptom on a fresh clone is usually a missing `.env`, not a dead API.
-- **[V 2026-08-21] `prop-types` is imported but not declared.** `src/components/RadarChart.jsx:1`
-  and `src/context/HostContext.jsx:3` import it; it is absent from `package.json` and resolves
-  transitively today. A dependency bump that drops it breaks the build with a confusing
-  module-not-found. Add it explicitly if you touch either file's dependencies.
+- **[V 2026-08-25] `prop-types` is declared** since DEP-002 — it was imported by four files
+  while resolving only transitively, one hoisting change away from a confusing
+  module-not-found. Keep it declared.
+- **[V 2026-08-25] `vite` and `nodemon` are devDependencies (DEP-002), which constrains the
+  deploy.** The host builds `dist/client` itself, so its install **must include
+  devDependencies** — a platform that sets `NODE_ENV=production` makes `npm ci` skip them and
+  the build then has no `vite`; use `npm ci --include=dev`. And production must start with
+  `npm start` (plain `node server.cjs`), never `npm run server`, which is `nodemon`. Verified
+  by running `npm ci --omit=dev` and resolving every backend require: all eight production
+  packages resolve and `vite` is correctly absent.
 - **[I] PowerShell here is 5.1.** No `&&`, `||`, ternary, `??` or `?.` — use `A; if ($?) { B }`.
   Avoid merging a native executable's stderr (`2>&1`, `*>`): PS 5.1 wraps each stderr line in a
   `NativeCommandError` and sets `$?` to `$false` even on exit code 0. The Bash tool is available
