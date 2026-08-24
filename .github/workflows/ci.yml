@@ -104,13 +104,12 @@ jobs:
       - name: Clean install
         run: npm ci
 
-      # THRESHOLD: high. Anything high or critical is a build failure.
+      # THRESHOLD: high. Anything high or critical fails the build.
       #
-      # Reported but not yet enforced: the tree currently carries 1 critical and
-      # 5 high advisories, so making this blocking today would make every pull
-      # request red including the one that adds it. DEP-001 remediates them and
-      # flips continue-on-error to false in the same change — that is the point
-      # at which this becomes a real gate.
+      # Enforced since DEP-001 cleared the tree to zero advisories. It was
+      # introduced non-blocking only because 1 critical and 5 high advisories
+      # existed at the time. Do not reintroduce continue-on-error here — use a
+      # documented `npm audit --audit-level` change if the threshold itself
+      # needs to move, so the decision is visible.
       - name: "npm audit (threshold: high)"
-        continue-on-error: true
         run: npm audit --audit-level=high
