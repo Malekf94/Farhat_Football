@@ -419,10 +419,24 @@ const getSuggestedRatings = async (req, res) => {
 	}
 };
 
+// Superadmin: every individual vote for a match (deanonymised export).
+const getMatchRatingsDetailed = async (req, res) => {
+	try {
+		const result = await pool.query(queries.getMatchRatingsDetailed, [
+			req.params.match_id,
+		]);
+		res.json(result.rows);
+	} catch (error) {
+		console.error("Error fetching match ratings:", error);
+		res.status(500).json({ error: "Failed to fetch match ratings." });
+	}
+};
+
 module.exports = {
 	submitRatings,
 	getMyRatings,
 	getSuggestedRatings,
+	getMatchRatingsDetailed,
 	addPlayerToMatch,
 	removePlayerFromMatch,
 	getPlayersInMatch,

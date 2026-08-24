@@ -122,6 +122,38 @@ button:disabled {
 	cursor: not-allowed;
 	background-color: #555;
 	color: #ccc;
+}
+
+/* Superadmin-only controls, grouped and visually set apart */
+.superadmin-panel {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+	margin: 10px 0;
+	padding: 12px 14px;
+	border: 1px dashed #ff5555;
+	border-radius: 8px;
+	background-color: rgba(255, 85, 85, 0.06);
+}
+.superadmin-label {
+	font-size: 0.75rem;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: #ff5555;
+	font-weight: 700;
+	margin-right: 4px;
+}
+.superadmin-panel button {
+	margin: 0;
+}
+.superadmin-danger {
+	border-color: #ff5555;
+	color: #ff5555;
+}
+.superadmin-danger:hover {
+	background-color: #ff5555;
+	color: #000;
 } /* Edit Form Styling */
 .edit-form {
 	margin-top: 20px;

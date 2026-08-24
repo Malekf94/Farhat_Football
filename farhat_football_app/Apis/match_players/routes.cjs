@@ -2,6 +2,7 @@ const { Router } = require("express");
 const controller = require("./controller.cjs");
 const checkJwt = require("../auth/checkJwt.cjs");
 const requireHostAdmin = require("../auth/requireHostAdmin.cjs");
+const requireAdmin = require("../auth/requireAdmin.cjs");
 
 const router = Router();
 
@@ -19,6 +20,13 @@ router.get(
 	checkJwt,
 	requireHostAdmin(),
 	controller.getSuggestedRatings,
+);
+// Full deanonymised vote export — superadmin only
+router.get(
+	"/ratings/:match_id/all",
+	checkJwt,
+	requireAdmin({ superadmin: true }),
+	controller.getMatchRatingsDetailed,
 );
 router.post("/ratings/:match_id", checkJwt, controller.submitRatings);
 

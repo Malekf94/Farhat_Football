@@ -117,12 +117,29 @@ const getSuggestedRatings = `
   GROUP BY ratee_id;
 `;
 
+// Every individual vote for a match, with rater/ratee names (superadmin export).
+const getMatchRatingsDetailed = `
+  SELECT
+    r.rater_id,
+    rp.preferred_name AS rater,
+    r.ratee_id,
+    tp.preferred_name AS ratee,
+    r.rating,
+    r.created_at
+  FROM match_player_ratings r
+  JOIN players rp ON r.rater_id = rp.player_id
+  JOIN players tp ON r.ratee_id = tp.player_id
+  WHERE r.match_id = $1
+  ORDER BY rater, ratee;
+`;
+
 module.exports = {
 	getMatchStatus,
 	playedInMatch,
 	upsertRating,
 	getMyRatings,
 	getSuggestedRatings,
+	getMatchRatingsDetailed,
 	getPlayersInMatch,
 	addPlayerToMatch,
 	removePlayerFromMatch,

@@ -12,7 +12,7 @@ import { useHost } from "../../context/HostContext";
 import ConfirmModal from "../../components/ConfirmModal";
 
 function IndividualMatch() {
-	const { playerId } = useCurrentPlayer();
+	const { playerId, isSuperadmin } = useCurrentPlayer();
 	const { canAdminHost } = useMyHosts();
 	const { hostPath } = useHost();
 	const [match, setMatch] = useState(null);
@@ -428,19 +428,67 @@ function IndividualMatch() {
 		});
 	};
 
+	const handleDownloadRatings = async () => {
+		try {
+			const res = await privateApi.get(
+				`/api/v1/matchPlayer/ratings/${match_id}/all`,
+			);
+			const rows = res.data;
+			if (!rows || rows.length === 0) {
+				showToast("No ratings recorded for this match.", "error");
+				return;
+			}
+
+			const headers = ["rater_id", "rater", "ratee_id", "ratee", "rating"];
+			const escape = (v) => {
+				const s = String(v ?? "");
+				return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+			};
+			const csv = [
+				headers.join(","),
+				...rows.map((r) => headers.map((h) => escape(r[h])).join(",")),
+			].join("\n");
+
+			const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+			const url = URL.createObjectURL(blob);
+			const link = document.createElement("a");
+			link.href = url;
+			link.download = `match_${match_id}_ratings.csv`;
+			document.body.appendChild(link);
+			link.click();
+			document.body.removeChild(link);
+			URL.revokeObjectURL(url);
+		} catch (error) {
+			console.error("Error downloading ratings:", error);
+			showToast("Failed to download ratings.", "error");
+		}
+	};
+
 	return (
 		<div className="page-content individual-match table-wrapper">
 			<h1>{match.match_name}</h1>
 
 			<div>
-				{isAdmin && <button onClick={handleDeleteMatch}>Delete Match</button>}
 				{isAdmin && <button onClick={handleBalanceTeams}>Balance Teams</button>}
 				{isAdmin && (
 					<button onClick={() => setEmailModal(true)}>Email Players</button>
 				)}
 			</div>
-			{isAdmin && (
-				<button onClick={handleEmailAllPlayers}>Email All Players</button>
+
+			{isSuperadmin && (
+				<div className="superadmin-panel">
+					<span className="superadmin-label">Superadmin</span>
+					<button onClick={handleEmailAllPlayers}>Email All Players</button>
+					<button onClick={handleDownloadRatings}>
+						Download Individual Ratings
+					</button>
+					<button
+						className="superadmin-danger"
+						onClick={handleDeleteMatch}
+					>
+						Delete Match
+					</button>
+				</div>
 			)}
 
 			<div className="match-details">
