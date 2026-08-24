@@ -6,6 +6,13 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["--prefix", "farhat_football_app", "run", "dev"],
       "port": 5173
+    },
+    {
+      "comment": "Frontend only. `dev` also starts the API, which loads .env — real production credentials — and connects to the live database. Use this one to check rendering or routing.",
+      "name": "farhat-football-client",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "farhat_football_app", "run", "client"],
+      "port": 5173
     }
   ]
 }

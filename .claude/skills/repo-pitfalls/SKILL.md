@@ -56,11 +56,17 @@ Append a rule here only once it generalises. Keep the reasoning short and cite `
   is pushed. Parse the file locally (`python -c "import yaml, sys; yaml.safe_load(open(...))"`)
   before committing a workflow change — the round trip through a failed push is otherwise the
   first sign.
-- **[V 2026-08-25] The audit gate is deliberately not blocking yet.** `.github/workflows/ci.yml`
-  runs `npm audit --audit-level=high` under `continue-on-error: true`, because the tree carries
-  1 critical and 5 high advisories and a blocking gate would have made every pull request red,
-  including the one adding CI. **DEP-001 remediates them and flips it to blocking** — if you see
-  `continue-on-error` still there after DEP-001, that is a regression, not a decision.
+- **[V 2026-08-25] The audit gate blocks, and the tree is at zero advisories.**
+  `.github/workflows/ci.yml` runs `npm audit --audit-level=high` with no `continue-on-error`
+  since DEP-001. If it reappears there, that is a regression, not a decision — move the
+  documented `--audit-level` instead so the choice is visible.
+- **[V 2026-08-25] Bumping `vite` past 7 breaks `@vitejs/plugin-react`'s peer range, and npm
+  only tells you on the NEXT install.** `npm install vite@^8` succeeded, then every later
+  `npm install <anything>` failed with `ERESOLVE ... peer vite@"^4.2.0 || ^5.0.0 || ^6.0.0 ||
+  ^7.0.0" from @vitejs/plugin-react@4.7.0`. `@vitejs/plugin-react@6` peers on vite `^8` (its
+  other peers are optional) and clears it; `@5.2.0` spans 4 through 8 if a wider range is
+  wanted. After any major bump of a build-toolchain package, run a throwaway `npm install` to
+  surface a peer conflict the bump itself did not report.
 - **[V 2026-08-21] `vi.mock()` cannot intercept a `require()` inside a `.cjs` module, and the
   failure mode is a real database connection.** Mocking `../../db.cjs` works for a direct ESM
   `import` and does nothing for the `require()` inside `Apis/auth/requireHostAdmin.cjs`; mocking
