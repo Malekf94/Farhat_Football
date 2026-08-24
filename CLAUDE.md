@@ -3,7 +3,8 @@
 React 18 + Vite SPA · Express API (CommonJS `.cjs`) · PostgreSQL (`pg`, no ORM) · Auth0 JWT.
 
 **Both tiers live in one npm package, `farhat_football_app/`.** Every command runs from there —
-the root `package.json` has no scripts.
+it holds the repository's only `package.json` and lockfile, and the repo root has no manifest
+at all.
 
 ## Load what the task needs
 

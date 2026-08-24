@@ -4,6 +4,13 @@
 - Node.js (18+)
 - PostgreSQL (a local instance, or a staging DB connection string)
 
+## The install root
+`farhat_football_app/` is the **only** npm package in this repository. Both tiers — the
+React frontend and the Express API — install, build, test and deploy from there, and it
+holds the only `package.json` and `package-lock.json`. There is deliberately no manifest at
+the repo root: every `npm` command below assumes `farhat_football_app/` is the working
+directory, and the hosting build command must `cd` there before installing.
+
 ## Run it locally
 1. Clone the repo and install:
    ```bash
