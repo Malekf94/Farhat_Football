@@ -103,9 +103,9 @@ function App() {
 				<Route
 					path="/payment-dashboard"
 					element={
-						<ProtectedRoute>
+						<ProtectedAdminRoute>
 							<PaymentsDashboard />
-						</ProtectedRoute>
+						</ProtectedAdminRoute>
 					}
 				/>
 				<Route
