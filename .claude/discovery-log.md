@@ -148,3 +148,33 @@ version production runs, and nothing had exercised it until something tried to r
 harness strips the line at load time rather than editing the tracked dump; fixing the file itself
 belongs to `DB-001`. Promoted to [`repo-pitfalls`](skills/repo-pitfalls/SKILL.md), and raised as
 a proposed backlog ticket.
+
+### A green webhook test that proved nothing
+
+**Issue** — All 14 tests for `verifyTransaction` passed the first time they were run. Mutation
+testing then found that replacing `actual.amount` with `claimed.amount` — reading the credit from
+the attacker-supplied notification rather than from the bank — **survived every one of them**.
+
+**Cause** — The amount-mismatch check rejects any event where the two disagree, so by the time the
+payment is built they are always equal and no test could distinguish them. The test named "takes
+the amount from the bank, not from the notification" was pinning what the code did, not what the
+contract said. The gap was real: a notification omitting `amount` skips the mismatch check
+entirely, and the mutant then computed `undefined / 100`.
+
+**Lesson** — Tests written after the implementation tend to agree with it, including where it is
+wrong. Mutation testing is what catches that, and it has to be run per-guard rather than once over
+the file. Added the case that distinguishes the two, and confirmed the mutant now dies. Seven other
+mutants died first time; this is the one that did not.
+
+### pg_isready says yes before PostgreSQL is really up
+
+**Issue** — The integration harness intermittently failed to seed, with
+`FATAL: the database system is shutting down` part-way through `schema.sql`.
+
+**Cause** — The official `postgres` image runs a temporary server during initdb so that
+initialisation scripts can run, then shuts it down and starts the real one. That temporary server
+listens on the **unix socket only**. `pg_isready` without `-h` therefore reported ready during
+init, and the schema load raced the shutdown that followed.
+
+**Lesson** — Check readiness over TCP, which the initdb-phase server never listens on. Promoted to
+[`repo-pitfalls`](skills/repo-pitfalls/SKILL.md). Verified by three consecutive cold-container runs.
