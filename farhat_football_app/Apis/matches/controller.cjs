@@ -415,24 +415,30 @@ const notifyAllPlayers = async (req, res) => {
 				.json({ error: "No player emails found for this match." });
 		}
 
+		const matchesUrl = "https://www.farhatfootball.co.uk/matches";
+
 		await Promise.all(
 			recipients.map(({ email }) =>
 				brevo.transactionalEmails.sendTransacEmail({
-					subject: "Thursday games return! ⚽",
+					subject: "We need players! ⚽",
 					htmlContent: `
                         <html><body>
-                            <strong>
-                                Thursday night football is back.<br/>
-                                Go to www.farhatfootball.co.uk/matches to see what games we currently have available.
-                            </strong>
+                            <p><strong>We need players!</strong></p>
+                            <p>
+                                We're short for an upcoming game and could use you on the pitch.
+                                Head over to <a href="${matchesUrl}">${matchesUrl}</a>
+                                to see what's available and grab your spot.
+                            </p>
+                            <p>See you there,<br/>Farhat Football</p>
                         </body></html>
                     `,
 					textContent:
-						`Thursday night football is back. ` +
-						`Go to www.farhatfootball.co.uk/matches to see what games we currently have available.`,
+						`We need players! We're short for an upcoming game and could use ` +
+						`you on the pitch. Head over to ${matchesUrl} to see what's ` +
+						`available and grab your spot.`,
 					sender: {
 						email: process.env.BREVO_FROM_EMAIL,
-						name: "Return of FFC Thursday",
+						name: "Farhat Football",
 					},
 					to: [{ email }],
 				}),

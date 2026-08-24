@@ -414,7 +414,8 @@ function IndividualMatch() {
 
 	const handleEmailAllPlayers = () => {
 		setModal({
-			message: "Send an email to all registered players?",
+			message:
+				"Email ALL registered players a 'we need players' message with a link to the matches page?",
 			confirmText: "Send",
 			onConfirm: async () => {
 				try {
