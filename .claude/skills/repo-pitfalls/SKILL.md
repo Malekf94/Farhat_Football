@@ -137,21 +137,37 @@ Append a rule here only once it generalises. Keep the reasoning short and cite `
 
 ## Stale and dead things
 
-- **[V 2026-08-21] The root `readme.md` describes a layout that does not exist** —
-  `client/` + `server/` + `database/`, separate installs, `JWT_SECRET`, port 5000. None of it is
-  true. Ignore it for structure; `farhat_football_app/SETUP.md` is the accurate setup doc.
-- **[V 2026-08-21] Dead code that looks load-bearing.** Confirmed unreferenced or non-functional:
+- **[V 2026-08-24] The root `readme.md` used to describe a layout that does not exist** —
+  `client/` + `server/` + `database/`, separate installs, `JWT_SECRET`, port 5000. REPO-003
+  rewrote those sections to match reality. `farhat_football_app/SETUP.md` remains the
+  authoritative setup doc; the readme is the product overview and defers to it.
+- **[V 2026-08-24] `randomisermk3.js` at the repo root is LIVE — do not delete it.** The
+  pitfall list previously called it a standalone experiment; it is not.
+  `src/Pages/IndividualMatch/IndividualMatch.jsx:7` imports `randomiserMk3` from
+  `../../../../randomisermk3`, and that page is routed in `src/App.jsx:9`. So the team balancer
+  the app actually runs lives **outside** the npm package, reached by a four-level relative
+  climb out of `farhat_football_app/`. Anything that assumes the package is self-contained —
+  a container build that copies only `farhat_football_app/`, a move of the app directory —
+  breaks the balancer. `randomisermk2.js` really was dead and REPO-003 deleted it.
+- **[V 2026-08-24] Dead code that looks load-bearing.** REPO-003 deleted the code entries
+  below; they are kept here so a reappearance is recognised, not resurrected:
+  `farhat_football_app/models/index.js` (Sequelize scaffold — `sequelize` is not a dependency
+  and it required a `config/config.json` that never existed; it also produced **11 of the 17**
+  baseline lint errors), `farhat_football_app/config/config.cjs` (only consumed by that
+  scaffold), `Apis/auth/checkAdmin.cjs` (never imported; placeholder claim namespace),
+  `Apis/payments/syncPayments.cjs` (deprecated; would have doubled balances),
+  `src/Pages/UpcomingMatch/` and `src/Pages/YourPage/` (never imported or routed), and
+  `randomisermk2.js`. Still present and still dead:
 
   | Path | Why |
   |---|---|
-  | `farhat_football_app/models/index.js` | Sequelize scaffold. `sequelize` is not installed and it requires `config/config.json`, which does not exist. Crashes if imported. |
-  | `farhat_football_app/config/config.cjs` | Only consumed by that dead scaffold. |
-  | `Apis/auth/checkAdmin.cjs` | Never imported; placeholder claim namespace. |
   | `set_first_player_as_admin()` (DB function) | Defined in `schema.sql`; **no** `CREATE TRIGGER` references it. Inserting the first player does not make them an admin. |
-  | `Apis/payments/syncPayments.cjs` | Deprecated; would double balances. |
-  | `src/Pages/UpcomingMatch/`, `src/Pages/YourPage/` | Defined, never imported or routed. |
-  | `randomisermk2.js`, `randomisermk3.js` (root) | Standalone experiments, not wired in. There is **no** `Apis/match_players/balancer.cjs`. |
   | `feedback`, `replies` tables | Present in the old schema snapshot; no backend code references them. |
+
+  Live despite looking otherwise: `Apis/payments/runFullPaymentSync.cjs` (called by
+  `Apis/payments/controller.cjs:2,22,62`) and `Apis/payments/checkPayments.cjs` (spawned via
+  `exec("node Apis/payments/checkPayments.cjs")` at `controller.cjs:8` — a reference no
+  `import`/`require` grep will find). There is **no** `Apis/match_players/balancer.cjs`.
 
 - **[V 2026-08-21] A negative claim in a doc is the most dangerous kind** — it tells you not to
   look. `.cursor/REPO_MAP.md` asserted a `migrations/` directory, a `balancer.cjs`, a Recharts
