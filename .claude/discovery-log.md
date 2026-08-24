@@ -178,3 +178,111 @@ init, and the schema load raced the shutdown that followed.
 
 **Lesson** — Check readiness over TCP, which the initdb-phase server never listens on. Promoted to
 [`repo-pitfalls`](skills/repo-pitfalls/SKILL.md). Verified by three consecutive cold-container runs.
+
+## 2026-08-25
+
+### Two commits merged into nothing, and how to see it
+
+**Issue** — SEC-001 and SEC-002, the webhook verification and leave-charge rewrite, showed as
+merged in pull request #7. Neither was in `zak-dev`. The unit baseline was also 3 files / 13
+tests instead of the documented 4 / 28.
+
+**Cause** — Pull request #7 was based on `fix/ledger-transaction-integrity` and merged seconds
+after that branch merged into `zak-dev`. GitHub happily reports "merged" when a pull request's
+base branch has already gone; the commits reach the base, which no longer leads anywhere shared.
+The missing test file was the visible edge of it — those commits carry three test files.
+
+**Lesson** — "Merged" in the GitHub UI is not evidence a commit is on a shared branch.
+`git merge-base --is-ancestor <sha> origin/<branch>` is. A drifted test baseline is a cheap
+early warning: if the count does not match what the docs claim, ask which commits are missing
+before assuming the doc is stale.
+
+### A blind `catch (err)` rewrite, caught only because lint had just been turned on
+
+**Issue** — Clearing unused `err` bindings for QA-001 with a `sed` over `PaymentsDashboard.jsx`
+turned every `catch (err)` into `catch {`. Two of those blocks still call `console.error(err)`.
+
+**Cause** — The linter names the sites where `err` is unused; a global replace does not read the
+bodies. The build does not catch it either — an undefined identifier inside a `catch` is a
+runtime `ReferenceError`, and only on the error path, which is exactly where nobody looks. The
+same mistake then repeated in `ManageHosts.jsx`, where a one-occurrence replace hit the first
+site rather than the reported one.
+
+**Lesson** — Fix the sites the linter names, one at a time; never bulk-rewrite a construct whose
+correctness depends on the body. `no-undef` caught both, which is only true because QA-001 had
+just brought these files under a rule that was already enabled. Promoted to
+[`repo-pitfalls`](skills/repo-pitfalls/SKILL.md).
+
+### Mutation testing that says "your test is fine" and means "PostgreSQL has your back"
+
+**Issue** — Verifying the migration runner's tests, two mutations left the suite green: changing
+`ROLLBACK` to `COMMIT` on a failed migration, and deleting the `BEGIN` entirely.
+
+**Cause** — Neither is a behaviour change. PostgreSQL turns `COMMIT` on an aborted transaction
+into a rollback, and a multi-statement simple query is already wrapped in an implicit
+transaction. The explicit `BEGIN` earns its place elsewhere — binding the migration's SQL to its
+ledger row, which are separate `query()` calls — and that specific atomicity is not
+independently covered.
+
+**Lesson** — A surviving mutant is not automatically a weak test. Ask whether the mutation
+changes observable behaviour at all before rewriting the test; sometimes the platform already
+guarantees what you were about to assert. Mutations that *did* kill the suite — removing the
+checksum drift check, ignoring applied versions, continuing past a failure — are the ones that
+prove the tests work.
+
+### A trigger file that was dangerous precisely because it was re-runnable
+
+**Issue** — `payment_balance_trigger.sql` and the live schema both defined
+`apply_payment_to_balance()`. The live one writes an audit row to `trigger_log`; the standalone
+file did not.
+
+**Cause** — The standalone file used `CREATE OR REPLACE` and documented itself as safe to re-run,
+which is normally the right advice here. Applying it to production would have replaced the live
+function with the version that writes no audit row. **Balances would have kept working**, so
+there would have been no symptom — the ledger would simply have stopped recording what the
+trigger did.
+
+**Lesson** — "Safe to re-run" is a claim about idempotency, not about being current. A
+re-runnable file holding a stale definition is worse than a one-shot script, because it invites
+the re-run that silently reverts. DB-002 deleted it and made
+`migrations/0001_reconcile_payment_trigger.sql` canonical, with tests that go red if the audit
+write disappears.
+
+### A secret-scanner probe built from an example credential
+
+**Issue** — Verifying gitleaks for SEC-015 with a planted `AKIAIOSFODNN7EXAMPLE` produced no
+finding on that file, while reporting three hits in the real local `.env`.
+
+**Cause** — Two things at once. `AKIAIOSFODNN7EXAMPLE` is the published AWS documentation key and
+gitleaks allowlists it by design. And `gitleaks dir` reads gitignored files, so it scans the real
+`.env` every time.
+
+**Lesson** — A probe built from example credentials proves nothing, and would have been read as
+"the scanner works". Use realistic values. Use `git` mode in CI, not `dir`: `dir` mode's constant
+`.env` findings on developer machines are exactly how a scanner gets ignored.
+
+### A version bump whose breakage only appears on the *next* install
+
+**Issue** — `npm install vite@^8 vitest@^4` succeeded and every gate passed. The following
+`npm install react-router-dom@^7` failed with `ERESOLVE`.
+
+**Cause** — `@vitejs/plugin-react@4.7.0` peers on `vite ^4 || ^5 || ^6 || ^7`. Installing vite 8
+left that peer unsatisfied, but npm reported nothing at the time; the conflict only surfaces when
+the tree is next resolved.
+
+**Lesson** — After a major bump of a build-toolchain package, run a throwaway `npm install` to
+force a re-resolve rather than trusting the bump's own silence. Promoted to
+[`repo-pitfalls`](skills/repo-pitfalls/SKILL.md).
+
+### Documenting a shell behaviour without running it
+
+**Issue** — The DX-001 draft of `SETUP.md` stated that `DATABASE_URL=... npm run …` is a parse
+error in PowerShell.
+
+**Cause** — It is not. PowerShell parses it without complaint and fails at execution with
+`CommandNotFoundException`, having read the whole assignment as a command name.
+
+**Lesson** — Plausible is not verified, and a cross-platform claim is exactly the kind a reader
+cannot check cheaply. Both shells were then tested directly — including validating `Copy-Item`
+against a temp target rather than `.env`, which holds live credentials and would have been
+overwritten by the documented command.
