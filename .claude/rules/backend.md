@@ -41,7 +41,9 @@ Two ordering rules, both of which fail silently:
    `index.html` for anything below it, so a late-mounted API route serves HTML instead of JSON.
 
 Routers are mounted at `/api/v1/<name>` in `server.cjs:134-145`. `/api/v1/payments` has
-`checkJwt` applied at the **mount point**, so its own routes do not repeat it.
+`checkJwt` applied at the **mount point** (`server.cjs:143`) **and** repeated on every route in
+`Apis/payments/routes.cjs`. The repetition is redundant, not load-bearing; leave it alone unless
+you are deliberately tidying it, and do not infer from it that other routers guard themselves.
 
 ## Authorization
 
