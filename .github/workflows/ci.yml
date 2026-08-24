@@ -89,6 +89,71 @@ jobs:
       - name: Integration tests
         run: npm run test:integration
 
+  fresh-clone:
+    name: Fresh clone smoke check
+    runs-on: ubuntu-latest
+    # DX-001. Proves a brand-new clone gets to a running server using only
+    # tracked files and placeholder configuration — no production credential,
+    # no hand-applied SQL, no undocumented step. If SETUP.md drifts from what
+    # the repository can actually do, this is what notices.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: farhat_football_dev
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+        ports:
+          - 5432:5432
+    env:
+      DATABASE_URL: postgres://postgres:postgres@127.0.0.1:5432/farhat_football_dev
+      # Placeholders, deliberately. The point is that none of these are real.
+      AUTH0_DOMAIN: example.auth0.com
+      VITE_AUTH0_AUDIENCE: https://api.example.test
+      FRONTEND_URL: http://localhost:5173
+      BACKEND_URL: http://localhost:3000
+      PORT: "3000"
+    steps:
+      - uses: actions/checkout@v4
+
+      # Reads .nvmrc rather than repeating the version, so the pin has one home.
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: farhat_football_app/package-lock.json
+
+      - name: Install exactly the lockfile
+        run: npm ci
+
+      - name: Provision the database from tracked files
+        run: npm run migrate:provision
+
+      - name: Applied versions are queryable
+        run: npm run migrate:status
+
+      - name: Build
+        run: npm run build
+
+      - name: Server starts and serves a public endpoint
+        run: |
+          npm start &
+          server_pid=$!
+          trap 'kill $server_pid 2>/dev/null || true' EXIT
+          for attempt in $(seq 1 20); do
+            if curl --silent --fail --max-time 2 http://127.0.0.1:3000/api/v1/players > /dev/null; then
+              echo "Server answered /api/v1/players on attempt $attempt."
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "Server did not serve a public endpoint within 20s."
+          exit 1
+
   secret-scan:
     name: Secret scan
     runs-on: ubuntu-latest

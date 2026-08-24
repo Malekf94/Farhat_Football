@@ -1,8 +1,15 @@
 # Farhat Football — developer setup
 
 ## Prerequisites
-- Node.js (18+)
-- PostgreSQL (a local instance, or a staging DB connection string)
+- **Node.js 20 or newer** — pinned in `.nvmrc` and enforced by `engines`. CI runs 20.x, so that
+  is the version to match if you hit anything version-shaped. With nvm: `nvm use` from the repo
+  root.
+- **PostgreSQL** — a local instance, or a connection string for a database you own.
+- **Docker** — only for `npm run test:integration`, which creates and destroys its own
+  container. Not needed for anything else.
+
+You do **not** need any production credential to set this up. Everything below runs against
+your own database and your own dev Auth0 application.
 
 ## The install root
 `farhat_football_app/` is the **only** npm package in this repository. Both tiers — the
@@ -23,25 +30,61 @@ The server serves the built SPA from `dist/client`, which is gitignored, so the 
 | Start | `npm start` | Plain `node server.cjs`. Do **not** use `npm run server` in production: that is `nodemon`, a devDependency |
 
 ## Run it locally
-1. Clone the repo and install:
+
+Commands are given for **bash/zsh** (macOS, Linux, Git Bash) and **PowerShell** (Windows) where
+the two differ. Every `npm` command runs from `farhat_football_app/`.
+
+1. Clone and install. Use `npm ci`, not `npm install` — it installs exactly the lockfile and
+   fails if the lockfile and `package.json` disagree, instead of quietly resolving something
+   new:
+
    ```bash
-   cd farhat_football_app
-   npm install
+   git clone https://github.com/Malekf94/Farhat_Football.git
+   cd Farhat_Football/farhat_football_app
+   npm ci
    ```
-2. Create your env file and fill it in:
+
+2. Create your env file from the template:
+
+   bash / zsh:
    ```bash
    cp .env.example .env
    ```
-   Use **your own dev values** — a local/staging database, and a **dev Auth0
-   application** (see below). Leave the Monzo and Brevo secrets blank; payments
-   and emails simply won't fire locally, which is fine for development.
-3. Create the database schema. `DATABASE_URL` must already point at your empty
-   local database:
+   PowerShell:
+   ```powershell
+   Copy-Item .env.example .env
+   ```
+
+   Fill it with **your own dev values** — your own database, and a **dev Auth0 application**
+   (see below). Leave the Monzo and Brevo secrets blank; payments and emails simply won't fire
+   locally, which is fine for development.
+
+3. Create an empty database, then provision it from the tracked baseline and migrations.
+   Substitute your own superuser connection string if `postgres://localhost/postgres` is not
+   how you reach your instance:
+
+   ```bash
+   psql "postgres://localhost/postgres" -c "CREATE DATABASE farhat_football_dev"
+   ```
+
+   Point `DATABASE_URL` in `.env` at that database, then:
+
    ```bash
    npm run migrate:provision
    ```
-   That applies the `schema.sql` baseline and every migration on top of it. See
-   *Database schema and migrations* below.
+
+   That applies the `schema.sql` baseline and every migration on top of it, and records them in
+   `schema_migrations`. Check it with `npm run migrate:status`. See *Database schema and
+   migrations* below.
+
+   > `migrate:provision` reads `DATABASE_URL` from your `.env`. To target a different database
+   > for one command without editing `.env`, pass `--url`:
+   > `node scripts/migrate.cjs status --url "postgres://..."`. That works identically in both
+   > shells, which the bash inline-variable form `DATABASE_URL=... npm run …` does not —
+   > PowerShell parses it happily and then fails at execution with
+   > `CommandNotFoundException: The term 'DATABASE_URL=...' is not recognized`, because it reads
+   > the whole assignment as a command name. In PowerShell set it on its own line first:
+   > `$env:DATABASE_URL = "postgres://..."`.
 4. Start both the API and the frontend together:
    ```bash
    npm run dev
