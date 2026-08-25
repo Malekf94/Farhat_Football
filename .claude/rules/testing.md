@@ -51,7 +51,10 @@ tests/
 ├── setup.js                                  # runs before every test file
 ├── backend/                                  # mirrors Apis/
 │   ├── auth/
+│   │   ├── identity.test.js
 │   │   └── requireAdmin.test.js
+│   ├── helpers/fakePool.js                   # injectable pool doubles (TEST-002)
+│   ├── app.test.js                           # app builds without binding a port
 │   └── db-guard.test.js
 ├── integration/                              # needs Docker; own config
 │   ├── global-setup.js                       # container lifecycle
@@ -86,6 +89,41 @@ existed, a backend test reached a live server and got `password authentication f
 loads (dotenv does not override an already-set variable, so this wins over `.env`).
 `tests/backend/db-guard.test.js` pins that guard. **Do not remove or weaken either**, and never
 set a real `DATABASE_URL` in a test.
+
+It also pins `VITE_AUTH0_AUDIENCE` and `AUTH0_DOMAIN`. `Apis/auth/checkJwt.cjs` builds its
+verifier at **require** time and throws without an audience, so importing `app.cjs` — which every
+route module hangs off — fails during module loading otherwise. Neither is a credential.
+
+### Injection is the way round the constraint (TEST-002)
+
+The mocking limit above is real and permanent. The way to unit test a module that queries is to
+**pass it a pool**, not to mock one. These export a factory that takes a pool and defaults to the
+shared one, so production is unchanged and tests supply a fake:
+
+| Module | Factory |
+|---|---|
+| `Apis/auth/identity.cjs` | `createIdentity(pool)` |
+| `Apis/auth/requireAdmin.cjs` | `createRequireAdmin(pool)` |
+| `Apis/auth/requireHostAdmin.cjs` | `createHostAdminAuth(pool)` — returns all four helpers together, because they share the per-instance default-host cache |
+| `Apis/auth/requireSelfOrHostAdmin.cjs` | `createRequireSelfOrHostAdmin(pool)` |
+| `Apis/auth/requireSelfOrAdmin.cjs` | `createRequireSelfOrAdmin(pool)` |
+
+`tests/backend/helpers/fakePool.js` provides `makeFakePool` (matches a handler by SQL fragment,
+**throws on an unexpected query** rather than returning nothing) and `makeIdentityPool`, which
+models the three statements the AUTH-001 resolver issues.
+
+**Controllers and `queries.cjs` still have no seam** and stay integration-only. Adding one is
+ARCH-001.
+
+### A fake proves the JavaScript, never the SQL
+
+`identity.cjs` claims an account with `UPDATE ... WHERE player_id = $2 AND auth0_sub IS NULL`.
+Deleting that `AND` — the clause that settles a race between two concurrent first requests — left
+every unit test green, because the fake pool was applying the condition itself.
+
+So: **a condition expressed in SQL must be tested against a real database.** A `WHERE` guard, a
+unique index, `ON CONFLICT`, a constraint, a trigger — all of it belongs in
+`tests/integration/`. Mutation testing is what exposes this; a fake will happily agree with you.
 
 What this rules in and out is the testability matrix in
 [`references/test-matrix.md`](../skills/unit-test-engineer/references/test-matrix.md).

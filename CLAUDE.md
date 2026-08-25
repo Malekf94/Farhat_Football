@@ -26,7 +26,10 @@ restate that content here, and do not import it.
 **What to work on next: `assessment/FARHAT_FOOTBALL_ASSESSMENT.md`** §19–20 for the ordering,
 with `assessment/backlog.json` as the canonical ticket set — every ticket carries a `status`
 field, so read that before assuming a finding is open. Six of the seven P0 findings are now
-fixed; `IR-001`, the review of the historical ledger, is the one still open.
+fixed; `IR-001`, the review of the historical ledger, is the one still open — it needs production
+database access, not code. Phase 2 has since landed `TEST-002`, `AUTH-001` and `SEC-008` on
+`zak-dev`; `SEC-005`, `SEC-006`, `SEC-007`, `AUTH-002`, `ARCH-001` and `VAL-001` are the rest of
+that phase.
 
 **`assessment/` is deliberately gitignored and exists only in a local working copy.** This
 repository is public and the audit is a ranked exploit map for defects still open in production,
@@ -64,9 +67,13 @@ Always true. The owning skill or rule carries the explanation and the evidence.
 - **CI runs the gates on every PR** (`.github/workflows/ci.yml`, TEST-001) — but still run them
   locally first; a red PR wastes a round trip. All tests live under `farhat_football_app/tests/`,
   never colocated. → `rules/testing.md`
-- **`vi.mock()` cannot fake the DB pool inside a `.cjs` module**, so importing a backend module
-  from a test opens a real connection. `tests/setup.js` pins `DATABASE_URL` to a dead sentinel —
-  never weaken it. → `rules/testing.md`
+- **`vi.mock()` cannot fake the DB pool inside a `.cjs` module.** The way round it is
+  **injection, not mocking**: since TEST-002 every auth guard and `Apis/auth/identity.cjs` export
+  a factory taking a pool. Controllers and `queries.cjs` still have no seam and stay
+  integration-only. `tests/setup.js` pins `DATABASE_URL` to a dead sentinel, and
+  `VITE_AUTH0_AUDIENCE` / `AUTH0_DOMAIN` because `checkJwt` reads them at require time — never
+  weaken any of the three. **A fake proves the JavaScript, never the SQL**: a `WHERE` guard or a
+  constraint has to be tested against a real database. → `rules/testing.md`
 - **Never weaken an assertion, skip a test, or retrofit an expectation to get green.** If a test
   and the implementation disagree, one is wrong, and which is a decision to make explicitly.
   → `rules/testing.md`
@@ -74,10 +81,12 @@ Always true. The owning skill or rule carries the explanation and the evidence.
   standard, and warnings are capped at 5 by `--max-warnings`. → `repo-pitfalls`
 - **Backend files must be `.cjs`**; the package is `"type": "module"`. → `repo-pitfalls`
 - **Parameterised routes go last** in every router, and **any new API route must be mounted
-  before the `app.get("*")` catch-all** — otherwise it silently serves `index.html`.
-  → `rules/backend.md`
-- **Never trust a player id or admin flag from the request body** — guards resolve identity from
-  the verified token, then read admin flags from the DB. → `rules/backend.md`
+  before the `app.get("*")` catch-all** — otherwise it silently serves `index.html`. Routes are
+  mounted in `app.cjs` (`createApp()`); `server.cjs` only listens. → `rules/backend.md`
+- **Never trust a player id or admin flag from the request body** — guards resolve identity
+  through `Apis/auth/identity.cjs` from the token's immutable `sub` claim, then read admin flags
+  from the DB. **Never add a lookup by email**: email is mutable and resolving by it is the
+  defect AUTH-001 removed. → `rules/backend.md`
 - **Frontend `Protected*Route` is UI gating only.** An admin page without a server guard leaves
   the endpoint open. → `rules/backend.md`
 - **Never `UPDATE players.account_balance`** — insert a `payments` row and let the trigger apply
@@ -89,6 +98,9 @@ Always true. The owning skill or rule carries the explanation and the evidence.
   active `/h/<slug>` portal and still renders. → `rules/frontend.md`
 - **Never read `farhat_football_app/.env`** — real production credentials. Names are in
   `.env.example`. → `repo-pitfalls`
+- **`VITE_AUTH0_AUDIENCE` is read by the BACKEND at require time**, despite the `VITE_` prefix.
+  Unset, the server dies during module loading and never binds — which a host reports as "no open
+  ports detected", not as a missing variable. It was failing the staging deploy. → `repo-pitfalls`
 - **Nothing drift-checks this context layer.** Verify a claim in a rule, in a skill, in
   `REPO_MAP.md` or here against the code before relying on it — especially a negative one — and
   promote a new trap into `repo-pitfalls` (with the narrative in `.claude/discovery-log.md`)

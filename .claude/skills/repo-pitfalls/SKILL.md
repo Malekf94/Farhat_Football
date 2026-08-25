@@ -36,7 +36,8 @@ Append a rule here only once it generalises. Keep the reasoning short and cite `
   surrounding style (tabs) by hand — no formatter is wired up.
 - **[V 2026-08-24] Never delete `next` from an Express error handler to satisfy
   `no-unused-vars`.** Express identifies an error handler by **arity** — it only receives errors
-  if it declares four parameters — so the unused `next` in `server.cjs` is load-bearing.
+  if it declares four parameters — so the unused `next` in the handler at the end of `app.cjs`
+  (it lived in `server.cjs` until TEST-002) is load-bearing.
   Removing it silently demotes the handler to ordinary middleware and errors stop being handled,
   with no error at startup. The `.cjs` lint block sets
   `'no-unused-vars': ['error', { argsIgnorePattern: '^next$|^_' }]` for exactly this.
@@ -74,14 +75,23 @@ Append a rule here only once it generalises. Keep the reasoning short and cite `
   from a test builds a real `pg` Pool from `DATABASE_URL` — during setup this reached a live
   server and returned `password authentication failed`. `tests/setup.js` now pins `DATABASE_URL`
   to an unreachable sentinel, and `tests/backend/db-guard.test.js` pins that guard. **Never
-  weaken either, and never set a real `DATABASE_URL` in a test.** Consequence: backend units that
-  touch the pool — controllers, guards, queries — are **not unit-testable as written**.
-- **[V 2026-08-24] `schema.sql` cannot be loaded into the PostgreSQL major it came from.** The
-  dump header says "Dumped from database version 16.13 ... Dumped by pg_dump version 17.1"
-  (`schema.sql:4-5`), and pg_dump 17 emits `SET transaction_timeout = 0` at line 11 — a parameter
-  PostgreSQL 16 does not have. Loading it into `postgres:16` aborts there under `ON_ERROR_STOP`.
-  The integration harness strips that line at load time; the tracked file is still wrong and is
-  `DB-001`'s to fix. Anyone restoring this dump to rebuild an environment hits it first.
+  weaken either, and never set a real `DATABASE_URL` in a test.**
+- **[V 2026-08-25] The consequence above is no longer "guards cannot be unit tested" — TEST-002
+  added the seam.** `vi.mock()` still cannot intercept a `.cjs` `require()`; the fix is
+  **injection**, not mocking. `requireAdmin`, `requireHostAdmin`, `requireSelfOrHostAdmin`,
+  `requireSelfOrAdmin` and `identity.cjs` each export a factory taking a pool and default to the
+  shared one, so a unit test passes a fake (`tests/backend/helpers/fakePool.js`). The whole
+  authorization matrix now runs offline. **Controllers and queries still have no seam** and
+  remain integration-only — adding one is ARCH-001. `tests/setup.js` also pins
+  `VITE_AUTH0_AUDIENCE` and `AUTH0_DOMAIN`, without which importing `app.cjs` throws at require
+  time; do not remove those either.
+- **[V 2026-08-25] A fake pool hides anything the real SQL enforces, and it looks like coverage.**
+  The claim in `identity.cjs` is `UPDATE ... WHERE player_id = $2 AND auth0_sub IS NULL`; that
+  `AND` is what settles a race between two concurrent first requests. Deleting it left every unit
+  test green, because the fake pool was applying the condition itself. Mutation testing is what
+  surfaced it, and the case now lives in `tests/integration/auth/identity.test.js` where the real
+  statement runs. **Rule: a condition expressed in SQL must be tested against a real database** —
+  a fake proves only the JavaScript around it.
 - **[V 2026-08-24] `pg_isready` over the unix socket lies while a `postgres` container is still
   initialising.** The official image starts a **temporary** server during initdb that listens on
   the socket only, shuts it down, then starts the real one. Asking `pg_isready` without `-h`
@@ -151,9 +161,10 @@ Append a rule here only once it generalises. Keep the reasoning short and cite `
   (`syncPayments.cjs:1-9`). It now only prints a warning.
 - **[V 2026-08-21] Duplicate protection depends on `ON CONFLICT (transaction_id) DO NOTHING`.**
   A suppressed insert writes no row and therefore does **not** fire the trigger, which is exactly
-  why retried Monzo webhooks cannot double-credit (`server.cjs:111-118`). Preserve both halves —
+  why retried Monzo webhooks cannot double-credit (`Apis/payments/monzoWebhook.cjs`). Preserve both halves —
   the conflict clause and the trigger-on-insert design — when touching payment writes.
-- **[V 2026-08-21] The Monzo webhook lives inline in `server.cjs:77-130`, not in `Apis/`.** It
+- **[V 2026-08-25] The Monzo webhook handler lives in `Apis/payments/monzoWebhook.cjs`** and is
+  mounted in `app.cjs` before the SPA catch-all. It was inline in `server.cjs` until SEC-001. It
   attributes a payment by matching `ffc<player_id>` in the transaction notes and **always**
   responds 200 so Monzo does not retry — including on error. A failure there is invisible to
   Monzo; check the server log, not the webhook response.
@@ -231,6 +242,24 @@ Append a rule here only once it generalises. Keep the reasoning short and cite `
 - **[V 2026-08-21] `checkJwt` reads the audience from `VITE_AUTH0_AUDIENCE`, not `AUTH0_AUDIENCE`**
   (`Apis/auth/checkJwt.cjs:4`) — a `VITE_`-prefixed variable consumed by the **backend**. Renaming
   it to look tidier breaks all token validation with an opaque 401.
+- **[V 2026-08-25] Missing `VITE_AUTH0_AUDIENCE` kills the server BEFORE it listens, and the
+  host reports it as "no open ports detected".** This is what was failing the staging deploy.
+  `checkJwt.cjs:3` builds its verifier at **require** time, so an unset audience throws
+  `AssertionError: An 'audience' is required to validate the 'aud' claim` during module loading —
+  the process starts, dies, never binds, and Render's port scan times out ~90s later with no
+  mention of a variable. Proven by boot-testing three commits with only that variable absent:
+  `origin/staging`, the commit before the PR blamed for the failure, and `origin/main` all fail
+  identically, so it is configuration, not code. It is also the **only** variable whose absence
+  prevents binding — missing `AUTH0_DOMAIN`, `FRONTEND_URL`, `BACKEND_URL` or an unreachable
+  `DATABASE_URL` all still start. Because it is `VITE_`-prefixed, whoever provisions a service
+  reasonably assumes it is frontend-only build config and drops it or renames it to
+  `AUTH0_AUDIENCE`. It is needed in **both** phases: build (compiled into the bundle) and runtime.
+- **[V 2026-08-25] A `.cjs` module that reads `process.env` at require time is order-sensitive,
+  and the ordering here used to be accidental.** `server.cjs` required `checkJwt.cjs` four lines
+  *before* it called `require("dotenv").config()`. It worked only because `db.cjs:2` calls
+  `dotenv.config()` and is pulled in transitively by the first route require, so reordering the
+  requires would have broken JWT validation at boot with nothing to catch it. TEST-002 moved the
+  dotenv call to the top of `app.cjs`, above every require. Keep it there.
 - **[V 2026-08-21] The Vite dev proxy is bypassed in the documented setup.** `vite.config.js:13`
   proxies `/api` → `:3000`, but `src/api.jsx:6,11` sets an absolute `baseURL` from
   `VITE_API_BASE_URL`, which `.env.example:27` sets to `http://localhost:3000`. Requests go
@@ -249,6 +278,16 @@ Append a rule here only once it generalises. Keep the reasoning short and cite `
   `npm start` (plain `node server.cjs`), never `npm run server`, which is `nodemon`. Verified
   by running `npm ci --omit=dev` and resolving every backend require: all eight production
   packages resolve and `vite` is correctly absent.
+- **[V 2026-08-25] Git Bash on Windows mangles `git show <rev>:<path>`.** MSYS path conversion
+  rewrites `origin/staging:.nvmrc` into `origin\staging;.nvmrc`, and git then reports an
+  "ambiguous argument" for a revision that plainly exists — which reads as a missing branch, not
+  a quoting problem. Export `MSYS_NO_PATHCONV=1` before any git command carrying a `rev:path`
+  argument. It bites `git show`, `git cat-file` and anything else taking that syntax.
+- **[V 2026-08-25] There IS a Node version pin at the repo root: `.nvmrc` says `20`** (added by
+  DX-001; `package.json` has `"engines": { "node": ">=20" }`). Do not repeat the claim that the
+  repo carries no version pin. But note where a host looks: Render reads `.nvmrc` relative to the
+  service's **Root Directory**, so a service rooted at `farhat_football_app/` does not see the
+  one at the repo root. `farhat_football_app/` has no `.nvmrc` of its own.
 - **[I] PowerShell here is 5.1.** No `&&`, `||`, ternary, `??` or `?.` — use `A; if ($?) { B }`.
   Avoid merging a native executable's stderr (`2>&1`, `*>`): PS 5.1 wraps each stderr line in a
   `NativeCommandError` and sets `$?` to `$false` even on exit code 0. The Bash tool is available
@@ -256,6 +295,13 @@ Append a rule here only once it generalises. Keep the reasoning short and cite `
 
 ## Branch workflow
 
-- **[V 2026-08-21] `main` is production and is PR-only; `staging` is the staging deploy.**
-  Branch off `staging`, PR into `staging`, test there, then PR `staging → main`
-  (`farhat_football_app/SETUP.md:42-50`). Never commit straight to `main`.
+- **[V 2026-08-25] Branch off `zak-dev`, not `staging`.** This entry previously said to branch
+  off `staging` and PR into it; that is no longer the flow and following it puts a sprint's work
+  on the deploy branch one ticket at a time. `zak-dev` is the dev line a sprint accumulates on:
+  branch off it → PR into it → at sprint end PR `zak-dev → staging` → test → PR `staging → main`.
+  `main` is production and PR-only. Confirmed against `farhat_football_app/SETUP.md:202-213` and
+  `CLAUDE.md`.
+- **[V 2026-08-25] Check the base branch on every PR.** A PR based on a feature branch that then
+  merges lands nowhere shared — GitHub still shows it merged. PR #7 hit this: it merged 22
+  seconds after its base did, and two P0 payment fixes reached no shared branch. Verify with
+  `git merge-base --is-ancestor <sha> origin/zak-dev`.
