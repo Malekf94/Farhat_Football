@@ -1,5 +1,6 @@
 const pool = require("../../db.cjs");
 const queries = require("./queries.cjs");
+const { resolvePlayer, UNRESOLVED } = require("../auth/identity.cjs");
 
 const addPlayer = (req, res) => {
 	const { first_name, last_name, preferred_name, year_of_birth, email } =
@@ -221,28 +222,44 @@ const auth0Signup = async (req, res) => {
 	}
 };
 
+// Who am I? Answers only about the caller (SEC-008).
+//
+// This used to take an email from the QUERY STRING and return that player's id
+// and admin flags, so any token holder could enumerate accounts and read
+// another player's privileges by asking about their address. The query is now
+// ignored entirely: identity comes from the verified token's immutable subject
+// via the shared resolver (AUTH-001).
+//
+// { exists: false } is a legitimate answer — an authenticated user who has not
+// completed signup yet — and the signup flow depends on it. A caller who cannot
+// be identified at all is a refusal, not an absence, and says so.
 const checkEmail = async (req, res) => {
-	const { email } = req.query;
-
-	if (!email) {
-		return res.status(400).json({ error: "Email is required" });
-	}
-
 	try {
-		const result = await pool.query(queries.checkEmailExists, [email]);
+		const { player, reason } = await resolvePlayer(req);
 
-		if (result.rows.length > 0) {
-			// User exists
+		if (player) {
 			return res.json({
 				exists: true,
-				player_id: result.rows[0].player_id,
-				is_admin: result.rows[0].is_admin,
-				is_superadmin: result.rows[0].is_superadmin,
+				player_id: player.player_id,
+				is_admin: player.is_admin,
+				is_superadmin: player.is_superadmin,
 			});
-		} else {
-			// User does not exist
+		}
+
+		if (reason === UNRESOLVED.NO_ACCOUNT) {
 			return res.json({ exists: false });
 		}
+		if (reason === UNRESOLVED.UNVERIFIED_EMAIL) {
+			return res.status(403).json({ error: "Email address is not verified." });
+		}
+		if (reason === UNRESOLVED.AMBIGUOUS_EMAIL) {
+			return res
+				.status(403)
+				.json({ error: "Account could not be identified uniquely." });
+		}
+		return res
+			.status(403)
+			.json({ error: "Could not verify identity from token." });
 	} catch (error) {
 		console.error("Error checking user in DB:", error);
 		res.status(500).json({ error: "Internal server error" });
