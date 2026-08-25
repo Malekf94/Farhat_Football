@@ -1,25 +1,27 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import {
 	makeFakePool,
+	makeIdentityPool,
 	makeRes,
 	reqWithEmail,
+	reqWithSubject,
 	spyNext,
+	SQL,
 } from "../helpers/fakePool.js";
 
-// requireAdmin resolves identity from the verified token and reads the admin
-// flags from the database.
+// requireAdmin resolves identity through the shared AUTH-001 resolver — the
+// immutable Auth0 subject — and reads the admin flags from that player's row.
 //
 // Since TEST-002 the module exports createRequireAdmin(pool), so the branches
-// that query are testable here with a fake pool instead of needing Docker. The
-// early-refusal cases below still return before any lookup; the matrix after
-// them drives the full admin/superadmin tiering offline.
+// that query are testable here with a fake pool instead of needing Docker.
 
 const load = async () => {
 	const mod = await import("../../../Apis/auth/requireAdmin.cjs");
 	return mod.default ?? mod;
 };
 
-const PLAYER_LOOKUP = "FROM players WHERE email";
+const EMAIL = "caller@example.test";
+const SUBJECT = `auth0|${EMAIL}`;
 
 describe("requireAdmin", () => {
 	let next;
@@ -39,6 +41,8 @@ describe("requireAdmin", () => {
 	});
 
 	describe("refusing a caller it cannot identify", () => {
+		// A token with no subject is refused before any query, which is why these
+		// two can run against the production instance and its dead pool.
 		it("refuses a request with no verified token at all", async () => {
 			const requireAdmin = await load();
 			const res = makeRes();
@@ -52,27 +56,6 @@ describe("requireAdmin", () => {
 			expect(next).not.toHaveBeenCalled();
 		});
 
-		it("refuses a verified token whose payload carries no email claim", async () => {
-			const requireAdmin = await load();
-			const res = makeRes();
-
-			await requireAdmin()({ auth: { payload: { sub: "auth0|abc" } } }, res, next);
-
-			expect(res.statusCode).toBe(403);
-			expect(next).not.toHaveBeenCalled();
-		});
-
-		it("refuses when AUTH0_EMAIL_CLAIM is configured but absent from the payload", async () => {
-			process.env.AUTH0_EMAIL_CLAIM = "https://farhatfootball.co.uk/email";
-			const requireAdmin = await load();
-			const res = makeRes();
-
-			await requireAdmin()({ auth: { payload: { sub: "auth0|abc" } } }, res, next);
-
-			expect(res.statusCode).toBe(403);
-			expect(next).not.toHaveBeenCalled();
-		});
-
 		it("refuses an unidentifiable caller on the superadmin variant too", async () => {
 			const requireAdmin = await load();
 			const res = makeRes();
@@ -82,14 +65,41 @@ describe("requireAdmin", () => {
 			expect(res.statusCode).toBe(403);
 			expect(next).not.toHaveBeenCalled();
 		});
+
+		it("refuses a subject that is bound to nothing and carries no email", async () => {
+			const { createRequireAdmin } = await load();
+			const res = makeRes();
+
+			await createRequireAdmin(makeIdentityPool([]))()(
+				reqWithSubject("auth0|abc"),
+				res,
+				next,
+			);
+
+			expect(res.statusCode).toBe(403);
+			expect(next).not.toHaveBeenCalled();
+		});
+
+		it("refuses when AUTH0_EMAIL_CLAIM is configured but absent from the payload", async () => {
+			process.env.AUTH0_EMAIL_CLAIM = "https://farhatfootball.co.uk/email";
+			const { createRequireAdmin } = await load();
+			const res = makeRes();
+
+			await createRequireAdmin(makeIdentityPool([]))()(
+				reqWithSubject("auth0|abc"),
+				res,
+				next,
+			);
+
+			expect(res.statusCode).toBe(403);
+			expect(next).not.toHaveBeenCalled();
+		});
 	});
 
 	describe("the admin tier, against an injected pool", () => {
 		const withPlayer = async (row) => {
 			const { createRequireAdmin } = await load();
-			const pool = makeFakePool([
-				{ match: PLAYER_LOOKUP, rows: row ? [row] : [] },
-			]);
+			const pool = makeIdentityPool(row ? [{ email: EMAIL, ...row }] : []);
 			return { requireAdmin: createRequireAdmin(pool), pool };
 		};
 
@@ -99,14 +109,14 @@ describe("requireAdmin", () => {
 				is_admin: true,
 				is_superadmin: false,
 			});
-			const req = reqWithEmail("admin@example.test");
+			const req = reqWithEmail(EMAIL);
 			const res = makeRes();
 
 			await requireAdmin()(req, res, next);
 
 			expect(next).toHaveBeenCalledOnce();
 			expect(res.statusCode).toBeNull();
-			expect(req.player).toEqual({
+			expect(req.player).toMatchObject({
 				player_id: 7,
 				is_admin: true,
 				is_superadmin: false,
@@ -121,14 +131,14 @@ describe("requireAdmin", () => {
 			});
 			const res = makeRes();
 
-			await requireAdmin()(reqWithEmail("player@example.test"), res, next);
+			await requireAdmin()(reqWithEmail(EMAIL), res, next);
 
 			expect(res.statusCode).toBe(403);
 			expect(res.body).toEqual({ error: "Admin access required." });
 			expect(next).not.toHaveBeenCalled();
 		});
 
-		it("refuses a token whose email matches no player row", async () => {
+		it("refuses a token whose identity matches no player row", async () => {
 			const { requireAdmin } = await withPlayer(null);
 			const res = makeRes();
 
@@ -139,30 +149,31 @@ describe("requireAdmin", () => {
 			expect(next).not.toHaveBeenCalled();
 		});
 
-		it("looks the caller up by the token email, passed as a bound parameter", async () => {
+		it("resolves by subject first, as a bound parameter", async () => {
 			const { requireAdmin, pool } = await withPlayer({
 				player_id: 9,
 				is_admin: true,
 			});
 
-			await requireAdmin()(reqWithEmail("caller@example.test"), makeRes(), next);
+			await requireAdmin()(reqWithEmail(EMAIL), makeRes(), next);
 
-			const lookups = pool.queriesMatching(PLAYER_LOOKUP);
-			expect(lookups).toHaveLength(1);
-			expect(lookups[0].params).toEqual(["caller@example.test"]);
-			expect(lookups[0].text).toContain("$1");
-			expect(lookups[0].text).not.toContain("caller@example.test");
+			const bySubject = pool.queriesMatching(SQL.BY_SUBJECT);
+			expect(bySubject.length).toBeGreaterThanOrEqual(1);
+			expect(bySubject[0].params).toEqual([SUBJECT]);
+			expect(bySubject[0].text).toContain("$1");
+			expect(bySubject[0].text).not.toContain(SUBJECT);
 		});
 
 		it("prefers the namespaced claim over the standard email claim", async () => {
 			process.env.AUTH0_EMAIL_CLAIM = "https://farhatfootball.co.uk/email";
 			const { createRequireAdmin } = await load();
-			const pool = makeFakePool([
-				{ match: PLAYER_LOOKUP, rows: [{ player_id: 10, is_admin: true }] },
+			const pool = makeIdentityPool([
+				{ player_id: 10, email: "namespaced@example.test", is_admin: true },
 			]);
 			const req = {
 				auth: {
 					payload: {
+						sub: "auth0|ns",
 						email: "standard@example.test",
 						"https://farhatfootball.co.uk/email": "namespaced@example.test",
 					},
@@ -171,7 +182,8 @@ describe("requireAdmin", () => {
 
 			await createRequireAdmin(pool)()(req, makeRes(), next);
 
-			expect(pool.queriesMatching(PLAYER_LOOKUP)[0].params).toEqual([
+			expect(next).toHaveBeenCalledOnce();
+			expect(pool.queriesMatching(SQL.BY_EMAIL)[0].params).toEqual([
 				"namespaced@example.test",
 			]);
 		});
@@ -179,16 +191,12 @@ describe("requireAdmin", () => {
 		it("returns 500 rather than admitting the caller when the lookup fails", async () => {
 			const { createRequireAdmin } = await load();
 			const pool = makeFakePool([
-				{ match: PLAYER_LOOKUP, throws: new Error("connection terminated") },
+				{ match: SQL.BY_SUBJECT, throws: new Error("connection terminated") },
 			]);
 			const res = makeRes();
 			const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
 
-			await createRequireAdmin(pool)()(
-				reqWithEmail("admin@example.test"),
-				res,
-				next,
-			);
+			await createRequireAdmin(pool)()(reqWithEmail(EMAIL), res, next);
 
 			expect(res.statusCode).toBe(500);
 			expect(res.body).toEqual({ error: "Authorization check failed." });
@@ -200,8 +208,7 @@ describe("requireAdmin", () => {
 	describe("the superadmin tier, against an injected pool", () => {
 		const withPlayer = async (row) => {
 			const { createRequireAdmin } = await load();
-			const pool = makeFakePool([{ match: PLAYER_LOOKUP, rows: [row] }]);
-			return createRequireAdmin(pool);
+			return createRequireAdmin(makeIdentityPool([{ email: EMAIL, ...row }]));
 		};
 
 		it("admits a superadmin", async () => {
@@ -212,11 +219,7 @@ describe("requireAdmin", () => {
 			});
 			const res = makeRes();
 
-			await requireAdmin({ superadmin: true })(
-				reqWithEmail("super@example.test"),
-				res,
-				next,
-			);
+			await requireAdmin({ superadmin: true })(reqWithEmail(EMAIL), res, next);
 
 			expect(next).toHaveBeenCalledOnce();
 			expect(res.statusCode).toBeNull();
@@ -230,11 +233,7 @@ describe("requireAdmin", () => {
 			});
 			const res = makeRes();
 
-			await requireAdmin({ superadmin: true })(
-				reqWithEmail("admin@example.test"),
-				res,
-				next,
-			);
+			await requireAdmin({ superadmin: true })(reqWithEmail(EMAIL), res, next);
 
 			expect(res.statusCode).toBe(403);
 			expect(next).not.toHaveBeenCalled();
@@ -253,9 +252,51 @@ describe("requireAdmin", () => {
 			});
 			const res = makeRes();
 
-			await requireAdmin()(reqWithEmail("super@example.test"), res, next);
+			await requireAdmin()(reqWithEmail(EMAIL), res, next);
 
 			expect(res.statusCode).toBe(403);
+			expect(next).not.toHaveBeenCalled();
+		});
+	});
+
+	describe("identity refusals surfaced by the resolver", () => {
+		it("refuses a caller whose tenant reports the email as unverified", async () => {
+			const { createRequireAdmin } = await load();
+			const pool = makeIdentityPool([
+				{ player_id: 4, email: EMAIL, is_admin: true },
+			]);
+			const req = reqWithSubject("auth0|new", {
+				email: EMAIL,
+				email_verified: false,
+			});
+			const res = makeRes();
+
+			await createRequireAdmin(pool)()(req, res, next);
+
+			expect(res.statusCode).toBe(403);
+			expect(res.body).toEqual({ error: "Email address is not verified." });
+			expect(next).not.toHaveBeenCalled();
+			expect(pool.rows[0].auth0_sub).toBeNull();
+		});
+
+		it("refuses a caller whose email matches more than one row", async () => {
+			const { createRequireAdmin } = await load();
+			const pool = makeIdentityPool([
+				{ player_id: 5, email: "Dup@example.test", is_admin: true },
+				{ player_id: 6, email: "dup@example.test", is_admin: false },
+			]);
+			const res = makeRes();
+
+			await createRequireAdmin(pool)()(
+				reqWithEmail("dup@example.test"),
+				res,
+				next,
+			);
+
+			expect(res.statusCode).toBe(403);
+			expect(res.body).toEqual({
+				error: "Account could not be identified uniquely.",
+			});
 			expect(next).not.toHaveBeenCalled();
 		});
 	});

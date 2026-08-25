@@ -1,12 +1,5 @@
 const defaultPool = require("../../db.cjs");
-
-// Resolve the caller's email from the VERIFIED access token (same mechanism as
-// requireAdmin — standard `email` claim, or the namespaced AUTH0_EMAIL_CLAIM).
-function getEmailFromToken(req) {
-	const payload = req.auth?.payload || {};
-	const claim = process.env.AUTH0_EMAIL_CLAIM;
-	return (claim && payload[claim]) || payload.email || null;
-}
+const { createIdentity } = require("./identity.cjs");
 
 // Builds the host-scoped authorization helpers over a given pool. Tests pass a
 // fake one — a .cjs module's require() cannot be intercepted by vi.mock(), so
@@ -31,14 +24,14 @@ const createHostAdminAuth = (pool = defaultPool) => {
 		return cachedDefaultHostId;
 	}
 
+	// Identity resolves from the immutable Auth0 subject (AUTH-001). Null means
+	// the caller could not be tied to exactly one player, for any reason; every
+	// caller of this treats that as a refusal, so the reason is not needed here.
+	const { resolvePlayer } = createIdentity(pool);
+
 	async function getCaller(req) {
-		const email = getEmailFromToken(req);
-		if (!email) return null;
-		const { rows } = await pool.query(
-			"SELECT player_id, is_admin, is_superadmin FROM players WHERE email = $1",
-			[email],
-		);
-		return rows[0] || null;
+		const { player } = await resolvePlayer(req);
+		return player;
 	}
 
 	// Is this caller allowed to administer the given host?
@@ -119,4 +112,3 @@ module.exports.getDefaultHostId = production.getDefaultHostId;
 module.exports.isHostAdmin = production.isHostAdmin;
 module.exports.getCaller = production.getCaller;
 module.exports.createHostAdminAuth = createHostAdminAuth;
-module.exports.getEmailFromToken = getEmailFromToken;

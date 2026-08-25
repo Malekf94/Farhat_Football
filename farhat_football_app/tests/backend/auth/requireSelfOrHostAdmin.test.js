@@ -1,9 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
 	makeFakePool,
+	makeIdentityPool,
 	makeRes,
 	reqWithEmail,
 	spyNext,
+	SQL,
 } from "../helpers/fakePool.js";
 
 // The SEC-003 guard: roster mutations carry match_id and player_id in the body,
@@ -18,9 +20,9 @@ const DEFAULT_HOST_ID = 1;
 const OTHER_HOST_ID = 2;
 
 const HOSTS = "FROM hosts WHERE slug";
-const PLAYERS = "FROM players WHERE email";
 const HOST_ADMINS = "FROM host_admins";
 const MATCHES = "FROM matches WHERE match_id";
+const EMAIL = "caller@example.test";
 
 const load = async () => {
 	const mod = await import("../../../Apis/auth/requireSelfOrHostAdmin.cjs");
@@ -29,9 +31,8 @@ const load = async () => {
 
 const build = async ({ player, hostAdminRows = [], matchRows = [] } = {}) => {
 	const { createRequireSelfOrHostAdmin } = await load();
-	const pool = makeFakePool([
+	const pool = makeIdentityPool(player ? [{ email: EMAIL, ...player }] : [], [
 		{ match: HOSTS, rows: [{ host_id: DEFAULT_HOST_ID }] },
-		{ match: PLAYERS, rows: player ? [player] : [] },
 		{ match: HOST_ADMINS, rows: hostAdminRows },
 		{ match: MATCHES, rows: matchRows },
 	]);
@@ -41,7 +42,7 @@ const build = async ({ player, hostAdminRows = [], matchRows = [] } = {}) => {
 const self = { player_id: 42, is_admin: false, is_superadmin: false };
 const globalAdmin = { player_id: 2, is_admin: true, is_superadmin: false };
 
-const bodyReq = (body) => reqWithEmail("caller@example.test", { body });
+const bodyReq = (body) => reqWithEmail(EMAIL, { body });
 
 describe("requireSelfOrHostAdmin", () => {
 	let next;
@@ -105,7 +106,7 @@ describe("requireSelfOrHostAdmin", () => {
 
 			expect(next).toHaveBeenCalledOnce();
 			expect(req.targetPlayerId).toBe(42);
-			expect(req.player).toEqual(self);
+			expect(req.player).toMatchObject(self);
 		});
 
 		it("does not look the match up at all", async () => {
@@ -161,7 +162,7 @@ describe("requireSelfOrHostAdmin", () => {
 			expect(next).toHaveBeenCalledOnce();
 			expect(req.targetPlayerId).toBe(42);
 			expect(req.hostId).toBe(DEFAULT_HOST_ID);
-			expect(req.player).toEqual(globalAdmin);
+			expect(req.player).toMatchObject(globalAdmin);
 		});
 
 		it("refuses a global admin on a match owned by another host", async () => {
@@ -213,7 +214,7 @@ describe("requireSelfOrHostAdmin", () => {
 	it("returns 500 rather than admitting the caller when a query fails", async () => {
 		const { createRequireSelfOrHostAdmin } = await load();
 		const pool = makeFakePool([
-			{ match: PLAYERS, throws: new Error("connection terminated") },
+			{ match: SQL.BY_SUBJECT, throws: new Error("connection terminated") },
 		]);
 		const res = makeRes();
 		const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
