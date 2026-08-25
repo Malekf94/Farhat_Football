@@ -1,5 +1,5 @@
-const pool = require("../../db.cjs");
-const { getCaller, isHostAdmin } = require("./requireHostAdmin.cjs");
+const defaultPool = require("../../db.cjs");
+const hostAdminAuth = require("./requireHostAdmin.cjs");
 
 // Authorization middleware for roster mutations. Must run AFTER checkJwt.
 //
@@ -15,53 +15,64 @@ const { getCaller, isHostAdmin } = require("./requireHostAdmin.cjs");
 // The validated target is exposed as req.targetPlayerId. Controllers must use
 // that rather than req.body.player_id, so an id from the request body never
 // reaches a query unchecked.
-const requireSelfOrHostAdmin = async (req, res, next) => {
-	try {
-		const targetPlayerId = Number.parseInt(req.body?.player_id, 10);
-		if (!Number.isInteger(targetPlayerId)) {
-			return res.status(400).json({ error: "player_id is required." });
-		}
+//
+// A pool may be injected for tests; without one the production helpers are
+// reused so the default-host cache stays shared (TEST-002).
+const createRequireSelfOrHostAdmin = (pool) => {
+	const { getCaller, isHostAdmin } = pool
+		? hostAdminAuth.createHostAdminAuth(pool)
+		: hostAdminAuth;
+	const queryPool = pool ?? defaultPool;
 
-		const caller = await getCaller(req);
-		if (!caller) {
+	return async (req, res, next) => {
+		try {
+			const targetPlayerId = Number.parseInt(req.body?.player_id, 10);
+			if (!Number.isInteger(targetPlayerId)) {
+				return res.status(400).json({ error: "player_id is required." });
+			}
+
+			const caller = await getCaller(req);
+			if (!caller) {
+				return res
+					.status(403)
+					.json({ error: "Could not verify identity from token." });
+			}
+
+			if (caller.player_id === targetPlayerId) {
+				req.player = caller;
+				req.targetPlayerId = targetPlayerId;
+				return next();
+			}
+
+			const matchId = Number.parseInt(req.body?.match_id, 10);
+			if (!Number.isInteger(matchId)) {
+				return res.status(400).json({ error: "match_id is required." });
+			}
+
+			const { rows } = await queryPool.query(
+				"SELECT host_id FROM matches WHERE match_id = $1",
+				[matchId],
+			);
+			if (rows.length === 0) {
+				return res.status(404).json({ error: "Match not found." });
+			}
+
+			if (await isHostAdmin(caller, rows[0].host_id)) {
+				req.player = caller;
+				req.hostId = rows[0].host_id;
+				req.targetPlayerId = targetPlayerId;
+				return next();
+			}
+
 			return res
 				.status(403)
-				.json({ error: "Could not verify identity from token." });
+				.json({ error: "You can only change your own place in a match." });
+		} catch (error) {
+			console.error("requireSelfOrHostAdmin error:", error);
+			res.status(500).json({ error: "Authorization check failed." });
 		}
-
-		if (caller.player_id === targetPlayerId) {
-			req.player = caller;
-			req.targetPlayerId = targetPlayerId;
-			return next();
-		}
-
-		const matchId = Number.parseInt(req.body?.match_id, 10);
-		if (!Number.isInteger(matchId)) {
-			return res.status(400).json({ error: "match_id is required." });
-		}
-
-		const { rows } = await pool.query(
-			"SELECT host_id FROM matches WHERE match_id = $1",
-			[matchId],
-		);
-		if (rows.length === 0) {
-			return res.status(404).json({ error: "Match not found." });
-		}
-
-		if (await isHostAdmin(caller, rows[0].host_id)) {
-			req.player = caller;
-			req.hostId = rows[0].host_id;
-			req.targetPlayerId = targetPlayerId;
-			return next();
-		}
-
-		return res
-			.status(403)
-			.json({ error: "You can only change your own place in a match." });
-	} catch (error) {
-		console.error("requireSelfOrHostAdmin error:", error);
-		res.status(500).json({ error: "Authorization check failed." });
-	}
+	};
 };
 
-module.exports = requireSelfOrHostAdmin;
+module.exports = createRequireSelfOrHostAdmin();
+module.exports.createRequireSelfOrHostAdmin = createRequireSelfOrHostAdmin;

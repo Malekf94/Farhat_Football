@@ -1,4 +1,4 @@
-const pool = require("../../db.cjs");
+const defaultPool = require("../../db.cjs");
 
 // Resolve the caller's email from the VERIFIED access token (set by checkJwt
 // as req.auth.payload). The standard `email` claim is checked first; if your
@@ -15,7 +15,12 @@ function getEmailFromToken(req) {
 // DB — the client cannot spoof this by sending an ID in the request body.
 //   requireAdmin()                    -> requires is_admin
 //   requireAdmin({ superadmin: true }) -> requires is_superadmin
-const requireAdmin =
+//
+// createRequireAdmin takes the pool so tests can supply a fake one; a .cjs
+// module's require() cannot be intercepted by vi.mock(), so injection is the
+// only way to unit test the branches that query (TEST-002).
+const createRequireAdmin =
+	(pool = defaultPool) =>
 	(opts = {}) =>
 	async (req, res, next) => {
 		try {
@@ -49,4 +54,8 @@ const requireAdmin =
 		}
 	};
 
+const requireAdmin = createRequireAdmin();
+
 module.exports = requireAdmin;
+module.exports.createRequireAdmin = createRequireAdmin;
+module.exports.getEmailFromToken = getEmailFromToken;

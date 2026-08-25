@@ -7,3 +7,13 @@
 // guard, importing one of them from a test opens a connection to whatever .env
 // points at, which may be production.
 process.env.DATABASE_URL = "postgres://blocked:blocked@127.0.0.1:1/no-db-in-unit-tests";
+
+// checkJwt.cjs builds its Auth0 verifier at require time and throws
+// "An 'audience' is required to validate the 'aud' claim" when
+// VITE_AUTH0_AUDIENCE is unset — before app.cjs can finish loading. That is the
+// same crash that took the staging deploy down (the process dies during module
+// loading and never binds a port). Pinning both values here keeps importing the
+// app a pure, offline operation; neither is a credential and neither is used to
+// verify a real token in unit tests.
+process.env.VITE_AUTH0_AUDIENCE ||= "https://unit-tests.invalid/api";
+process.env.AUTH0_DOMAIN ||= "unit-tests.invalid";
