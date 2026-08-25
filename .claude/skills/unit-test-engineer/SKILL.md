@@ -50,13 +50,23 @@ covers the behaviour.
 ## 3. Decide whether the unit is testable at all
 
 **Do this before planning any backend test.** `vi.mock()` cannot fake the DB pool inside a `.cjs`
-module, which rules out most of `Apis/` — the full matrix and the reasoning are in
+module. The answer is **injection, not mocking** — the full matrix and the reasoning are in
 [`.claude/rules/testing.md`](../../rules/testing.md) §The DB-pool constraint and
 [`references/test-matrix.md`](references/test-matrix.md) §What is testable.
 
-If the unit is not testable as written, say so and stop — then propose the extraction that would
-make it testable. **Converting a module to take an injected pool is a source change on production
-code on the auth and payment paths. Propose it; do not do it silently.**
+Since TEST-002 the seam already exists on the authorization path: `Apis/auth/identity.cjs` and
+every guard export a factory taking a pool, and `tests/backend/helpers/fakePool.js` supplies the
+doubles. Use it rather than re-deriving that these modules cannot be tested — they can.
+
+**Controllers and `queries.cjs` still have no seam.** If the unit you need is one of those, say
+so and stop, then propose the extraction. **Converting a module to take an injected pool is a
+source change on production code on the auth and payment paths. Propose it; do not do it
+silently.**
+
+And check where the behaviour actually lives before writing the test: **a fake pool proves the
+JavaScript around a query, never the query itself.** A `WHERE` guard, a unique index, an
+`ON CONFLICT` or a trigger belongs in `tests/integration/`, because a fake will apply the
+condition for you and the test will pass whether or not the SQL still says it.
 
 ## 4. Audit what already exists
 

@@ -20,7 +20,8 @@ The app is **multi-tenant**: it serves several portals ("hosts"). The default po
 ```
 Farhat_football/
 ├── farhat_football_app/        # ONE npm package: React frontend + Express backend
-│   ├── server.cjs              # Express entry point, middleware, route mounting, Monzo webhook
+│   ├── app.cjs                 # createApp(): middleware, route mounting, Monzo webhook. Does NOT listen
+│   ├── server.cjs              # Process entry point — requires app.cjs and listens. Nothing else
 │   ├── db.cjs                  # pg connection pool (shared across all APIs)
 │   ├── package.json            # The ONLY manifest in the repo — no package.json at the root
 │   ├── vite.config.js          # Build -> dist/client; dev proxy /api -> :3000
@@ -84,7 +85,8 @@ via `npm run dev`.
 
 | File | Role |
 |---|---|
-| `farhat_football_app/server.cjs` | Express app, middleware stack, route mounting, Monzo webhook |
+| `farhat_football_app/app.cjs` | `createApp()` — middleware stack, route mounting, Monzo webhook. Returns the app **without listening**, so tests can drive it (TEST-002) |
+| `farhat_football_app/server.cjs` | Process entry point: builds the app and calls `listen`. Six lines |
 | `farhat_football_app/src/App.jsx` | React Router routes, Auth0 interceptor bootstrap |
 | `farhat_football_app/db.cjs` | PostgreSQL `pg` pool — imported by all query files |
 | `farhat_football_app/src/api.jsx` | Axios `publicApi` + `privateApi`, JWT interceptor, 401 retry |
@@ -98,7 +100,7 @@ Each module follows `routes.cjs → controller.cjs → queries.cjs`, where `quer
 
 | Module | Mounted at | Key files | Responsibility |
 |---|---|---|---|
-| `auth/` | `/api/v1/auth` | `checkJwt.cjs`, `requireAdmin.cjs`, `requireHostAdmin.cjs`, `requireSelfOrAdmin.cjs`, `routes.cjs` | JWT validation, authorization guards; `routes.cjs` is just the Auth0 code-exchange endpoint |
+| `auth/` | `/api/v1/auth` | `checkJwt.cjs`, `identity.cjs`, `requireAdmin.cjs`, `requireHostAdmin.cjs`, `requireSelfOrAdmin.cjs`, `requireSelfOrHostAdmin.cjs`, `routes.cjs` | JWT validation, authorization guards; `identity.cjs` is the single place a request becomes a player (AUTH-001); `routes.cjs` is just the Auth0 code-exchange endpoint |
 | `players/` | `/api/v1/players` | routes/controller/queries | Player CRUD, email lookup, stats, career, per-player payments |
 | `matches/` | `/api/v1/matches` | routes/controller/queries | Match lifecycle, man of the match, player notifications |
 | `match_players/` | `/api/v1/matchPlayer` | routes/controller/queries | Roster join/leave, team assignment, per-match stats, player-voted ratings |
@@ -109,11 +111,11 @@ Each module follows `routes.cjs → controller.cjs → queries.cjs`, where `quer
 | `bans/` | `/api/v1/bans` | routes/controller/queries | Player bans per host (or global), incl. auto-bans driven by late counts |
 | `leaderboard/` | `/api/v1/leaderboard`, `/api/v1/seasonal-leaderboard`, `/api/v1/eleven-aside-leaderboard` | `leaderboard.cjs`, `seasonal-leaderboard.cjs`, `eleven-aside-leaderboard.cjs` | Three leaderboard views, each a single `GET /` |
 
-Note: `/api/v1/payments` is mounted with `checkJwt` applied at the mount point in `server.cjs`.
+Note: `/api/v1/payments` is mounted with `checkJwt` applied at the mount point in `app.cjs`.
 
 **Route ordering:** parameterised catch-alls (`/:player_id`, `/:slug`, `/:match_id`) must be registered **last** in each router, after literal paths like `/check`, `/mine`, `/lates`, `/all/:status`. Existing routers mark this with comments; getting it wrong silently swallows the literal route.
 
-**Catch-all:** `server.cjs` serves `dist/client` and ends with `app.get("*")` → `index.html`. Any new API route must be mounted **before** it.
+**Catch-all:** `app.cjs` serves `dist/client` and ends with `app.get("*")` → `index.html`. Any new API route must be mounted **before** it. `tests/backend/app.test.js` pins that ordering.
 
 ---
 
@@ -217,7 +219,7 @@ Auth0 (React SDK) → getAccessTokenSilently
 
 - **Application code must never `UPDATE account_balance` directly** — insert a payment row instead.
 - Duplicate protection is `ON CONFLICT (transaction_id) DO NOTHING`. A suppressed insert does not fire the trigger, so retried webhooks cannot double-credit.
-- The **Monzo webhook is inline in `server.cjs`**, not in `Apis/`. It matches `ffc<player_id>` in the transaction notes to attribute a payment, and always responds 200 so Monzo does not retry.
+- The **Monzo webhook handler lives in `Apis/payments/monzoWebhook.cjs`** and is mounted in `app.cjs` before the SPA catch-all. It matches `ffc<player_id>` in the transaction notes to attribute a payment, and always responds 200 so Monzo does not retry.
 - `Apis/payments/syncPayments.cjs` was the pre-trigger balance sync and would have doubled every unprocessed payment; REPO-003 deleted it. Do not reintroduce that pattern — the trigger owns `account_balance`.
 
 ---
@@ -228,7 +230,7 @@ Authoritative schema is the hosted DB (`dump (1).sql` is a dump of it — do not
 
 | Table | Notes |
 |---|---|
-| `players` | `player_id` PK, names, `preferred_name`, `year_of_birth`, `email` (unique), `account_balance`, `is_admin`, `is_superadmin` |
+| `players` | `player_id` PK, names, `preferred_name`, `year_of_birth`, `email` (unique), `auth0_sub` (nullable, partial-unique — the immutable Auth0 subject, AUTH-001), `account_balance`, `is_admin`, `is_superadmin` |
 | `matches` | `match_id` PK, `match_date`, `match_time`, `price`, `number_of_players`, `pitch_id`, `match_status`, `youtube_links`, `winning_team`, `man_of_the_match`, **`host_id`** |
 | `match_players` | PK (`match_id`, `player_id`), `goals`, `assists`, `defcons`, `chancescreated`, `own_goals`, `late`, `price`, `team_id`, `joined_at`, `rating` |
 | `match_player_ratings` | `match_id`, `rater_id`, `ratee_id`, `rating` — player-voted ratings |

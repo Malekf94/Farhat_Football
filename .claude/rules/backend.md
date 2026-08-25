@@ -2,6 +2,7 @@
 paths:
   - "farhat_football_app/Apis/**/*"
   - "farhat_football_app/server.cjs"
+  - "farhat_football_app/app.cjs"
   - "farhat_football_app/db.cjs"
 ---
 
@@ -37,21 +38,31 @@ Two ordering rules, both of which fail silently:
 
 1. **Parameterised catch-alls last** within each router — `/:player_id` above `/check` makes
    `/check` unreachable. Existing routers mark the boundary in comments; keep them.
-2. **Mount before the SPA catch-all** in `server.cjs`. `app.get("*")` at `server.cjs:100` returns
-   `index.html` for anything below it, so a late-mounted API route serves HTML instead of JSON.
+2. **Mount before the SPA catch-all** in `app.cjs`. `app.get("*")` returns `index.html` for
+   anything below it, so a late-mounted API route serves HTML instead of JSON.
+   `tests/backend/app.test.js` pins this, and the error-handler arity, so both now fail loudly.
 
-Routers are mounted at `/api/v1/<name>` in `server.cjs:83-94`. `/api/v1/payments` has
-`checkJwt` applied at the **mount point** (`server.cjs:92`) **and** repeated on every route in
+Routers are mounted at `/api/v1/<name>` inside `createApp()` in `app.cjs` — `server.cjs` only
+listens (TEST-002). `/api/v1/payments` has `checkJwt` applied at the **mount point** **and** repeated on every route in
 `Apis/payments/routes.cjs`. The repetition is redundant, not load-bearing; leave it alone unless
 you are deliberately tidying it, and do not infer from it that other routers guard themselves.
 
 ## Authorization
 
 `checkJwt` (`express-oauth2-jwt-bearer`) validates the Auth0 token and populates
-`req.auth.payload`. Every guard after it resolves the caller's email **from the verified token**
-(standard `email` claim, or the namespaced `AUTH0_EMAIL_CLAIM`), looks the player up by email,
-and reads `is_admin` / `is_superadmin` from the DB row. **Never trust a player id or admin flag
-sent in the request body.**
+`req.auth.payload`. Every guard after it resolves the caller through **one** shared resolver,
+`Apis/auth/identity.cjs`, which maps the token's immutable `sub` claim to exactly one player and
+reads `is_admin` / `is_superadmin` from that row (AUTH-001). **Never trust a player id or admin
+flag sent in the request body, and do not add a second lookup by email** — email is mutable, and
+resolving by it is the defect that ticket removed.
+
+Accounts predating the column are claimed on first authenticated request: matched to one
+unclaimed row by email, then bound permanently. `resolvePlayer(req)` returns `{ player }` or
+`{ player: null, reason }`, where reason distinguishes no-subject, no-account, unverified-email
+and ambiguous-email. Guards map those to responses; do not collapse them back into one.
+
+Every guard, and `identity.cjs` itself, exports a factory taking a pool so it can be unit tested
+with a fake — see [`testing.md`](testing.md) §Injection.
 
 | Guard | Grants |
 |---|---|
@@ -59,7 +70,8 @@ sent in the request body.**
 | `requireAdmin({ superadmin: true })` | `is_superadmin` |
 | `requireHostAdmin()` | admin of the host owning `req.params.match_id` |
 | `requireHostAdmin({ source: "body" })` | admin of `req.body.host_id` (defaults to the default host; the value is normalised onto `req.body`) |
-| `requireSelfOrAdmin` | the player themselves, or an admin |
+| `requireSelfOrAdmin` | the player themselves (`req.params.player_id`), or a global admin |
+| `requireSelfOrHostAdmin` | the player themselves (`req.body.player_id`), or an admin of the host owning `req.body.match_id`. Exposes the validated target as `req.targetPlayerId` — controllers must read that, never `req.body.player_id` |
 
 Guards run **after** `checkJwt` and set `req.player` (and `req.hostId`). `requireHostAdmin` also
 exports `getDefaultHostId`, `isHostAdmin`, `getCaller` for reuse.
@@ -91,7 +103,7 @@ NOTHING` on payment inserts: a suppressed insert does not fire the trigger, whic
 retried webhooks safe.
 
 The Monzo webhook handler lives in `Apis/payments/monzoWebhook.cjs` and is mounted in
-`server.cjs` before the SPA catch-all. It always responds 200.
+`app.cjs` before the SPA catch-all. It always responds 200.
 
 **Inbound webhook payloads are untrusted input, and are treated as one here.** The body is read
 only for a transaction id; the transaction is then re-fetched from Monzo under our own

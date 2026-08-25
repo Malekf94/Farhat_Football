@@ -31,7 +31,9 @@ files, docs and loose scripts — its `package.json` has **no scripts at all**.
 
 | What | Where |
 |------|-------|
-| Express app, middleware, route mounting, Monzo webhook | `farhat_football_app/server.cjs` |
+| Express app, middleware, route mounting, Monzo webhook | `farhat_football_app/app.cjs` — `createApp()`, no `listen` |
+| Process entrypoint (the only thing that listens) | `farhat_football_app/server.cjs` |
+| Who the caller is — the one identity resolver | `farhat_football_app/Apis/auth/identity.cjs` |
 | React routes, Auth0 interceptor bootstrap | `farhat_football_app/src/App.jsx` |
 | Shared `pg` pool — required directly by anything touching the DB | `farhat_football_app/db.cjs` |
 | Axios `publicApi` / `privateApi` + JWT interceptor | `farhat_football_app/src/api.jsx` |
@@ -63,13 +65,19 @@ All from `farhat_football_app/`. **CI runs these on every pull request**
 
 | Purpose | Command |
 |---|---|
-| Tests (all under `tests/`) | `npm test` — see `unit-test-engineer` |
+| Unit tests | `npm test` — see `unit-test-engineer` |
+| Integration tests (needs Docker) | `npm run test:integration` |
 | Both tiers together | `npm run dev` (API :3000 + Vite :5173) |
-| API only | `npm run server` |
+| API only, with reload | `npm run server` (nodemon — **never in production**) |
+| API only, as production runs it | `npm start` (plain `node server.cjs`) |
 | Client only | `npm run client` |
-| Lint (`**/*.{js,jsx}` only — **not** `.cjs`) | `npm run lint` |
+| Lint — `**/*.{js,jsx}` **and** `**/*.cjs` | `npm run lint` |
 | Production build → `dist/client` | `npm run build` |
 | Syntax-check a backend file | `node --check Apis/<domain>/<file>.cjs` |
+| Migration state / apply | `npm run migrate:status` / `npm run migrate` |
+
+Lint **does** cover `.cjs` — it has since QA-001, and the baseline is 0 errors / 5 warnings with
+warnings capped at 5. An earlier version of this table said otherwise; it was wrong.
 
 Verification is `npm run lint`, `node --check` on any `.cjs` you touched, then exercising the
 change through `npm run dev`.

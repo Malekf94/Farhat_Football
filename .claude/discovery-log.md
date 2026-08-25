@@ -286,3 +286,105 @@ error in PowerShell.
 cannot check cheaply. Both shells were then tested directly — including validating `Copy-Item`
 against a temp target rather than `.env`, which holds live credentials and would have been
 overwritten by the documented command.
+
+## 2026-08-26
+
+### A deploy that failed for 90 seconds of silence, and the variable nobody would suspect
+
+**Issue** — Render's staging deploy was red. The log said only:
+
+```
+running node server.cjs
+Port scan timeout reached, no open ports detected
+```
+
+The failure was attributed to the most recent merge, PR #5 (SEC-003, roster mutation identity),
+because that was the change that preceded it.
+
+**Cause** — `Apis/auth/checkJwt.cjs:3` builds its Auth0 verifier at **require** time. With
+`VITE_AUTH0_AUDIENCE` unset, `express-oauth2-jwt-bearer` throws
+`AssertionError: An 'audience' is required to validate the 'aud' claim` while modules are still
+loading, so the process starts, dies before `app.listen`, and Render's port scan simply times
+out. Nothing in the message mentions an environment variable.
+
+**How it was settled** — Not by reading the code, which supports either story, but by booting
+three commits with only that variable absent and everything else present: `origin/staging`, the
+commit *before* PR #5, and `origin/main` all failed identically. A crash reproducible on `main`
+cannot have been introduced by a branch merged after it. Separately, the staging tree passed
+`npm ci`, `npm test` and `npm run build` and booted fine once the variable was supplied.
+
+**Why it was easy to blame the wrong thing** — the correlation was real (the deploy did fail
+after that merge) and the guard PR #5 added genuinely does tighten authorization, so a
+plausible story was available. It was also the only recent change. Timing plus plausibility is
+not evidence, and the cheap experiment — vary one input, hold the rest — separated them in
+about a minute.
+
+**Lesson** — `VITE_AUTH0_AUDIENCE` is the only `VITE_`-prefixed variable the **backend** reads
+at runtime, and the only variable in the whole set whose absence stops the port opening. Its
+prefix actively misleads: anyone provisioning a service treats `VITE_*` as frontend build config
+and drops it, or "corrects" it to `AUTH0_AUDIENCE`. `.env.example` said as much — "these four
+are read by the frontend" — and has been corrected, because a wrong negative claim is the kind
+that stops you looking. Promoted to [`repo-pitfalls`](skills/repo-pitfalls/SKILL.md).
+
+### dotenv was being loaded by the wrong file, and it happened to work
+
+**Issue** — While extracting `app.cjs` for TEST-002, the require order in `server.cjs` looked
+wrong: `checkJwt.cjs` was required on line 18, and `require("dotenv").config()` ran on line 19.
+Since `checkJwt` reads `VITE_AUTH0_AUDIENCE` at require time, that should never have worked.
+
+**Cause** — It worked because `db.cjs:2` also calls `dotenv.config()`, and `db.cjs` is pulled in
+transitively by the first route require on line 5 — thirteen lines earlier. The environment was
+always loaded by the time line 18 ran, so the call on line 19 was dead code and the ordering was
+accidental. Verified both ways: with a dummy `.env` and no shell environment the server starts;
+with neither it crashes at `checkJwt.cjs:3`.
+
+**Lesson** — Reordering those requires, or removing dotenv from `db.cjs`, would have broken JWT
+validation at boot with nothing to catch it. `app.cjs` now loads dotenv on its first line, above
+every require, so the ordering is stated rather than inherited.
+
+### A mutation that says "your test is fine" and means "the fake is doing the work"
+
+**Issue** — Deleting `AND auth0_sub IS NULL` from the identity claim in `identity.cjs` left all
+18 unit tests for that module green. That clause is the entire race-safety property: two
+concurrent first requests both read a row as unclaimed, and only one `UPDATE` may bind it.
+
+**Cause** — The fake pool's claim handler applied the condition itself, so removing it from the
+SQL changed nothing the fake did. The test was exercising the fake's logic, not the module's.
+
+**Lesson** — A fake can only prove the JavaScript around a query. Anything a query enforces —
+a `WHERE` guard, a unique index, `ON CONFLICT`, a constraint — has to be driven against a real
+database, and the case now lives in `tests/integration/auth/identity.test.js`, where restoring
+the mutation reddens two tests. This is the second time mutation testing in this repo has found
+that the interesting behaviour lives in PostgreSQL rather than in the module under test.
+Promoted to [`repo-pitfalls`](skills/repo-pitfalls/SKILL.md).
+
+### An endpoint behind a guard that its only caller could not satisfy
+
+**Issue** — While removing the caller-supplied email from `/players/check` (SEC-008),
+`LoginPage.jsx` turned out to call it through the bare `axios` default instance rather than
+`privateApi`.
+
+**Cause** — The route is mounted with `checkJwt`, so a request without a bearer token is
+rejected. The bare instance attaches none, and also uses a relative URL that depends on the Vite
+proxy the documented setup bypasses. The call therefore always failed, and the page's catch block
+turned that into "An error occurred. Please try again." — on the screen whose entire job is
+deciding whether to send a new user to signup.
+
+**Lesson** — It was already broken before this sprint touched it, and nothing surfaced it,
+because a guard rejecting an unauthenticated call looks exactly like a guard working. The
+frontend rule already says every call behind `checkJwt` goes through `privateApi`; what was
+missing was anything that would notice the rule being broken. Worth remembering when auditing
+callers: grep for `axios.` in `src/` and check each hit against the route's guards.
+
+### MSYS path conversion makes a real branch look missing
+
+**Issue** — `git show origin/staging:.nvmrc` failed with
+`fatal: ambiguous argument 'origin\staging;.nvmrc': unknown revision or path not in the working
+tree`, which reads as though the branch does not exist.
+
+**Cause** — Git Bash on Windows rewrites arguments that look like POSIX paths. `origin/staging:.nvmrc`
+was mangled into `origin\staging;.nvmrc` before git ever saw it.
+
+**Lesson** — Export `MSYS_NO_PATHCONV=1` before any git command carrying a `rev:path` argument.
+The error names the revision, not the quoting, so it sends you looking for a missing branch.
+Promoted to [`repo-pitfalls`](skills/repo-pitfalls/SKILL.md).
