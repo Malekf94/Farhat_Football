@@ -1,9 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
 	makeFakePool,
+	makeIdentityPool,
 	makeRes,
 	reqWithEmail,
 	spyNext,
+	SQL,
 } from "../helpers/fakePool.js";
 
 // TEST-002 made this module injectable, so the host-scoping tiers are testable
@@ -15,9 +17,10 @@ const DEFAULT_HOST_ID = 1;
 const OTHER_HOST_ID = 2;
 
 const HOSTS = "FROM hosts WHERE slug";
-const PLAYERS = "FROM players WHERE email";
 const HOST_ADMINS = "FROM host_admins";
 const MATCHES = "FROM matches WHERE match_id";
+
+const EMAIL = "caller@example.test";
 
 const load = async () => {
 	const mod = await import("../../../Apis/auth/requireHostAdmin.cjs");
@@ -25,12 +28,13 @@ const load = async () => {
 };
 
 // Each call builds a fresh instance, so the default-host id cached inside one
-// test cannot answer for the next.
+// test cannot answer for the next. The pool models the AUTH-001 identity
+// statements as well as the host tables, because getCaller now resolves through
+// the shared resolver rather than querying by email itself.
 const build = async ({ player, hostAdminRows = [], matchRows = [], hosts } = {}) => {
 	const { createHostAdminAuth } = await load();
-	const pool = makeFakePool([
+	const pool = makeIdentityPool(player ? [{ email: EMAIL, ...player }] : [], [
 		{ match: HOSTS, rows: hosts ?? [{ host_id: DEFAULT_HOST_ID }] },
-		{ match: PLAYERS, rows: player ? [player] : [] },
 		{ match: HOST_ADMINS, rows: hostAdminRows },
 		{ match: MATCHES, rows: matchRows },
 	]);
@@ -130,23 +134,21 @@ describe("getDefaultHostId", () => {
 });
 
 describe("getCaller", () => {
-	it("returns null when the token carries no email", async () => {
+	it("returns null without querying when the token carries no subject", async () => {
 		const { getCaller, pool } = await build({ player: globalAdmin });
 
 		expect(await getCaller({ auth: { payload: {} } })).toBeNull();
-		expect(pool.queriesMatching(PLAYERS)).toHaveLength(0);
+		expect(pool.query).not.toHaveBeenCalled();
 	});
 
-	it("returns null when the email matches no player", async () => {
+	it("returns null when the identity matches no player", async () => {
 		const { getCaller } = await build({ player: null });
 		expect(await getCaller(reqWithEmail("ghost@example.test"))).toBeNull();
 	});
 
-	it("returns the player row for a known email", async () => {
+	it("returns the player row for a known identity", async () => {
 		const { getCaller } = await build({ player: globalAdmin });
-		expect(await getCaller(reqWithEmail("admin@example.test"))).toEqual(
-			globalAdmin,
-		);
+		expect(await getCaller(reqWithEmail(EMAIL))).toMatchObject(globalAdmin);
 	});
 });
 
@@ -174,7 +176,7 @@ describe("requireHostAdmin", () => {
 			matchRows: [],
 		});
 		const res = makeRes();
-		const req = reqWithEmail("admin@example.test", { params: { match_id: "99" } });
+		const req = reqWithEmail(EMAIL, { params: { match_id: "99" } });
 
 		await requireHostAdmin()(req, res, next);
 
@@ -188,13 +190,13 @@ describe("requireHostAdmin", () => {
 			matchRows: [{ host_id: DEFAULT_HOST_ID }],
 		});
 		const res = makeRes();
-		const req = reqWithEmail("admin@example.test", { params: { match_id: "5" } });
+		const req = reqWithEmail(EMAIL, { params: { match_id: "5" } });
 
 		await requireHostAdmin()(req, res, next);
 
 		expect(next).toHaveBeenCalledOnce();
 		expect(req.hostId).toBe(DEFAULT_HOST_ID);
-		expect(req.player).toEqual(globalAdmin);
+		expect(req.player).toMatchObject(globalAdmin);
 	});
 
 	it("refuses a global admin acting on a match owned by another host", async () => {
@@ -204,7 +206,7 @@ describe("requireHostAdmin", () => {
 			hostAdminRows: [],
 		});
 		const res = makeRes();
-		const req = reqWithEmail("admin@example.test", { params: { match_id: "5" } });
+		const req = reqWithEmail(EMAIL, { params: { match_id: "5" } });
 
 		await requireHostAdmin()(req, res, next);
 
@@ -218,7 +220,7 @@ describe("requireHostAdmin", () => {
 			player: superadmin,
 			matchRows: [],
 		});
-		const req = reqWithEmail("super@example.test", {
+		const req = reqWithEmail(EMAIL, {
 			body: { host_id: "2" },
 		});
 
@@ -231,7 +233,7 @@ describe("requireHostAdmin", () => {
 
 	it("falls back to the default host when the body carries no host_id", async () => {
 		const { requireHostAdmin } = await build({ player: globalAdmin });
-		const req = reqWithEmail("admin@example.test", { body: {} });
+		const req = reqWithEmail(EMAIL, { body: {} });
 
 		await requireHostAdmin({ source: "body" })(req, makeRes(), next);
 
@@ -242,13 +244,13 @@ describe("requireHostAdmin", () => {
 	it("returns 500 rather than admitting the caller when a query fails", async () => {
 		const { createHostAdminAuth } = await load();
 		const pool = makeFakePool([
-			{ match: PLAYERS, throws: new Error("connection terminated") },
+			{ match: SQL.BY_SUBJECT, throws: new Error("connection terminated") },
 		]);
 		const res = makeRes();
 		const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
 
 		await createHostAdminAuth(pool).requireHostAdmin()(
-			reqWithEmail("admin@example.test", { params: { match_id: "5" } }),
+			reqWithEmail(EMAIL, { params: { match_id: "5" } }),
 			res,
 			next,
 		);

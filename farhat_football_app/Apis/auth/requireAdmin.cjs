@@ -1,61 +1,69 @@
-const defaultPool = require("../../db.cjs");
-
-// Resolve the caller's email from the VERIFIED access token (set by checkJwt
-// as req.auth.payload). The standard `email` claim is checked first; if your
-// Auth0 tenant exposes email under a namespaced custom claim, set
-// AUTH0_EMAIL_CLAIM to that claim name (e.g. https://farhatfootball.co.uk/email).
-function getEmailFromToken(req) {
-	const payload = req.auth?.payload || {};
-	const claim = process.env.AUTH0_EMAIL_CLAIM;
-	return (claim && payload[claim]) || payload.email || null;
-}
+const { createIdentity, UNRESOLVED } = require("./identity.cjs");
 
 // Authorization middleware. Must run AFTER checkJwt.
-// Looks the caller up by their token email and confirms admin rights from the
-// DB — the client cannot spoof this by sending an ID in the request body.
+//
+// Identity comes from the immutable Auth0 subject via the shared resolver, so a
+// change of email address in Auth0 cannot move or lose a player's privileges
+// (AUTH-001). Admin flags are read from that player's DB row — the client
+// cannot spoof them by sending an ID or a flag in the request body.
+//
 //   requireAdmin()                    -> requires is_admin
 //   requireAdmin({ superadmin: true }) -> requires is_superadmin
 //
 // createRequireAdmin takes the pool so tests can supply a fake one; a .cjs
 // module's require() cannot be intercepted by vi.mock(), so injection is the
 // only way to unit test the branches that query (TEST-002).
-const createRequireAdmin =
-	(pool = defaultPool) =>
-	(opts = {}) =>
-	async (req, res, next) => {
-		try {
-			const email = getEmailFromToken(req);
-			if (!email) {
-				return res
-					.status(403)
-					.json({ error: "Could not verify identity from token." });
+const createRequireAdmin = (pool) => {
+	const { resolvePlayer } = createIdentity(pool);
+
+	return (opts = {}) =>
+		async (req, res, next) => {
+			try {
+				const { player, reason } = await resolvePlayer(req);
+
+				if (!player) {
+					// An account that cannot be identified at all, one whose email the
+					// tenant reports as unverified, and one whose address matches more
+					// than one row are each refused for their own reason. Anything
+					// else is reported as a plain lack of admin rights, so the response
+					// does not disclose whether an account exists.
+					if (reason === UNRESOLVED.NO_SUBJECT) {
+						return res
+							.status(403)
+							.json({ error: "Could not verify identity from token." });
+					}
+					if (reason === UNRESOLVED.UNVERIFIED_EMAIL) {
+						return res
+							.status(403)
+							.json({ error: "Email address is not verified." });
+					}
+					if (reason === UNRESOLVED.AMBIGUOUS_EMAIL) {
+						return res
+							.status(403)
+							.json({ error: "Account could not be identified uniquely." });
+					}
+					return res.status(403).json({ error: "Admin access required." });
+				}
+
+				const authorised = opts.superadmin
+					? player.is_superadmin
+					: player.is_admin;
+
+				if (!authorised) {
+					return res.status(403).json({ error: "Admin access required." });
+				}
+
+				// Expose the verified caller to downstream handlers.
+				req.player = player;
+				next();
+			} catch (error) {
+				console.error("requireAdmin error:", error);
+				res.status(500).json({ error: "Authorization check failed." });
 			}
-
-			const { rows } = await pool.query(
-				"SELECT player_id, is_admin, is_superadmin FROM players WHERE email = $1",
-				[email],
-			);
-			const player = rows[0];
-
-			const authorised = opts.superadmin
-				? player?.is_superadmin
-				: player?.is_admin;
-
-			if (!authorised) {
-				return res.status(403).json({ error: "Admin access required." });
-			}
-
-			// Expose the verified caller to downstream handlers.
-			req.player = player;
-			next();
-		} catch (error) {
-			console.error("requireAdmin error:", error);
-			res.status(500).json({ error: "Authorization check failed." });
-		}
-	};
+		};
+};
 
 const requireAdmin = createRequireAdmin();
 
 module.exports = requireAdmin;
 module.exports.createRequireAdmin = createRequireAdmin;
-module.exports.getEmailFromToken = getEmailFromToken;
