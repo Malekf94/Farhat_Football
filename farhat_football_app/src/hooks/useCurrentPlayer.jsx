@@ -21,9 +21,9 @@ export function useCurrentPlayer() {
 
 		const fetchPlayer = async () => {
 			try {
-				const response = await privateApi.get(
-					`/api/v1/players/check?email=${user.email}`,
-				);
+				// No email is sent: the endpoint answers only about the caller, from
+				// the token's subject (SEC-008).
+				const response = await privateApi.get("/api/v1/players/check");
 				if (response.data.exists) {
 					setPlayerId(response.data.player_id);
 					setIsAdmin(response.data.is_admin);

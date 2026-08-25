@@ -2,6 +2,7 @@ import { useAuth0 } from "@auth0/auth0-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
+import { privateApi } from "../../api";
 
 function LoginPage() {
 	const { loginWithRedirect, isAuthenticated, user } = useAuth0();
@@ -100,10 +101,11 @@ function LoginPage() {
 			if (isAuthenticated && user) {
 				try {
 					setIsLoading(true);
-					// Check if user exists in the database
-					const response = await axios.get(
-						`/api/v1/players/check?email=${user.email}`
-					);
+					// Check if user exists in the database. This must go through
+					// privateApi: the route is behind checkJwt, so the bare axios
+					// instance sent no token and the call always failed. No email is
+					// sent — the endpoint answers only about the caller (SEC-008).
+					const response = await privateApi.get("/api/v1/players/check");
 
 					if (response.data.exists) {
 						// User exists — send them where they were originally headed
