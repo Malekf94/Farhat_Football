@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
+const compression = require("compression");
 const path = require("path");
 const matchRoutes = require("./Apis/matches/routes.cjs");
 const playerRoutes = require("./Apis/players/routes.cjs");
@@ -20,6 +21,36 @@ require("dotenv").config();
 
 const app = express();
 const port = process.env.PORT || 3000;
+
+// Request logging — registered FIRST so it wraps every response, static assets
+// included (previously static serving was completely unlogged, so a bandwidth
+// spike left no trace). Counting bytes here, before compression re-wraps the
+// response, means the figure reported is the compressed on-the-wire size.
+app.use((req, res, next) => {
+	const start = Date.now();
+	let bytes = 0;
+	const { write, end } = res;
+	res.write = function (chunk, ...args) {
+		if (chunk) bytes += Buffer.byteLength(chunk);
+		return write.call(this, chunk, ...args);
+	};
+	res.end = function (chunk, ...args) {
+		if (chunk) bytes += Buffer.byteLength(chunk);
+		return end.call(this, chunk, ...args);
+	};
+	res.on("finish", () => {
+		console.log(
+			`${req.method} ${req.originalUrl} ${res.statusCode} ${bytes}b ${
+				Date.now() - start
+			}ms`,
+		);
+	});
+	next();
+});
+
+// Compression: gzip every compressible response. The JS/CSS bundle and all JSON
+// shrink ~60-80% on the wire.
+app.use(compression());
 
 // Middleware: Dynamic CSP based on environment
 app.use((req, res, next) => {
@@ -144,11 +175,31 @@ app.use("/api/v1/payments", checkJwt, paymentRoutes);
 app.use("/api/v1/hosts", hostRoutes);
 app.use("/api/v1/bans", banRoutes);
 
-// Serve static files from React frontend
-app.use(express.static(path.join(__dirname, "./dist/client")));
+// Serve the built frontend. Vite fingerprints everything under /assets, so
+// those files can be cached indefinitely (a new build produces new filenames).
+// index.html must NEVER be cached — it points at the current hashed bundle — so
+// index:false leaves it to the catch-all below, which sets no-store.
+app.use(
+	express.static(path.join(__dirname, "./dist/client"), {
+		index: false,
+		setHeaders: (res, filePath) => {
+			if (filePath.includes(`${path.sep}assets${path.sep}`)) {
+				res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+			} else {
+				res.setHeader("Cache-Control", "no-cache");
+			}
+		},
+	}),
+);
 
-// Catch-all route to serve frontend
+// Ask well-behaved crawlers to leave the API alone (bandwidth hygiene).
+app.get("/robots.txt", (req, res) => {
+	res.type("text/plain").send("User-agent: *\nDisallow: /api/\n");
+});
+
+// Catch-all route to serve frontend. Never cache index.html.
 app.get("*", (req, res) => {
+	res.setHeader("Cache-Control", "no-store");
 	res.sendFile(path.join(__dirname, "./dist/client", "index.html"));
 });
 
