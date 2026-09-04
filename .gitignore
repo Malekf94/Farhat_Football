@@ -22,3 +22,17 @@ farhat_football_app/src/payments/.env
 edb_psqlodbc.exe
 My Football DB.session.sql
 querydata
+
+# Security assessment — stays local. This repository is public, and the audit
+# is a ranked exploit map for defects still open in production. Never commit it.
+assessment/
+
+# Local database dumps — may contain real player data. The hand-written schema
+# files are tracked deliberately; only full dumps are excluded.
+dump*.sql
+*.dump
+
+# Logs
+*.log
+logs/
+npm-debug.log*
