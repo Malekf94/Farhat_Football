@@ -99,9 +99,15 @@ async function recordVerifiedPayment(payment) {
 	return result.rowCount > 0;
 }
 
-// Always answers 200. A rejected or unverifiable event is a problem for this
-// server to deal with, not something to argue with the provider about, and
-// anything genuinely missed is re-read from Monzo by runFullPaymentSync.
+// TEMPORARY — payment re-verification (SEC-001) is deferred. This account no
+// longer keeps a fresh Monzo access token, so re-fetching every event from
+// Monzo would 401 and reject every genuine payment. Until a durable token is in
+// place, this restores the pre-SEC-001 behaviour: trust the webhook body and
+// record the payment directly. fetchMonzoTransaction / verifyTransaction remain
+// defined, exported and unit-tested, ready to switch back on — swap this body
+// back to the re-fetch version once the token is sorted.
+//
+// Always answers 200.
 async function handleMonzoWebhook(req, res) {
 	try {
 		const body = req.body;
@@ -109,39 +115,30 @@ async function handleMonzoWebhook(req, res) {
 			return res.sendStatus(200);
 		}
 
-		const claimed = body.data || {};
-		if (!claimed.id) {
-			console.warn("[monzo] event carried no transaction id");
+		const tx = body.data || {};
+		if (!tx.id || !(tx.amount > 0)) {
 			return res.sendStatus(200);
 		}
 
-		let actual;
-		try {
-			actual = await fetchMonzoTransaction(claimed.id);
-		} catch (error) {
-			// Unverifiable is not the same as invalid. Nothing is written, and the
-			// Monzo poll re-reads the last 24 hours to pick up what was missed.
-			const status = error.response?.status;
-			console.error(
-				`[monzo] could not verify ${claimed.id} (status ${status ?? "n/a"}); recorded nothing`,
-			);
+		const notes = (tx.notes || "").toLowerCase();
+		const reference = notes.match(PLAYER_REFERENCE);
+		const playerId = reference ? Number.parseInt(reference[1], 10) : null;
+		if (!playerId) {
+			console.log("[monzo] no valid player reference in notes:", notes);
 			return res.sendStatus(200);
 		}
 
-		const verdict = verifyTransaction(actual, claimed, {
-			accountId: process.env.MONZO_ACCOUNT_ID,
+		const inserted = await recordVerifiedPayment({
+			transactionId: tx.id,
+			playerId,
+			amount: tx.amount / 100,
+			notes,
+			created: tx.created,
 		});
-
-		if (!verdict.ok) {
-			console.warn(`[monzo] rejected ${claimed.id}: ${verdict.reason}`);
-			return res.sendStatus(200);
-		}
-
-		const inserted = await recordVerifiedPayment(verdict.payment);
 		console.log(
 			inserted
-				? `[monzo] recorded ${verdict.payment.transactionId} for player ${verdict.payment.playerId}`
-				: `[monzo] already recorded ${verdict.payment.transactionId}`,
+				? `[monzo] recorded ${tx.id} for player ${playerId}`
+				: `[monzo] already recorded ${tx.id}`,
 		);
 	} catch (error) {
 		console.error("[monzo] webhook error:", error);
