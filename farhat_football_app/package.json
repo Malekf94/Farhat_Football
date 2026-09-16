@@ -26,6 +26,7 @@
 		"@auth0/auth0-react": "^2.2.4",
 		"@getbrevo/brevo": "^5.0.4",
 		"axios": "^1.7.7",
+		"compression": "^1.8.1",
 		"cors": "^2.8.5",
 		"date-fns": "^4.1.0",
 		"dotenv": "^16.4.7",
