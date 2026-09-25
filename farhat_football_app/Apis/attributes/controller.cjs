@@ -129,20 +129,24 @@ const getLeadingAttributes = async (req, res) => {
 	}
 };
 
-// Superadmin: every player with all their attribute columns, for a CSV export.
-// Columns come from loadAttributes (the real attribute columns, from the DB
-// schema), so this stays correct if attributes are added or removed.
+// Superadmin: every player IN A MATCH with all their attribute columns, for a
+// CSV export. Includes reserves (no team filter). Columns come from
+// loadAttributes (the real attribute columns), so this stays correct if
+// attributes are added or removed.
 const exportPlayerAttributes = async (req, res) => {
+	const { match_id } = req.params;
 	try {
 		const attributeColumns = await loadAttributes(pool);
 		const selectCols = attributeColumns.map((c) => `a.${c}`).join(", ");
 		const query = `
 			SELECT p.preferred_name AS player_name, a.player_id, ${selectCols}
-			FROM attributes a
-			JOIN players p ON a.player_id = p.player_id
+			FROM match_players mp
+			JOIN players p ON p.player_id = mp.player_id
+			JOIN attributes a ON a.player_id = mp.player_id
+			WHERE mp.match_id = $1
 			ORDER BY p.preferred_name ASC, a.player_id ASC
 		`;
-		const { rows } = await pool.query(query);
+		const { rows } = await pool.query(query, [match_id]);
 		res.json(rows);
 	} catch (err) {
 		console.error("Error exporting player attributes:", err);

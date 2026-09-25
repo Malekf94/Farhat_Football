@@ -463,10 +463,12 @@ function IndividualMatch() {
 
 	const handleDownloadAttributes = async () => {
 		try {
-			const res = await privateApi.get(`/api/v1/attributes/export`);
+			const res = await privateApi.get(
+				`/api/v1/attributes/export/${match_id}`,
+			);
 			const rows = res.data;
 			if (!rows || rows.length === 0) {
-				showToast("No player attributes found.", "error");
+				showToast("No player attributes found for this match.", "error");
 				return;
 			}
 
@@ -486,7 +488,7 @@ function IndividualMatch() {
 			const url = URL.createObjectURL(blob);
 			const link = document.createElement("a");
 			link.href = url;
-			link.download = `player_attributes.csv`;
+			link.download = `match_${match_id}_attributes.csv`;
 			document.body.appendChild(link);
 			link.click();
 			document.body.removeChild(link);

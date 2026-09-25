@@ -8,10 +8,10 @@ const router = Router();
 
 router.get("/", controller.listAttributes);
 router.get("/leaderboard/:attribute", controller.getLeadingAttributes);
-// Superadmin CSV export of every player's attributes. Must stay above the
-// parameterised "/:player_id" route below, or "export" is read as a player id.
+// Superadmin CSV export of the attributes of every player in a given match.
+// Must stay above the parameterised "/:player_id" route below.
 router.get(
-	"/export",
+	"/export/:match_id",
 	checkJwt,
 	requireAdmin({ superadmin: true }),
 	controller.exportPlayerAttributes,
