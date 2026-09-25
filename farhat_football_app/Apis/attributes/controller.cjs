@@ -129,9 +129,31 @@ const getLeadingAttributes = async (req, res) => {
 	}
 };
 
+// Superadmin: every player with all their attribute columns, for a CSV export.
+// Columns come from loadAttributes (the real attribute columns, from the DB
+// schema), so this stays correct if attributes are added or removed.
+const exportPlayerAttributes = async (req, res) => {
+	try {
+		const attributeColumns = await loadAttributes(pool);
+		const selectCols = attributeColumns.map((c) => `a.${c}`).join(", ");
+		const query = `
+			SELECT p.preferred_name AS player_name, a.player_id, ${selectCols}
+			FROM attributes a
+			JOIN players p ON a.player_id = p.player_id
+			ORDER BY p.preferred_name ASC, a.player_id ASC
+		`;
+		const { rows } = await pool.query(query);
+		res.json(rows);
+	} catch (err) {
+		console.error("Error exporting player attributes:", err);
+		res.status(500).json({ error: "Database error" });
+	}
+};
+
 module.exports = {
 	getAttributes,
 	updateAttributes,
 	getLeadingAttributes,
 	listAttributes,
+	exportPlayerAttributes,
 };

@@ -8,6 +8,14 @@ const router = Router();
 
 router.get("/", controller.listAttributes);
 router.get("/leaderboard/:attribute", controller.getLeadingAttributes);
+// Superadmin CSV export of every player's attributes. Must stay above the
+// parameterised "/:player_id" route below, or "export" is read as a player id.
+router.get(
+	"/export",
+	checkJwt,
+	requireAdmin({ superadmin: true }),
+	controller.exportPlayerAttributes,
+);
 router.get("/:player_id", controller.getAttributes);
 // Attributes are shared across all hosts, so only the superadmin may edit them
 router.put(

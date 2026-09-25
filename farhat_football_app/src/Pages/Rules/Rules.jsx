@@ -8,6 +8,7 @@ const ruleGroups = [
 		rules: [
 			"Respect others and respect the game.",
 			"Avoid wearing blades if you can. If you do, be conscious of them and don't use full force — you could injure someone.",
+			"No slide tackles — it's for everyone's safety. The only exception is when there's genuinely no one around you, though that's a bit of a judgement call.",
 		],
 	},
 	{
@@ -23,8 +24,11 @@ const ruleGroups = [
 		title: "Timekeeping",
 		rules: [
 			"Be early. If you're on time, you're late.",
-			"If you arrive after the cameras are set up, there's a £1 late fee.",
+			"You're counted late if you're not on the pitch — booted up and in a bib — by the time the camera is set up.",
+			"The late fee is £1. Turn up 10 or more minutes late and it's £2.",
 			"Repeated lateness earns a ban: 3 lates within 3 weeks means a 1-week ban from joining games.",
+			"No-show? Don't turn up at all and you're charged double the match fee, plus a two-week ban.",
+			"Banned — for a no-show or for 3 lates — you can pay £4.50 to lift it early, or wait the ban out.",
 		],
 	},
 	{
