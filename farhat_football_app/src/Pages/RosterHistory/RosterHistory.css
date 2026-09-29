@@ -1,0 +1,68 @@
+.roster-history-sub {
+	opacity: 0.8;
+	margin-bottom: 16px;
+}
+
+.roster-history-filters {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-bottom: 16px;
+}
+
+.roster-history-filters input {
+	padding: 8px 10px;
+	border-radius: 5px;
+	border: 1px solid #ffcc00;
+	background-color: #222;
+	color: #fff;
+	min-width: 160px;
+}
+
+.roster-history-filters button {
+	margin: 0;
+}
+
+.roster-history-error {
+	color: #ff5555;
+}
+
+.roster-history-table {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+.roster-history-table th,
+.roster-history-table td {
+	padding: 8px 10px;
+	border-bottom: 1px solid #444;
+	text-align: left;
+	white-space: nowrap;
+}
+
+.roster-history-table th {
+	color: #ffcc00;
+}
+
+.event-badge {
+	display: inline-block;
+	padding: 2px 8px;
+	border-radius: 10px;
+	font-size: 0.85rem;
+	font-weight: 600;
+}
+
+.event-joined {
+	background-color: rgba(80, 200, 120, 0.2);
+	color: #6fdc8c;
+}
+
+.event-left {
+	background-color: rgba(255, 85, 85, 0.2);
+	color: #ff7b7b;
+}
+
+.event-match_deleted {
+	background-color: rgba(160, 160, 160, 0.2);
+	color: #bbb;
+}
