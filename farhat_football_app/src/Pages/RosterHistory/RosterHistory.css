@@ -1,68 +1,103 @@
-.roster-history-sub {
+/* Page CSS is bundled globally, and other pages ship unscoped rules
+   (Players.css styles every `form` and `form input`; App.css every table).
+   Everything here is prefixed with .roster-history so it outranks those. */
+
+.roster-history .roster-history-sub {
 	opacity: 0.8;
-	margin-bottom: 16px;
+	margin: 0 auto 20px;
+	max-width: 640px;
 }
 
-.roster-history-filters {
+/* Filter bar: one compact row, not Players.css's full-width dark panel. */
+.roster-history .roster-history-filters {
 	display: flex;
 	flex-wrap: wrap;
-	gap: 8px;
-	margin-bottom: 16px;
+	justify-content: center;
+	align-items: center;
+	gap: 10px;
+	max-width: none;
+	width: auto;
+	margin: 0 auto 20px;
+	padding: 0;
+	background: none;
+	box-shadow: none;
+	border-radius: 0;
 }
 
-.roster-history-filters input {
-	padding: 8px 10px;
-	border-radius: 5px;
-	border: 1px solid #ffcc00;
-	background-color: #222;
-	color: #fff;
-	min-width: 160px;
-}
-
-.roster-history-filters button {
+.roster-history .roster-history-filters input {
+	width: 180px;
 	margin: 0;
+	padding: 9px 12px;
+	border: 1px solid #555;
+	border-radius: 6px;
+	background-color: #1e1e1e;
+	color: #f9f9f9;
+	font-size: 0.95rem;
 }
 
-.roster-history-error {
-	color: #ff5555;
+.roster-history .roster-history-filters input::placeholder {
+	color: #888;
 }
 
-.roster-history-table {
+.roster-history .roster-history-filters input:focus {
+	outline: none;
+	border-color: #ffcc00;
+	background-color: #1e1e1e;
+}
+
+.roster-history .roster-history-filters button {
+	margin: 0;
+	padding: 9px 18px;
+}
+
+.roster-history .roster-history-error {
+	color: #ff7b7b;
+}
+
+/* Table: keep the site's house table style, just tighten it. */
+.roster-history .roster-history-table {
 	width: 100%;
 	border-collapse: collapse;
 }
 
-.roster-history-table th,
-.roster-history-table td {
-	padding: 8px 10px;
-	border-bottom: 1px solid #444;
-	text-align: left;
+.roster-history .roster-history-table th,
+.roster-history .roster-history-table td {
+	padding: 10px 14px;
 	white-space: nowrap;
 }
 
-.roster-history-table th {
+.roster-history .roster-history-table a {
 	color: #ffcc00;
+	text-decoration: none;
 }
 
-.event-badge {
+.roster-history .roster-history-table a:hover {
+	text-decoration: underline;
+}
+
+.roster-history .event-badge {
 	display: inline-block;
-	padding: 2px 8px;
-	border-radius: 10px;
-	font-size: 0.85rem;
+	padding: 3px 10px;
+	border-radius: 999px;
+	font-size: 0.8rem;
 	font-weight: 600;
 }
 
-.event-joined {
-	background-color: rgba(80, 200, 120, 0.2);
+.roster-history .event-joined {
+	background-color: rgba(80, 200, 120, 0.18);
 	color: #6fdc8c;
 }
 
-.event-left {
-	background-color: rgba(255, 85, 85, 0.2);
-	color: #ff7b7b;
+.roster-history .event-left {
+	background-color: rgba(255, 85, 85, 0.18);
+	color: #ff8a8a;
 }
 
-.event-match_deleted {
-	background-color: rgba(160, 160, 160, 0.2);
+.roster-history .event-match_deleted {
+	background-color: rgba(160, 160, 160, 0.18);
 	color: #bbb;
+}
+
+.roster-history .pagination {
+	margin-top: 20px;
 }
