@@ -4,9 +4,10 @@
 const mod = await import("../../../db.cjs");
 export const pool = mod.default ?? mod;
 
-// Tables the seeds below write, plus the two the triggers write into:
-// trg_apply_payment logs to trigger_log, and account_balance_audit logs to
-// audit_log whenever the payment trigger moves a balance.
+// Tables the seeds below write, plus the ones triggers write into:
+// trg_apply_payment logs to trigger_log, account_balance_audit logs to
+// audit_log whenever the payment trigger moves a balance, and
+// trg_match_player_events logs roster joins and leaves to match_player_events.
 const TABLES = [
 	"payments",
 	"attributes",
@@ -19,6 +20,7 @@ const TABLES = [
 	"players",
 	"trigger_log",
 	"audit_log",
+	"match_player_events",
 ];
 
 export async function resetDatabase() {
