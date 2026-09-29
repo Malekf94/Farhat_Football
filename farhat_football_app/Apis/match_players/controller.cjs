@@ -437,7 +437,50 @@ const getMatchRatingsDetailed = async (req, res) => {
 	}
 };
 
+const ROSTER_EVENTS_PAGE_SIZE = 20;
+
+// Superadmin: roster join/leave history, newest first, a fixed page size set
+// here (never by the client), optionally filtered by match and/or player.
+const getRosterEvents = async (req, res) => {
+	const page = Math.max(1, Number.parseInt(req.query.page, 10) || 1);
+
+	let matchId = null;
+	if (req.query.match_id !== undefined && req.query.match_id !== "") {
+		matchId = Number(req.query.match_id);
+		if (!Number.isInteger(matchId)) {
+			return res.status(400).json({ error: "match_id must be a whole number." });
+		}
+	}
+
+	const player =
+		typeof req.query.player === "string" && req.query.player.trim() !== ""
+			? req.query.player.trim()
+			: null;
+
+	try {
+		const [count, rows] = await Promise.all([
+			pool.query(queries.countRosterEvents, [matchId, player]),
+			pool.query(queries.getRosterEvents, [
+				matchId,
+				player,
+				ROSTER_EVENTS_PAGE_SIZE,
+				(page - 1) * ROSTER_EVENTS_PAGE_SIZE,
+			]),
+		]);
+		res.json({
+			data: rows.rows,
+			total: count.rows[0].total,
+			page,
+			limit: ROSTER_EVENTS_PAGE_SIZE,
+		});
+	} catch (error) {
+		console.error("Error fetching roster events:", error);
+		res.status(500).json({ error: "Failed to fetch roster history." });
+	}
+};
+
 module.exports = {
+	getRosterEvents,
 	submitRatings,
 	getMyRatings,
 	getSuggestedRatings,

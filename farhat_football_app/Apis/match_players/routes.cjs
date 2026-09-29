@@ -13,6 +13,13 @@ router.delete("/", checkJwt, requireSelfOrHostAdmin, controller.removePlayerFrom
 router.post("/", checkJwt, requireSelfOrHostAdmin, controller.addPlayerToMatch);
 
 router.get("/lates", controller.getLates);
+// Superadmin roster join/leave history. Must stay above "/:match_id" below.
+router.get(
+	"/events",
+	checkJwt,
+	requireAdmin({ superadmin: true }),
+	controller.getRosterEvents,
+);
 router.get("/attributes/:match_id", controller.getPlayerAttributesInMatch);
 
 // Player-voted ratings

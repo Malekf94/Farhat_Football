@@ -29,6 +29,7 @@ import { setupInterceptors } from "./api.jsx";
 import PaymentsDashboard from "./Pages/PaymentsDashboard/PaymentsDashboard.jsx";
 import PlayerComparison from "./Pages/PlayerComparison/PlayerComparison.jsx";
 import ManageHosts from "./Pages/ManageHosts/ManageHosts.jsx";
+import RosterHistory from "./Pages/RosterHistory/RosterHistory.jsx";
 import HostLayout from "./components/HostLayout.jsx";
 import UpdateBanner from "./components/UpdateBanner.jsx";
 
@@ -129,6 +130,14 @@ function App() {
 					element={
 						<ProtectedSuperAdminRoute>
 							<ManageHosts />
+						</ProtectedSuperAdminRoute>
+					}
+				/>
+				<Route
+					path="/roster-history"
+					element={
+						<ProtectedSuperAdminRoute>
+							<RosterHistory />
 						</ProtectedSuperAdminRoute>
 					}
 				/>

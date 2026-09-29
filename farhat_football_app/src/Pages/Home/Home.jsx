@@ -149,6 +149,9 @@ function Home() {
 						<button className="btn" onClick={() => navigate("/manage-hosts")}>
 							Manage Hosts
 						</button>
+						<button className="btn" onClick={() => navigate("/roster-history")}>
+							Roster History
+						</button>
 					</div>
 				)}
 			</div>

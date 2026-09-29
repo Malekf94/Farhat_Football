@@ -133,7 +133,42 @@ const getMatchRatingsDetailed = `
   ORDER BY rater, ratee;
 `;
 
+// Roster history (match_player_events, migration 0003). One filter clause shared
+// by the page and the count, so the total always describes the same rows.
+// $1 = match id or NULL; $2 = player name fragment / exact id, or NULL.
+const rosterEventFilters = `
+  WHERE ($1::int IS NULL OR e.match_id = $1)
+    AND ($2::text IS NULL
+         OR p.preferred_name ILIKE '%' || $2 || '%'
+         OR e.player_id::text = $2)
+`;
+
+// LEFT JOINs: history outlives the match (and has no FKs), so a deleted match
+// still lists, with null match details. Dates come back as text to avoid pg
+// turning a DATE into a JS Date at local midnight. event_id breaks timestamp
+// ties so paging is stable.
+const getRosterEvents = `
+  SELECT e.event_id, e.event, e.team_id, e.occurred_at,
+         e.match_id, m.match_date::text AS match_date, m.match_time::text AS match_time,
+         e.player_id, p.preferred_name
+  FROM match_player_events e
+  LEFT JOIN players p ON p.player_id = e.player_id
+  LEFT JOIN matches m ON m.match_id = e.match_id
+  ${rosterEventFilters}
+  ORDER BY e.occurred_at DESC, e.event_id DESC
+  LIMIT $3 OFFSET $4;
+`;
+
+const countRosterEvents = `
+  SELECT count(*)::int AS total
+  FROM match_player_events e
+  LEFT JOIN players p ON p.player_id = e.player_id
+  ${rosterEventFilters};
+`;
+
 module.exports = {
+	getRosterEvents,
+	countRosterEvents,
 	getMatchStatus,
 	playedInMatch,
 	upsertRating,
