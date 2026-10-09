@@ -1,5 +1,26 @@
 import { describe, it, expect } from "vitest";
-import { applySuggestedRatings } from "../../../src/utils/ratings.js";
+import {
+	applySuggestedRatings,
+	toSuggestionMap,
+} from "../../../src/utils/ratings.js";
+
+describe("toSuggestionMap", () => {
+	it("keys the /suggested rows by ratee, keeping the average and vote count", () => {
+		const map = toSuggestionMap([
+			{ ratee_id: 5, suggested: "7.5", votes: "3" },
+			{ ratee_id: 9, suggested: "6.0", votes: "1" },
+		]);
+
+		expect(map).toEqual({
+			5: { suggested: "7.5", votes: "3" },
+			9: { suggested: "6.0", votes: "1" },
+		});
+	});
+
+	it("returns an empty map when nobody has voted", () => {
+		expect(toSuggestionMap([])).toEqual({});
+	});
+});
 
 // The "Use all suggested ratings" button: copy each player's voted average into
 // their editable rating, exactly as the per-player "Use" button does.

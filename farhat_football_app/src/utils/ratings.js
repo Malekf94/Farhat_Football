@@ -1,3 +1,12 @@
+// Rows from GET /ratings/:match_id/suggested, keyed by the player they rate.
+export function toSuggestionMap(rows) {
+	const map = {};
+	for (const r of rows) {
+		map[r.ratee_id] = { suggested: r.suggested, votes: r.votes };
+	}
+	return map;
+}
+
 // Copy each player's voted average into their editable rating — the bulk form
 // of the per-player "Use" button on the match page. Only players already in
 // `editedStats` (i.e. in the match) are touched; suggestions for anyone else are
