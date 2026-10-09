@@ -10,6 +10,7 @@ import { useCurrentPlayer } from "../../hooks/useCurrentPlayer";
 import { useMyHosts } from "../../hooks/useMyHosts";
 import { useHost } from "../../context/HostContext";
 import ConfirmModal from "../../components/ConfirmModal";
+import { applySuggestedRatings, toSuggestionMap } from "../../utils/ratings";
 
 function IndividualMatch() {
 	const { playerId, isSuperadmin } = useCurrentPlayer();
@@ -210,15 +211,35 @@ function IndividualMatch() {
 		if (!isAdmin || !isEditingStats) return;
 		privateApi
 			.get(`/api/v1/matchPlayer/ratings/${match_id}/suggested`)
-			.then((res) => {
-				const map = {};
-				res.data.forEach((r) => {
-					map[r.ratee_id] = { suggested: r.suggested, votes: r.votes };
-				});
-				setSuggestedRatings(map);
-			})
+			.then((res) => setSuggestedRatings(toSuggestionMap(res.data)))
 			.catch((err) => console.error("Error loading suggested ratings:", err));
 	}, [isAdmin, isEditingStats, match_id]);
+
+	// Admin: fill every player's rating with their voted average in one click.
+	// Like the per-player "Use" button it only fills the form — nothing is saved
+	// until Save Stats, so the admin can review the numbers first.
+	const handleUseAllSuggested = async () => {
+		try {
+			const res = await privateApi.get(
+				`/api/v1/matchPlayer/ratings/${match_id}/suggested`,
+			);
+			const map = toSuggestionMap(res.data);
+			const { filled } = applySuggestedRatings(editedPlayerStats, map);
+			if (filled === 0) {
+				showToast("No player votes for this match yet.", "error");
+				return;
+			}
+			setSuggestedRatings(map);
+			setEditedPlayerStats((prev) => applySuggestedRatings(prev, map).stats);
+			setIsEditingStats(true);
+			showToast(
+				`Filled ${filled} rating${filled === 1 ? "" : "s"} from player votes — check them, then press Save Stats.`,
+			);
+		} catch (error) {
+			console.error("Error applying suggested ratings:", error);
+			showToast("Failed to load suggested ratings.", "error");
+		}
+	};
 
 	const handleSubmitVotes = async () => {
 		const ratings = Object.entries(myVotes)
@@ -507,6 +528,11 @@ function IndividualMatch() {
 				{isAdmin && <button onClick={handleBalanceTeams}>Balance Teams</button>}
 				{isAdmin && (
 					<button onClick={() => setEmailModal(true)}>Email Players</button>
+				)}
+				{isAdmin && matchFinished && (
+					<button onClick={handleUseAllSuggested}>
+						Use All Suggested Ratings
+					</button>
 				)}
 			</div>
 
