@@ -271,11 +271,13 @@ Append a rule here only once it generalises. Keep the reasoning short and cite `
 - **[V 2026-08-25] `prop-types` is declared** since DEP-002 — it was imported by four files
   while resolving only transitively, one hoisting change away from a confusing
   module-not-found. Keep it declared.
-- **[V 2026-08-25] `vite` and `nodemon` are devDependencies (DEP-002), which constrains the
+- **[V 2026-08-25] `vite` is a devDependency (DEP-002), which constrains the
   deploy.** The host builds `dist/client` itself, so its install **must include
   devDependencies** — a platform that sets `NODE_ENV=production` makes `npm ci` skip them and
   the build then has no `vite`; use `npm ci --include=dev`. And production must start with
-  `npm start` (plain `node server.cjs`), never `npm run server`, which is `nodemon`. Verified
+  `npm start` (plain `node server.cjs`), never `npm run server`, which is `node --watch`
+  (it replaced `nodemon` on 2026-10-09: `nodemon` pulled in `braces`, which has a high
+  advisory with no patched version). Verified
   by running `npm ci --omit=dev` and resolving every backend require: all eight production
   packages resolve and `vite` is correctly absent.
 - **[V 2026-08-25] Git Bash on Windows mangles `git show <rev>:<path>`.** MSYS path conversion

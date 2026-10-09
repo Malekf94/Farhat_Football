@@ -68,7 +68,7 @@ All from `farhat_football_app/`. **CI runs these on every pull request**
 | Unit tests | `npm test` — see `unit-test-engineer` |
 | Integration tests (needs Docker) | `npm run test:integration` |
 | Both tiers together | `npm run dev` (API :3000 + Vite :5173) |
-| API only, with reload | `npm run server` (nodemon — **never in production**) |
+| API only, with reload | `npm run server` (`node --watch` — **never in production**) |
 | API only, as production runs it | `npm start` (plain `node server.cjs`) |
 | Client only | `npm run client` |
 | Lint — `**/*.{js,jsx}` **and** `**/*.cjs` | `npm run lint` |

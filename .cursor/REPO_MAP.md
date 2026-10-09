@@ -64,7 +64,7 @@ All run from `farhat_football_app/`:
 
 | Command | Effect |
 |---|---|
-| `npm run dev` | API (nodemon, :3000) + Vite client (:5173) together |
+| `npm run dev` | API (`node --watch`, :3000) + Vite client (:5173) together |
 | `npm run server` | API only |
 | `npm run client` | Vite dev server only |
 | `npm run build` | `vite build` → `dist/client` |

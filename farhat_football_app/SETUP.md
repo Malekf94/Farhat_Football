@@ -27,7 +27,7 @@ The server serves the built SPA from `dist/client`, which is gitignored, so the 
 | Install | `npm ci` | **Must include devDependencies.** `vite` is a devDependency (DEP-002), so an install that omits them cannot build. If the platform sets `NODE_ENV=production`, pass `npm ci --include=dev` |
 | Build | `npm run build` | Produces `dist/client` |
 | Migrate | `npm run migrate` | Only after the one-time baseline adoption — see below |
-| Start | `npm start` | Plain `node server.cjs`. Do **not** use `npm run server` in production: that is `nodemon`, a devDependency |
+| Start | `npm start` | Plain `node server.cjs`. Do **not** use `npm run server` in production: it runs `node --watch`, which restarts on every file change |
 
 ## Run it locally
 
