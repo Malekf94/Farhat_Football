@@ -625,6 +625,9 @@ function IndividualMatch() {
 									(p.team_id === 1 || p.team_id === 2) &&
 									p.player_id !== playerId,
 							)
+							// Same order as the team tables: Team 1 then Team 2. sort is
+							// stable, so each team keeps its sign-up order.
+							.sort((a, b) => a.team_id - b.team_id)
 							.map((p) => (
 								<div key={p.player_id} className="voting-row">
 									<span className="voting-name">{p.preferred_name}</span>
