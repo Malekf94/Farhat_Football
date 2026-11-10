@@ -10,6 +10,7 @@ import { useCurrentPlayer } from "../../hooks/useCurrentPlayer";
 import { useMyHosts } from "../../hooks/useMyHosts";
 import { useHost } from "../../context/HostContext";
 import ConfirmModal from "../../components/ConfirmModal";
+import { venueChangeMessage } from "../../utils/venueChange";
 import { applySuggestedRatings, toSuggestionMap } from "../../utils/ratings";
 
 function IndividualMatch() {
@@ -28,6 +29,7 @@ function IndividualMatch() {
 	const [modal, setModal] = useState(null);
 	const [toast, setToast] = useState(null);
 	const [emailModal, setEmailModal] = useState(false);
+	const [emailDraft, setEmailDraft] = useState("");
 	const navigate = useNavigate();
 
 	const [isEditingMatch, setIsEditingMatch] = useState(false);
@@ -144,6 +146,10 @@ function IndividualMatch() {
 			youtube_links,
 			pitch_id,
 		} = editMatchFields;
+		const newPitch =
+			String(pitch_id) !== String(match.pitch_id)
+				? pitches.find((p) => String(p.pitch_id) === String(pitch_id))
+				: null;
 
 		try {
 			let winningTeam = null;
@@ -164,9 +170,25 @@ function IndividualMatch() {
 			await fetchMatchDetails();
 			setIsEditingMatch(false);
 			showToast("Match details updated.");
+
+			// Players already signed up need to know the venue moved; open the
+			// email modal pre-filled so the admin can review and send it.
+			if (newPitch && playersInMatch.length > 0) {
+				setEmailDraft(
+					venueChangeMessage({
+						match: { match_date: match.match_date, match_time },
+						pitch: newPitch,
+						matchUrl: `www.farhatfootball.co.uk${hostPath(`/matches/${match_id}`)}`,
+					}),
+				);
+				setEmailModal(true);
+			}
 		} catch (error) {
 			console.error("Error updating match details:", error);
-			showToast("Failed to update match details.", "error");
+			showToast(
+				error.response?.data?.error || "Failed to update match details.",
+				"error",
+			);
 		}
 	};
 
@@ -545,7 +567,14 @@ function IndividualMatch() {
 			<div>
 				{isAdmin && <button onClick={handleBalanceTeams}>Balance Teams</button>}
 				{isAdmin && (
-					<button onClick={() => setEmailModal(true)}>Email Players</button>
+					<button
+						onClick={() => {
+							setEmailDraft("");
+							setEmailModal(true);
+						}}
+					>
+						Email Players
+					</button>
 				)}
 				{isAdmin && matchFinished && (
 					<button onClick={handleUseAllSuggested}>
@@ -722,6 +751,7 @@ function IndividualMatch() {
 			{emailModal && (
 				<EmailModal
 					matchId={match_id}
+					initialMessage={emailDraft}
 					showToast={showToast}
 					onClose={() => setEmailModal(false)}
 				/>
@@ -736,8 +766,8 @@ function IndividualMatch() {
 	);
 }
 
-function EmailModal({ matchId, showToast, onClose }) {
-	const [message, setMessage] = useState("");
+function EmailModal({ matchId, initialMessage = "", showToast, onClose }) {
+	const [message, setMessage] = useState(initialMessage);
 	const [sending, setSending] = useState(false);
 
 	const templates = [
@@ -1239,6 +1269,7 @@ EditMatchForm.propTypes = {
 
 EmailModal.propTypes = {
 	matchId: PropTypes.string.isRequired,
+	initialMessage: PropTypes.string,
 	showToast: PropTypes.func.isRequired,
 	onClose: PropTypes.func.isRequired,
 };
