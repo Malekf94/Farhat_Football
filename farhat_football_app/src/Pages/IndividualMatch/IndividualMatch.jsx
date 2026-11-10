@@ -29,7 +29,7 @@ function IndividualMatch() {
 	const [modal, setModal] = useState(null);
 	const [toast, setToast] = useState(null);
 	const [emailModal, setEmailModal] = useState(false);
-	const [emailDraft, setEmailDraft] = useState("");
+	const [emailDraft, setEmailDraft] = useState({});
 	const navigate = useNavigate();
 
 	const [isEditingMatch, setIsEditingMatch] = useState(false);
@@ -174,13 +174,14 @@ function IndividualMatch() {
 			// Players already signed up need to know the venue moved; open the
 			// email modal pre-filled so the admin can review and send it.
 			if (newPitch && playersInMatch.length > 0) {
-				setEmailDraft(
-					venueChangeMessage({
+				setEmailDraft({
+					subject: "Venue change ⚽",
+					message: venueChangeMessage({
 						match: { match_date: match.match_date, match_time },
 						pitch: newPitch,
 						matchUrl: `www.farhatfootball.co.uk${hostPath(`/matches/${match_id}`)}`,
 					}),
-				);
+				});
 				setEmailModal(true);
 			}
 		} catch (error) {
@@ -569,7 +570,7 @@ function IndividualMatch() {
 				{isAdmin && (
 					<button
 						onClick={() => {
-							setEmailDraft("");
+							setEmailDraft({});
 							setEmailModal(true);
 						}}
 					>
@@ -751,7 +752,8 @@ function IndividualMatch() {
 			{emailModal && (
 				<EmailModal
 					matchId={match_id}
-					initialMessage={emailDraft}
+					initialMessage={emailDraft.message}
+					subject={emailDraft.subject}
 					showToast={showToast}
 					onClose={() => setEmailModal(false)}
 				/>
@@ -766,7 +768,7 @@ function IndividualMatch() {
 	);
 }
 
-function EmailModal({ matchId, initialMessage = "", showToast, onClose }) {
+function EmailModal({ matchId, initialMessage = "", subject, showToast, onClose }) {
 	const [message, setMessage] = useState(initialMessage);
 	const [sending, setSending] = useState(false);
 
@@ -782,6 +784,7 @@ function EmailModal({ matchId, initialMessage = "", showToast, onClose }) {
 		try {
 			await privateApi.post(`/api/v1/matches/${matchId}/notify-players`, {
 				message,
+				subject,
 			});
 			showToast("Emails sent successfully!");
 			onClose();
@@ -1270,6 +1273,7 @@ EditMatchForm.propTypes = {
 EmailModal.propTypes = {
 	matchId: PropTypes.string.isRequired,
 	initialMessage: PropTypes.string,
+	subject: PropTypes.string,
 	showToast: PropTypes.func.isRequired,
 	onClose: PropTypes.func.isRequired,
 };

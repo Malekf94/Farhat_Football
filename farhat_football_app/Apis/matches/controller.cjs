@@ -368,11 +368,15 @@ const deleteMatch = async (req, res) => {
 
 const notifyPlayers = async (req, res) => {
 	const { match_id } = req.params;
-	const { message } = req.body;
+	const { message, subject } = req.body;
 
 	if (!message || message.trim() === "") {
 		return res.status(400).json({ error: "A message is required." });
 	}
+	const emailSubject =
+		typeof subject === "string" && subject.trim()
+			? subject.trim().slice(0, 100)
+			: "Match Day! ⚽";
 
 	try {
 		const result = await pool.query(matchQueries.getEmailsByMatch, [match_id]);
@@ -390,7 +394,7 @@ const notifyPlayers = async (req, res) => {
 		for (const { email } of recipients) {
 			try {
 				await brevo.transactionalEmails.sendTransacEmail({
-					subject: "Match Day! ⚽",
+					subject: emailSubject,
 					htmlContent: `
                         <html>
                             <body>
