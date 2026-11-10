@@ -32,7 +32,8 @@ const updateMatch = `
       number_of_players = COALESCE($3, number_of_players),
       price = COALESCE($4, price),
       youtube_links = COALESCE($5, youtube_links),
-      winning_team = COALESCE($6, winning_team)
+      winning_team = COALESCE($6, winning_team),
+      pitch_id = COALESCE($8, pitch_id)
   WHERE match_id = $7
   RETURNING *;
 `;
@@ -57,7 +58,7 @@ SELECT match_status FROM matches WHERE match_id = $1
 // concurrent finalisations would otherwise both see an unfinished status and
 // both charge the roster.
 const lockMatchForUpdate = `
-SELECT match_status FROM matches WHERE match_id = $1 FOR UPDATE
+SELECT match_status, pitch_id FROM matches WHERE match_id = $1 FOR UPDATE
 `;
 const removeReserves = `
 DELETE FROM match_players WHERE match_id = $1 AND team_id = 0

@@ -39,7 +39,9 @@ function IndividualMatch() {
 		number_of_players: "",
 		price: "",
 		youtube_links: "",
+		pitch_id: "",
 	});
+	const [pitches, setPitches] = useState([]);
 	const [editedPlayerStats, setEditedPlayerStats] = useState({});
 	const [myVotes, setMyVotes] = useState({}); // ratee_id -> rating
 	const [votesSubmitted, setVotesSubmitted] = useState(false);
@@ -75,11 +77,20 @@ function IndividualMatch() {
 				number_of_players: matchData.number_of_players,
 				price: matchData.price,
 				youtube_links: matchData.youtube_links || "",
+				pitch_id: matchData.pitch_id,
 			});
 		} catch (error) {
 			console.error("Error fetching match or pitch details:", error);
 		}
 	}, [match_id, playerId]);
+
+	useEffect(() => {
+		if (!isEditingMatch || pitches.length > 0) return;
+		privateApi
+			.get("/api/v1/pitches/")
+			.then((response) => setPitches(response.data))
+			.catch((error) => console.error("Error fetching pitches:", error));
+	}, [isEditingMatch, pitches.length]);
 
 	const fetchPlayersInMatch = useCallback(() => {
 		if (!playerId) return;
@@ -125,8 +136,14 @@ function IndividualMatch() {
 	}, [playerId]);
 
 	const handleSaveMatch = async () => {
-		const { match_status, match_time, number_of_players, price, youtube_links } =
-			editMatchFields;
+		const {
+			match_status,
+			match_time,
+			number_of_players,
+			price,
+			youtube_links,
+			pitch_id,
+		} = editMatchFields;
 
 		try {
 			let winningTeam = null;
@@ -140,6 +157,7 @@ function IndividualMatch() {
 				price: parseFloat(price) || null,
 				youtube_links: youtube_links || null,
 				winning_team: winningTeam,
+				pitch_id: parseInt(pitch_id, 10) || null,
 			});
 
 			setMatch(response.data[0]);
@@ -561,6 +579,7 @@ function IndividualMatch() {
 						editMatchFields={editMatchFields}
 						setEditMatchFields={setEditMatchFields}
 						handleSaveMatch={handleSaveMatch}
+						pitches={pitches}
 					/>
 				) : (
 					<MatchDetails
@@ -842,9 +861,32 @@ function EditMatchForm({
 	editMatchFields,
 	setEditMatchFields,
 	handleSaveMatch,
+	pitches,
 }) {
 	return (
 		<>
+			<label>
+				Pitch:
+				<select
+					name="pitch_id"
+					value={editMatchFields.pitch_id}
+					onChange={(e) =>
+						setEditMatchFields({
+							...editMatchFields,
+							pitch_id: e.target.value,
+						})
+					}
+				>
+					{pitches.length === 0 && (
+						<option value={editMatchFields.pitch_id}>Loading pitches…</option>
+					)}
+					{pitches.map((p) => (
+						<option key={p.pitch_id} value={p.pitch_id}>
+							{p.pitch_name}
+						</option>
+					))}
+				</select>
+			</label>
 			<label>
 				Status:
 				<select
@@ -1183,9 +1225,16 @@ EditMatchForm.propTypes = {
 		]),
 		price: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 		youtube_links: PropTypes.string,
+		pitch_id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 	}),
 	setEditMatchFields: PropTypes.func.isRequired,
 	handleSaveMatch: PropTypes.func.isRequired,
+	pitches: PropTypes.arrayOf(
+		PropTypes.shape({
+			pitch_id: PropTypes.number,
+			pitch_name: PropTypes.string,
+		}),
+	).isRequired,
 };
 
 EmailModal.propTypes = {
