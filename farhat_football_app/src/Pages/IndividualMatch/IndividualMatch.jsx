@@ -10,6 +10,7 @@ import { useCurrentPlayer } from "../../hooks/useCurrentPlayer";
 import { useMyHosts } from "../../hooks/useMyHosts";
 import { useHost } from "../../context/HostContext";
 import ConfirmModal from "../../components/ConfirmModal";
+import { venueChangeMessage } from "../../utils/venueChange";
 import { applySuggestedRatings, toSuggestionMap } from "../../utils/ratings";
 
 function IndividualMatch() {
@@ -28,6 +29,7 @@ function IndividualMatch() {
 	const [modal, setModal] = useState(null);
 	const [toast, setToast] = useState(null);
 	const [emailModal, setEmailModal] = useState(false);
+	const [emailDraft, setEmailDraft] = useState({});
 	const navigate = useNavigate();
 
 	const [isEditingMatch, setIsEditingMatch] = useState(false);
@@ -39,7 +41,9 @@ function IndividualMatch() {
 		number_of_players: "",
 		price: "",
 		youtube_links: "",
+		pitch_id: "",
 	});
+	const [pitches, setPitches] = useState([]);
 	const [editedPlayerStats, setEditedPlayerStats] = useState({});
 	const [myVotes, setMyVotes] = useState({}); // ratee_id -> rating
 	const [votesSubmitted, setVotesSubmitted] = useState(false);
@@ -75,11 +79,20 @@ function IndividualMatch() {
 				number_of_players: matchData.number_of_players,
 				price: matchData.price,
 				youtube_links: matchData.youtube_links || "",
+				pitch_id: matchData.pitch_id,
 			});
 		} catch (error) {
 			console.error("Error fetching match or pitch details:", error);
 		}
 	}, [match_id, playerId]);
+
+	useEffect(() => {
+		if (!isEditingMatch || pitches.length > 0) return;
+		privateApi
+			.get("/api/v1/pitches/")
+			.then((response) => setPitches(response.data))
+			.catch((error) => console.error("Error fetching pitches:", error));
+	}, [isEditingMatch, pitches.length]);
 
 	const fetchPlayersInMatch = useCallback(() => {
 		if (!playerId) return;
@@ -125,8 +138,18 @@ function IndividualMatch() {
 	}, [playerId]);
 
 	const handleSaveMatch = async () => {
-		const { match_status, match_time, number_of_players, price, youtube_links } =
-			editMatchFields;
+		const {
+			match_status,
+			match_time,
+			number_of_players,
+			price,
+			youtube_links,
+			pitch_id,
+		} = editMatchFields;
+		const newPitch =
+			String(pitch_id) !== String(match.pitch_id)
+				? pitches.find((p) => String(p.pitch_id) === String(pitch_id))
+				: null;
 
 		try {
 			let winningTeam = null;
@@ -140,15 +163,33 @@ function IndividualMatch() {
 				price: parseFloat(price) || null,
 				youtube_links: youtube_links || null,
 				winning_team: winningTeam,
+				pitch_id: parseInt(pitch_id, 10) || null,
 			});
 
 			setMatch(response.data[0]);
 			await fetchMatchDetails();
 			setIsEditingMatch(false);
 			showToast("Match details updated.");
+
+			// Players already signed up need to know the venue moved; open the
+			// email modal pre-filled so the admin can review and send it.
+			if (newPitch && playersInMatch.length > 0) {
+				setEmailDraft({
+					subject: "Venue change ⚽",
+					message: venueChangeMessage({
+						match: { match_date: match.match_date, match_time },
+						pitch: newPitch,
+						matchUrl: `www.farhatfootball.co.uk${hostPath(`/matches/${match_id}`)}`,
+					}),
+				});
+				setEmailModal(true);
+			}
 		} catch (error) {
 			console.error("Error updating match details:", error);
-			showToast("Failed to update match details.", "error");
+			showToast(
+				error.response?.data?.error || "Failed to update match details.",
+				"error",
+			);
 		}
 	};
 
@@ -527,7 +568,14 @@ function IndividualMatch() {
 			<div>
 				{isAdmin && <button onClick={handleBalanceTeams}>Balance Teams</button>}
 				{isAdmin && (
-					<button onClick={() => setEmailModal(true)}>Email Players</button>
+					<button
+						onClick={() => {
+							setEmailDraft({});
+							setEmailModal(true);
+						}}
+					>
+						Email Players
+					</button>
 				)}
 				{isAdmin && matchFinished && (
 					<button onClick={handleUseAllSuggested}>
@@ -561,6 +609,7 @@ function IndividualMatch() {
 						editMatchFields={editMatchFields}
 						setEditMatchFields={setEditMatchFields}
 						handleSaveMatch={handleSaveMatch}
+						pitches={pitches}
 					/>
 				) : (
 					<MatchDetails
@@ -703,6 +752,8 @@ function IndividualMatch() {
 			{emailModal && (
 				<EmailModal
 					matchId={match_id}
+					initialMessage={emailDraft.message}
+					subject={emailDraft.subject}
 					showToast={showToast}
 					onClose={() => setEmailModal(false)}
 				/>
@@ -717,8 +768,8 @@ function IndividualMatch() {
 	);
 }
 
-function EmailModal({ matchId, showToast, onClose }) {
-	const [message, setMessage] = useState("");
+function EmailModal({ matchId, initialMessage = "", subject, showToast, onClose }) {
+	const [message, setMessage] = useState(initialMessage);
 	const [sending, setSending] = useState(false);
 
 	const templates = [
@@ -733,6 +784,7 @@ function EmailModal({ matchId, showToast, onClose }) {
 		try {
 			await privateApi.post(`/api/v1/matches/${matchId}/notify-players`, {
 				message,
+				subject,
 			});
 			showToast("Emails sent successfully!");
 			onClose();
@@ -842,9 +894,32 @@ function EditMatchForm({
 	editMatchFields,
 	setEditMatchFields,
 	handleSaveMatch,
+	pitches,
 }) {
 	return (
 		<>
+			<label>
+				Pitch:
+				<select
+					name="pitch_id"
+					value={editMatchFields.pitch_id}
+					onChange={(e) =>
+						setEditMatchFields({
+							...editMatchFields,
+							pitch_id: e.target.value,
+						})
+					}
+				>
+					{pitches.length === 0 && (
+						<option value={editMatchFields.pitch_id}>Loading pitches…</option>
+					)}
+					{pitches.map((p) => (
+						<option key={p.pitch_id} value={p.pitch_id}>
+							{p.pitch_name}
+						</option>
+					))}
+				</select>
+			</label>
 			<label>
 				Status:
 				<select
@@ -1183,13 +1258,22 @@ EditMatchForm.propTypes = {
 		]),
 		price: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 		youtube_links: PropTypes.string,
+		pitch_id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 	}),
 	setEditMatchFields: PropTypes.func.isRequired,
 	handleSaveMatch: PropTypes.func.isRequired,
+	pitches: PropTypes.arrayOf(
+		PropTypes.shape({
+			pitch_id: PropTypes.number,
+			pitch_name: PropTypes.string,
+		}),
+	).isRequired,
 };
 
 EmailModal.propTypes = {
 	matchId: PropTypes.string.isRequired,
+	initialMessage: PropTypes.string,
+	subject: PropTypes.string,
 	showToast: PropTypes.func.isRequired,
 	onClose: PropTypes.func.isRequired,
 };

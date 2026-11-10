@@ -213,6 +213,7 @@ const updateMatch = async (req, res) => {
 		price,
 		youtube_links,
 		winning_team,
+		pitch_id,
 	} = req.body;
 
 	// Charges and the status change commit together on ONE connection. The
@@ -233,9 +234,28 @@ const updateMatch = async (req, res) => {
 			return res.status(404).json({ error: "Match not found." });
 		}
 		const currentStatus = currentStatusResult.rows[0].match_status;
+		const finishedStatuses = ["completed", "friendly"];
+
+		// The edit form always sends the current pitch, so only a different one
+		// counts as a move. matches.pitch_id has no foreign key, hence the lookup.
+		const pitchChanging =
+			pitch_id != null &&
+			Number(pitch_id) !== currentStatusResult.rows[0].pitch_id;
+		if (pitchChanging) {
+			if (finishedStatuses.includes(currentStatus)) {
+				await client.query("ROLLBACK");
+				return res
+					.status(409)
+					.json({ error: "A finalised match cannot be moved to another pitch." });
+			}
+			const pitchResult = await client.query(matchQueries.getPitchPrice, [pitch_id]);
+			if (pitchResult.rows.length === 0) {
+				await client.query("ROLLBACK");
+				return res.status(404).json({ error: "Pitch not found." });
+			}
+		}
 
 		// Charge players when match is finalised (completed or friendly)
-		const finishedStatuses = ["completed", "friendly"];
 		if (!finishedStatuses.includes(currentStatus) && finishedStatuses.includes(match_status)) {
 			// Remove reserves
 			await client.query(matchQueries.removeReserves, [match_id]);
@@ -271,6 +291,7 @@ const updateMatch = async (req, res) => {
 			youtube_links,
 			winning_team,
 			match_id,
+			pitchChanging ? pitch_id : null,
 		]);
 
 		await client.query("COMMIT");
@@ -347,11 +368,15 @@ const deleteMatch = async (req, res) => {
 
 const notifyPlayers = async (req, res) => {
 	const { match_id } = req.params;
-	const { message } = req.body;
+	const { message, subject } = req.body;
 
 	if (!message || message.trim() === "") {
 		return res.status(400).json({ error: "A message is required." });
 	}
+	const emailSubject =
+		typeof subject === "string" && subject.trim()
+			? subject.trim().slice(0, 100)
+			: "Match Day! ⚽";
 
 	try {
 		const result = await pool.query(matchQueries.getEmailsByMatch, [match_id]);
@@ -369,7 +394,7 @@ const notifyPlayers = async (req, res) => {
 		for (const { email } of recipients) {
 			try {
 				await brevo.transactionalEmails.sendTransacEmail({
-					subject: "Match Day! ⚽",
+					subject: emailSubject,
 					htmlContent: `
                         <html>
                             <body>
